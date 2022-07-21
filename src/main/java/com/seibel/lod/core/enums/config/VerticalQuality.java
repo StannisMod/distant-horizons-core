@@ -44,7 +44,7 @@ public enum VerticalQuality
 	),
 	
 	ULTRA(
-			new int[] { 16, 8, 4, 2, 2, 2, 2, 1, 1, 1, 1 },
+			new int[] { 16, 16, 8, 8, 4, 4, 4, 1, 1, 1, 1 },
 			12
 	);
 	

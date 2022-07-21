@@ -245,7 +245,11 @@ public class DataPointUtil
 		long alpha = getAlpha(dataPoint);
 		return (int) (((dataPoint >>> COLOR_SHIFT) & COLOR_MASK) | (alpha << (ALPHA_SHIFT-COLOR_SHIFT)));
 	}
-	
+
+	public static boolean isTransparent(long dataPoint){
+		return getAlpha(dataPoint) < 255;
+	}
+
 	/** This is used to convert a dataPoint to string (useful for the print function) */
 	@SuppressWarnings("unused")
 	public static String toString(long dataPoint)

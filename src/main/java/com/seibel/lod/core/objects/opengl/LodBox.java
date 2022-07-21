@@ -38,13 +38,20 @@ public class LodBox
 		short maxY = (short) (y + ySize);
 		short maxZ = (short) (z + zSize);
 		byte skyLightTop = skyLight;
+		boolean isTransparent = ColorUtil.getAlpha(color)<255;
+		boolean isTopTransparent = DataPointUtil.isTransparent(topData);
+		boolean isBotTransparent = DataPointUtil.isTransparent(botData);
 		byte skyLightBot = DataPointUtil.doesItExist(botData) ? DataPointUtil.getLightSky(botData) : 0;
-		
 		// Up direction case
-		boolean skipTop = DataPointUtil.doesItExist(topData) && DataPointUtil.getDepth(topData) == maxY;// &&
+		boolean skipTop = DataPointUtil.doesItExist(topData) && (
+				(isTransparent && (DataPointUtil.getDepth(topData) == maxY)) ||
+						(!isTransparent && (DataPointUtil.getDepth(topData) == maxY) && !isTopTransparent));
+		boolean skipBot = DataPointUtil.doesItExist(botData) && (
+				(isTransparent && (DataPointUtil.getDepth(botData) == maxY)) ||
+						(!isTransparent && (DataPointUtil.getDepth(botData) == maxY) && !isBotTransparent));
 		// DataPointUtil.getAlpha(singleAdjDataPoint)
 		// == 255;
-		boolean skipBot = DataPointUtil.doesItExist(botData) && DataPointUtil.getHeight(botData) == y;// &&
+		//boolean skipBot = DataPointUtil.doesItExist(botData) && DataPointUtil.getHeight(botData) == y;// &&
 		// DataPointUtil.getAlpha(singleAdjDataPoint)
 		// == 255;
 		
@@ -148,6 +155,8 @@ public class LodBox
 	private static void makeAdjQuads(LodQuadBuilder builder, long[] adjData, LodDirection direction, short x, short y,
 			short z, short w0, short wy, int color, int overlapColor, byte upSkyLight, byte blockLight)
 	{
+
+		boolean isTransparent = ColorUtil.getAlpha(color)<255;
 		color = ColorUtil.applyShade(color, MC.getShade(direction));
 		long[] dataPoint = adjData;
 		if (dataPoint == null || DataPointUtil.isVoid(dataPoint[0]))
@@ -164,14 +173,13 @@ public class LodBox
 		
 		// TODO transparency ocean floor fix
 		// boolean isOpaque = ((colorMap[0] >> 24) & 0xFF) == 255;
-		for (i = 0; i < dataPoint.length && DataPointUtil.doesItExist(adjData[i])
-				&& !DataPointUtil.isVoid(adjData[i]); i++)
+		for (i = 0; i < dataPoint.length && DataPointUtil.doesItExist(adjData[i]) && !DataPointUtil.isVoid(adjData[i]); i++)
 		{
 			long adjPoint = adjData[i];
-			
+			boolean isAdjTransparent = DataPointUtil.isTransparent(adjPoint);
 			// TODO transparency ocean floor fix
-			// if (isOpaque && DataPointUtil.getAlpha(singleAdjDataPoint) != 255)
-			// continue;
+			if (!isTransparent && isAdjTransparent)
+			continue;
 			
 			short height = DataPointUtil.getHeight(adjPoint);
 			short depth = DataPointUtil.getDepth(adjPoint);

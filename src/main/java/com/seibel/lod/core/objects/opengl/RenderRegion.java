@@ -277,7 +277,7 @@ public class RenderRegion implements AutoCloseable
 	private static void makeLodRenderData(LodQuadBuilder quadBuilder, LodRegion region, LodRegion[] adjRegions, int playerX,
 			int playerZ) {
 		byte minDetail = region.getMinDetailLevel();
-		
+
 		// Variable initialization
 		DebugMode debugMode = CONFIG.client().advanced().debugging().getDebugMode();
 
@@ -292,7 +292,7 @@ public class RenderRegion implements AutoCloseable
 			byte detailLevel = posToRender.getNthDetailLevel(index);
 			int posX = posToRender.getNthPosX(index);
 			int posZ = posToRender.getNthPosZ(index);
-			
+
 			// TODO: In the future, We don't need to ignore rendered chunks! Just build it
 			// and leave it for the renderer to decide!
 			// We don't want to render this fake block if
@@ -311,7 +311,7 @@ public class RenderRegion implements AutoCloseable
 			if (posData == null || posData.length == 0 || !DataPointUtil.doesItExist(posData[0])
 					|| DataPointUtil.isVoid(posData[0]))
 				continue;
-			
+
 			long[][][] adjData = new long[4][][];
 			boolean[] adjUseBlack = new boolean[4];
 
@@ -321,79 +321,83 @@ public class RenderRegion implements AutoCloseable
 			// border when we have transparent block like water or glass
 			// to avoid having a "darker border" underground
 			// Arrays.fill(adjShadeDisabled, false);
-			
+
 			// We check every adj block in each direction
-			
+
 			// If the adj block is rendered in the same region and with same detail
 			// and is positioned in a place that is not going to be rendered by vanilla game
 			// then we can set this position as adj
 			// We avoid cases where the adjPosition is in player chunk while the position is
 			// not
 			// to always have a wall underwater
-			for (LodDirection lodDirection : LodDirection.ADJ_DIRECTIONS) {
-				try {
-					int xAdj = posX + lodDirection.getNormal().x;
-					int zAdj = posZ + lodDirection.getNormal().z;
-					int chunkXAdj = LevelPosUtil.getChunkPos(detailLevel, xAdj);
-					int chunkZAdj = LevelPosUtil.getChunkPos(detailLevel, zAdj);
-					if (chunkGrid != null && chunkGrid.get(chunkXAdj, chunkZAdj)!=null) {
-						adjUseBlack[lodDirection.ordinal()-2] = true;
+			for (int transparency = 0; transparency < 2; transparency++)
+			{
+				for (LodDirection lodDirection : LodDirection.ADJ_DIRECTIONS) {
+					try {
+						int xAdj = posX + lodDirection.getNormal().x;
+						int zAdj = posZ + lodDirection.getNormal().z;
+						int chunkXAdj = LevelPosUtil.getChunkPos(detailLevel, xAdj);
+						int chunkZAdj = LevelPosUtil.getChunkPos(detailLevel, zAdj);
+						if (chunkGrid != null && chunkGrid.get(chunkXAdj, chunkZAdj) != null) {
+							adjUseBlack[lodDirection.ordinal() - 2] = true;
+						}
+
+						boolean isCrossRegionBoundary = LevelPosUtil.getRegion(detailLevel, xAdj) != region.regionPosX ||
+								LevelPosUtil.getRegion(detailLevel, zAdj) != region.regionPosZ;
+
+						LodRegion adjRegion;
+						byte adjDetail;
+						int childXAdj = xAdj * 2 + (lodDirection.getNormal().x < 0 ? 1 : 0);
+						int childZAdj = zAdj * 2 + (lodDirection.getNormal().z < 0 ? 1 : 0);
+
+						//we check if the detail of the adjPos is equal to the correct one (region border fix)
+						//or if the detail is wrong by 1 value (region+circle border fix)
+						if (isCrossRegionBoundary) {
+							//we compute at which detail that position should be rendered
+							adjRegion = adjRegions[lodDirection.ordinal() - 2];
+							if (adjRegion == null) continue;
+							adjDetail = adjRegion.getRenderDetailLevelAt(playerX, playerZ, detailLevel, xAdj, zAdj);
+						} else {
+							adjRegion = region;
+							if (posToRender.contains(detailLevel, xAdj, zAdj)) adjDetail = detailLevel;
+							else if (detailLevel > 0 &&
+									posToRender.contains((byte) (detailLevel - 1), childXAdj, childZAdj))
+								adjDetail = (byte) (detailLevel - 1);
+							else if (detailLevel < LodUtil.REGION_DETAIL_LEVEL &&
+									posToRender.contains((byte) (detailLevel + 1), xAdj / 2, zAdj / 2))
+								adjDetail = (byte) (detailLevel + 1);
+							else continue;
+						}
+
+						if (adjDetail < detailLevel - 1 || adjDetail > detailLevel + 1) {
+							continue;
+						}
+
+						if (adjDetail == detailLevel || adjDetail > detailLevel) {
+							adjData[lodDirection.ordinal() - 2] = new long[1][];
+							adjData[lodDirection.ordinal() - 2][0] = adjRegion.getAllData(adjDetail,
+									LevelPosUtil.convert(detailLevel, xAdj, adjDetail),
+									LevelPosUtil.convert(detailLevel, zAdj, adjDetail));
+						} else {
+							adjData[lodDirection.ordinal() - 2] = new long[2][];
+							adjData[lodDirection.ordinal() - 2][0] = adjRegion.getAllData(adjDetail,
+									childXAdj, childZAdj);
+							adjData[lodDirection.ordinal() - 2][1] = adjRegion.getAllData(adjDetail,
+									childXAdj + (lodDirection.getAxis() == LodDirection.Axis.X ? 0 : 1),
+									childZAdj + (lodDirection.getAxis() == LodDirection.Axis.Z ? 0 : 1));
+						}
+					} catch (RuntimeException e) {
+						EVENT_LOGGER.warn("Failed to get adj data for [{}:{},{}] at [{}]", detailLevel, posX, posZ, lodDirection);
+						EVENT_LOGGER.warn("Detail exception: ", e);
 					}
-
-					boolean isCrossRegionBoundary = LevelPosUtil.getRegion(detailLevel, xAdj) != region.regionPosX ||
-							LevelPosUtil.getRegion(detailLevel, zAdj) != region.regionPosZ;
-
-					LodRegion adjRegion;
-					byte adjDetail;
-					int childXAdj = xAdj*2 + (lodDirection.getNormal().x<0 ? 1 : 0);
-					int childZAdj = zAdj*2 + (lodDirection.getNormal().z<0 ? 1 : 0);
-
-					//we check if the detail of the adjPos is equal to the correct one (region border fix)
-					//or if the detail is wrong by 1 value (region+circle border fix)
-					if (isCrossRegionBoundary) {
-						//we compute at which detail that position should be rendered
-						adjRegion = adjRegions[lodDirection.ordinal()-2];
-						if(adjRegion == null) continue;
-						adjDetail = adjRegion.getRenderDetailLevelAt(playerX, playerZ, detailLevel, xAdj, zAdj);
-					} else {
-						adjRegion = region;
-						if (posToRender.contains(detailLevel, xAdj, zAdj)) adjDetail = detailLevel;
-						else if (detailLevel>0 &&
-								posToRender.contains((byte) (detailLevel-1), childXAdj, childZAdj))
-							adjDetail = (byte) (detailLevel-1);
-						else if (detailLevel<LodUtil.REGION_DETAIL_LEVEL &&
-								posToRender.contains((byte) (detailLevel+1), xAdj/2, zAdj/2))
-							adjDetail = (byte) (detailLevel+1);
-						else continue;
-					}
-
-					if (adjDetail < detailLevel-1 || adjDetail > detailLevel+1) {
-						continue;
-					}
-
-					if (adjDetail == detailLevel || adjDetail > detailLevel) {
-						adjData[lodDirection.ordinal() - 2] = new long[1][];
-						adjData[lodDirection.ordinal() - 2][0] = adjRegion.getAllData(adjDetail,
-								LevelPosUtil.convert(detailLevel, xAdj, adjDetail),
-								LevelPosUtil.convert(detailLevel, zAdj, adjDetail));
-					} else {
-						adjData[lodDirection.ordinal() - 2] = new long[2][];
-						adjData[lodDirection.ordinal() - 2][0] = adjRegion.getAllData(adjDetail,
-								childXAdj, childZAdj);
-						adjData[lodDirection.ordinal() - 2][1] = adjRegion.getAllData(adjDetail,
-								childXAdj + (lodDirection.getAxis()==LodDirection.Axis.X ? 0 : 1),
-								childZAdj + (lodDirection.getAxis()==LodDirection.Axis.Z ? 0 : 1));
-					}
-				} catch (RuntimeException e) {
-					EVENT_LOGGER.warn("Failed to get adj data for [{}:{},{}] at [{}]", detailLevel, posX, posZ, lodDirection);
-					EVENT_LOGGER.warn("Detail exception: ", e);
 				}
-			}
-			
+
 			// We render every vertical lod present in this position
 			// We only stop when we find a block that is void or non-existing block
 			for (int i = 0; i < posData.length; i++) {
 				long data = posData[i];
+				if (DataPointUtil.isTransparent(data) == (transparency == 1))
+					continue;
 				// If the data is not renderable (Void or non-existing) we stop since there is
 				// no data left in this position
 				if (DataPointUtil.isVoid(data) || !DataPointUtil.doesItExist(data))
@@ -407,8 +411,8 @@ public class RenderRegion implements AutoCloseable
 						LevelPosUtil.getRegionModule(detailLevel, posX),
 						LevelPosUtil.getRegionModule(detailLevel, posZ), quadBuilder, debugMode);
 			}
-
-		} // for pos to in list to render
+		}
+	}// for pos to in list to render
 			// the thread executed successfully
 		// Merge all quads
 		quadBuilder.mergeQuads();
