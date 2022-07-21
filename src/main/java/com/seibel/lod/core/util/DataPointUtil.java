@@ -391,7 +391,8 @@ public class DataPointUtil
 	public static long[] mergeMultiData(long[] dataToMerge, int inputVerticalData, int maxVerticalData)
 	{
 		int size = dataToMerge.length / inputVerticalData;
-
+		int[] indeces = new int[size];
+		boolean[] increaseIndex = new boolean[size];
 		// We initialize the arrays that are going to be used
 		int heightAndDepthLength = (MAX_WORLD_Y_SIZE / 2 + 16) * 2;
 		short[] heightAndDepth = tLocalHeightAndDepth.get();
@@ -422,6 +423,102 @@ public class DataPointUtil
 		int ii;
 		int dataIndex;
 		//We collect the indexes of the data, ordered by the depth
+
+		//this check is used only to see if we have checked all the values in the array
+		boolean stillDataToCheck = true;
+		long tempData;
+		while(!stillDataToCheck)
+		{
+			boolean connected = true;
+			int topPosition;
+			int newHeight = -10000;
+			int newDepth = -10000;
+			int tempHeight;
+			int tempDepth;
+			while(connected)
+			{
+				for (int index = 0; index < size; index++)
+				{
+					if(indeces[index] >= inputVerticalData)
+					{
+						continue;
+					}
+					tempData = dataToMerge[index * inputVerticalData + indeces[0]];
+					if(DataPointUtil.isVoid(tempData) || !DataPointUtil.doesItExist(tempData)) {
+						continue;
+					}
+					tempHeight = DataPointUtil.getHeight(tempData);
+					tempDepth = DataPointUtil.getDepth(tempData);
+					if(tempDepth >= newHeight) {
+						//First case
+						//the column we are checking is higher than the current column
+						newDepth = tempDepth;
+						newHeight = tempHeight;
+						Arrays.fill(increaseIndex, false);
+						increaseIndex[index] = true;
+					}else if((tempHeight >= newDepth) && (tempHeight <= newHeight)){
+						//the column we are checking is contained in the current column
+						//we simply increase this index
+						increaseIndex[index] = true;
+					}else if(tempHeight > newDepth){
+						//the column we are checking touches the current column from the bottom
+						//for this reason we extend what's below
+						newDepth = tempDepth;
+						increaseIndex[index] = true;
+					}else if(tempDepth < newHeight){
+						//the column we are checking touches the current column from the top
+						//for this reason we extend the top
+						newHeight = tempHeight;
+						increaseIndex[index] = true;
+					}
+				}
+
+				//if we added any new data there is a chance that we could add more
+				//for this reason we would continue
+				//if no data is added than the colmn hasn't changed.
+				//for this reason we can start working on a new column
+				connected = false;
+				for (int index = 0; index < size; index++)
+				{
+					if(increaseIndex[index])
+					{
+						connected = true;
+						indeces[index]++;
+					}
+				}
+			}
+
+			if(newDepth < newHeight)
+			{
+				heightAndDepth[count*2] = (short) newHeight;
+				heightAndDepth[count*2+1] = (short) newDepth;
+				count++;
+			}
+
+			//Here we check the condition
+			stillDataToCheck = false;
+			for (int index = 0; index < size; index++)
+			{
+				if(indeces[index] < inputVerticalData)
+				{
+					tempData = dataToMerge[index * inputVerticalData + indeces[0]];
+					if(!DataPointUtil.isVoid(tempData) && DataPointUtil.doesItExist(tempData)) {
+						stillDataToCheck = true;
+					}
+				}
+			}
+		}
+
+		if(count == 0){
+			allVoid = true;
+			for (int index = 0; index < size; index++)
+			{
+				long data = dataToMerge[index * inputVerticalData];
+				allVoid = allVoid && DataPointUtil.isVoid(data);
+			}
+			allEmpty = !allVoid;
+		}
+		/*
 		for (int index = 0; index < size; index++)
 		{
 			if (index == 0)
@@ -559,7 +656,6 @@ public class DataPointUtil
 				}
 			}
 		}
-		
 		//We check if there is any data that's not empty or void
 		if (allEmpty)
 			return dataPoint;
@@ -568,6 +664,7 @@ public class DataPointUtil
 			dataPoint[0] = createVoidDataPoint(genMode);
 			return dataPoint;
 		}
+		*/
 		
 		//we limit the vertical portion to maxVerticalData
 		int j = 0;
