@@ -19,7 +19,9 @@
 
 package com.seibel.lod.core.util;
 
+import com.seibel.lod.core.handlers.dependencyInjection.SingletonHandler;
 import com.seibel.lod.core.logging.SpamReducedLogger;
+import com.seibel.lod.core.wrapperInterfaces.minecraft.IMinecraftClientWrapper;
 
 import java.util.Arrays;
 
@@ -425,12 +427,12 @@ public class DataPointUtil
 		//We collect the indexes of the data, ordered by the depth
 
 		//this check is used only to see if we have checked all the values in the array
-		boolean stillDataToCheck = true;
+		boolean stillHasDataToCheck = true;
 		long tempData;
-		while(!stillDataToCheck)
+		while(stillHasDataToCheck)
 		{
+			Arrays.fill(increaseIndex, false);
 			boolean connected = true;
-			int topPosition;
 			int newHeight = -10000;
 			int newDepth = -10000;
 			int tempHeight;
@@ -439,37 +441,35 @@ public class DataPointUtil
 			{
 				for (int index = 0; index < size; index++)
 				{
-					if(indeces[index] >= inputVerticalData)
+					if(indeces[index] < inputVerticalData)
 					{
-						continue;
-					}
-					tempData = dataToMerge[index * inputVerticalData + indeces[0]];
-					if(DataPointUtil.isVoid(tempData) || !DataPointUtil.doesItExist(tempData)) {
-						continue;
-					}
-					tempHeight = DataPointUtil.getHeight(tempData);
-					tempDepth = DataPointUtil.getDepth(tempData);
-					if(tempDepth >= newHeight) {
-						//First case
-						//the column we are checking is higher than the current column
-						newDepth = tempDepth;
-						newHeight = tempHeight;
-						Arrays.fill(increaseIndex, false);
-						increaseIndex[index] = true;
-					}else if((tempHeight >= newDepth) && (tempHeight <= newHeight)){
-						//the column we are checking is contained in the current column
-						//we simply increase this index
-						increaseIndex[index] = true;
-					}else if(tempHeight > newDepth){
-						//the column we are checking touches the current column from the bottom
-						//for this reason we extend what's below
-						newDepth = tempDepth;
-						increaseIndex[index] = true;
-					}else if(tempDepth < newHeight){
-						//the column we are checking touches the current column from the top
-						//for this reason we extend the top
-						newHeight = tempHeight;
-						increaseIndex[index] = true;
+						tempData = dataToMerge[index * inputVerticalData + indeces[index]];
+						if(!DataPointUtil.isVoid(tempData) && DataPointUtil.doesItExist(tempData)) {
+							tempHeight = DataPointUtil.getHeight(tempData);
+							tempDepth = DataPointUtil.getDepth(tempData);
+							if(tempDepth >= newHeight) {
+								//First case
+								//the column we are checking is higher than the current column
+								newDepth = tempDepth;
+								newHeight = tempHeight;
+								Arrays.fill(increaseIndex, false);
+								increaseIndex[index] = true;
+							}else if((tempDepth >= newDepth) && (tempHeight <= newHeight)){
+								//the column we are checking is contained in the current column
+								//we simply increase this index
+								increaseIndex[index] = true;
+							}else if(tempHeight > newDepth){
+								//the column we are checking touches the current column from the bottom
+								//for this reason we extend what's below
+								newDepth = tempDepth;
+								increaseIndex[index] = true;
+							}else if(tempDepth < newHeight){
+								//the column we are checking touches the current column from the top
+								//for this reason we extend the top
+								newHeight = tempHeight;
+								increaseIndex[index] = true;
+							}
+						}
 					}
 				}
 
@@ -488,26 +488,26 @@ public class DataPointUtil
 				}
 			}
 
-			if(newDepth < newHeight)
+			if(newDepth != newHeight)
 			{
 				heightAndDepth[count*2] = (short) newHeight;
 				heightAndDepth[count*2+1] = (short) newDepth;
 				count++;
 			}
 
-			//Here we check the condition
-			stillDataToCheck = false;
+			//Here we check the condition that makes the loop continue
+			stillHasDataToCheck = false;
 			for (int index = 0; index < size; index++)
 			{
 				if(indeces[index] < inputVerticalData)
 				{
-					tempData = dataToMerge[index * inputVerticalData + indeces[0]];
-					if(!DataPointUtil.isVoid(tempData) && DataPointUtil.doesItExist(tempData)) {
-						stillDataToCheck = true;
-					}
+					tempData = dataToMerge[index * inputVerticalData + indeces[index]];
+					stillHasDataToCheck |= !DataPointUtil.isVoid(tempData) && DataPointUtil.doesItExist(tempData);
 				}
 			}
 		}
+
+		SingletonHandler.get(IMinecraftClientWrapper.class).sendChatMessage(Integer.toString(count));
 
 		if(count == 0){
 			allVoid = true;
@@ -518,144 +518,7 @@ public class DataPointUtil
 			}
 			allEmpty = !allVoid;
 		}
-		/*
-		for (int index = 0; index < size; index++)
-		{
-			if (index == 0)
-			{
-				for (dataIndex = 0; dataIndex < inputVerticalData; dataIndex++)
-				{
-					singleData = dataToMerge[dataIndex];
-					if (doesItExist(singleData))
-					{
-						//genMode = Math.min(genMode, getGenerationMode(singleData));
-						allEmpty = false;
-						if (!isVoid(singleData))
-						{
-							allVoid = false;
-							count++;
-							heightAndDepth[dataIndex * 2] = getHeight(singleData);
-							heightAndDepth[dataIndex * 2 +1] = getDepth(singleData);
-						}
-					}
-					else
-						break;
-				}
-			}
-			else
-			{
-				for (dataIndex = 0; dataIndex < inputVerticalData; dataIndex++)
-				{
-					singleData = dataToMerge[index * inputVerticalData + dataIndex];
-					if (doesItExist(singleData))
-					{
-						//genMode = Math.min(genMode, getGenerationMode(singleData));
-						allEmpty = false;
-						if (!isVoid(singleData))
-						{
-							allVoid = false;
-							depth = getDepth(singleData);
-							height = getHeight(singleData);
-							
-							int botPos = -1;
-							int topPos = -1;
-							//values fall in between and possibly require extension of array
-							boolean botExtend = false;
-							boolean topExtend = false;
-							for (i = 0; i < count; i++)
-							{
-								if (depth < heightAndDepth[i * 2] && depth >= heightAndDepth[i * 2 + 1])
-								{
-									botPos = i;
-									break;
-								}
-								else if (depth < heightAndDepth[i * 2 + 1] && ((i + 1 < count && depth >= heightAndDepth[(i + 1) * 2]) || i + 1 == count))
-								{
-									botPos = i;
-									botExtend = true;
-									break;
-								}
-							}
-							for (i = 0; i < count; i++)
-							{
-								if (height <= heightAndDepth[i * 2] && height > heightAndDepth[i * 2 + 1])
-								{
-									topPos = i;
-									break;
-								}
-								else if (height <= heightAndDepth[i * 2 + 1] && ((i + 1 < count && height > heightAndDepth[(i + 1) * 2]) || i + 1 == count))
-								{
-									topPos = i;
-									topExtend = true;
-									break;
-								}
-							}
-							if (topPos == -1)
-							{
-								if (botPos == -1)
-								{
-									//whole block falls above
-									extendArray(heightAndDepth, 2, 0, 1, count);
-									heightAndDepth[0] = height;
-									heightAndDepth[1] = depth;
-									count++;
-								}
-								else if (!botExtend)
-								{
-									//only top falls above extending it there, while bottom is inside existing
-									shrinkArray(heightAndDepth, 2, 0, botPos, count);
-									heightAndDepth[0] = height;
-									count -= botPos;
-								}
-								else
-								{
-									//top falls between some blocks, extending those as well
-									shrinkArray(heightAndDepth, 2, 0, botPos, count);
-									heightAndDepth[0] = height;
-									heightAndDepth[1] = depth;
-									count -= botPos;
-								}
-							}
-							else if (!topExtend)
-							{
-								if (!botExtend)
-									//both top and bottom are within some exiting blocks, possibly merging them
-									heightAndDepth[topPos * 2 + 1] = heightAndDepth[botPos * 2 + 1];
-								else
-									//top falls between some blocks, extending it there
-									heightAndDepth[topPos * 2 + 1] = depth;
-								shrinkArray(heightAndDepth, 2, topPos + 1, botPos - topPos, count);
-								count -= botPos - topPos;
-							}
-							else
-							{
-								if (!botExtend)
-								{
-									//only top is within some exiting block, extending it
-									topPos++; //to make it easier
-									heightAndDepth[topPos * 2] = height;
-									heightAndDepth[topPos * 2 + 1] = heightAndDepth[botPos * 2 + 1];
-									shrinkArray(heightAndDepth, 2, topPos + 1, botPos - topPos, count);
-									count -= botPos - topPos;
-								}
-								else
-								{
-									//both top and bottom are outside existing blocks
-									shrinkArray(heightAndDepth, 2, topPos + 1, botPos - topPos, count);
-									count -= botPos - topPos;
-									extendArray(heightAndDepth, 2, topPos + 1, 1, count);
-									count++;
-									heightAndDepth[topPos * 2 + 2] = height;
-									heightAndDepth[topPos * 2 + 3] = depth;
-								}
-							}
-						}
-					}
-					else
-						break;
-				}
-			}
-		}
+
 		//We check if there is any data that's not empty or void
 		if (allEmpty)
 			return dataPoint;
@@ -664,7 +527,7 @@ public class DataPointUtil
 			dataPoint[0] = createVoidDataPoint(genMode);
 			return dataPoint;
 		}
-		*/
+
 		
 		//we limit the vertical portion to maxVerticalData
 		int j = 0;
