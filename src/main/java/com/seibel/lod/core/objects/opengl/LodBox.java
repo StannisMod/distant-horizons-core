@@ -179,7 +179,7 @@ public class LodBox
 			boolean isAdjTransparent = DataPointUtil.isTransparent(adjPoint);
 			// TODO transparency ocean floor fix
 			if (!isTransparent && isAdjTransparent)
-			continue;
+				continue;
 			
 			short height = DataPointUtil.getHeight(adjPoint);
 			short depth = DataPointUtil.getDepth(adjPoint);

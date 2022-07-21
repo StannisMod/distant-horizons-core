@@ -330,7 +330,7 @@ public class RenderRegion implements AutoCloseable
 			// We avoid cases where the adjPosition is in player chunk while the position is
 			// not
 			// to always have a wall underwater
-			for (int transparency = 0; transparency < 2; transparency++)
+			for (int transparency = 0; transparency <= 1; transparency++)
 			{
 				for (LodDirection lodDirection : LodDirection.ADJ_DIRECTIONS) {
 					try {
@@ -396,7 +396,7 @@ public class RenderRegion implements AutoCloseable
 			// We only stop when we find a block that is void or non-existing block
 			for (int i = 0; i < posData.length; i++) {
 				long data = posData[i];
-				if (DataPointUtil.isTransparent(data) == (transparency == 1))
+				if (DataPointUtil.isTransparent(data) == (transparency == 0))
 					continue;
 				// If the data is not renderable (Void or non-existing) we stop since there is
 				// no data left in this position

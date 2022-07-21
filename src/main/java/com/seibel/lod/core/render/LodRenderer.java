@@ -270,7 +270,7 @@ public class LodRenderer
 		GL32.glBlendFunc(GL32.GL_SRC_ALPHA, GL32.GL_ONE_MINUS_SRC_ALPHA);
 		GL32.glEnable(GL32.GL_BLEND);
 
-		GL32.glDisable(GL32.GL_BLEND);
+		//GL32.glDisable(GL32.GL_BLEND);
 		GL32.glClear(GL32.GL_DEPTH_BUFFER_BIT);
 
 		/*---------Bind required objects--------*/
