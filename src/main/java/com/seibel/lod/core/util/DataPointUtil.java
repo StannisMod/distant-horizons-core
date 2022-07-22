@@ -703,7 +703,7 @@ public class DataPointUtil
 					//{
 					//	add simplification at the end due to color
 					//}
-					dataPoint[j] = createDataPoint((int) Math.sqrt(tempAlpha), (int) Math.sqrt(tempRed), (int) Math.sqrt(tempGreen), (int) Math.sqrt(tempBlue), height, depth, tempLightSky, tempLightBlock, genMode);
+					dataPoint[j] = createDataPoint(tempAlpha, (int) Math.sqrt(tempRed), (int) Math.sqrt(tempGreen), (int) Math.sqrt(tempBlue), height, depth, tempLightSky, tempLightBlock, genMode);
 				}
 			}
 		}
