@@ -332,7 +332,7 @@ public class RenderRegion implements AutoCloseable
 			// to always have a wall underwater
 
 			/**TODO REMOVE THIS UGLY TRANSPARENCY THING AND MAKE IT MORE SIMPLE*/
-			for (int transparency = 0; transparency <= 0; transparency++)
+			for (int transparency = 0; transparency <= 1; transparency++)
 			{
 				for (LodDirection lodDirection : LodDirection.ADJ_DIRECTIONS) {
 					try {
@@ -398,7 +398,7 @@ public class RenderRegion implements AutoCloseable
 			// We only stop when we find a block that is void or non-existing block
 			for (int i = 0; i < posData.length; i++) {
 				long data = posData[i];
-				if (DataPointUtil.isTransparent(data) == (transparency == 0))
+				if (DataPointUtil.isTransparent(data) == (transparency == 1))
 					continue;
 				// If the data is not renderable (Void or non-existing) we stop since there is
 				// no data left in this position
