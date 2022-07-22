@@ -330,7 +330,9 @@ public class RenderRegion implements AutoCloseable
 			// We avoid cases where the adjPosition is in player chunk while the position is
 			// not
 			// to always have a wall underwater
-			for (int transparency = 0; transparency <= 1; transparency++)
+
+			/**TODO REMOVE THIS UGLY TRANSPARENCY THING AND MAKE IT MORE SIMPLE*/
+			for (int transparency = 0; transparency <= 0; transparency++)
 			{
 				for (LodDirection lodDirection : LodDirection.ADJ_DIRECTIONS) {
 					try {
