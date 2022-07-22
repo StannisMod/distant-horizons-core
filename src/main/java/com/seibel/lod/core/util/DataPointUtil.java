@@ -393,8 +393,18 @@ public class DataPointUtil
 	public static long[] mergeMultiData(long[] dataToMerge, int inputVerticalData, int maxVerticalData)
 	{
 		int size = dataToMerge.length / inputVerticalData;
+
 		int[] indeces = new int[size];
+		Arrays.fill(indeces,0);
 		boolean[] increaseIndex = new boolean[size];
+		boolean[] indexHandled = new boolean[size];
+		byte genMode = getGenerationMode(dataToMerge[0]);
+		if (genMode == 0) genMode = 1; // FIXME: Hack to make the version 10 genMode never be 0.
+		boolean limited = false;
+		boolean allDefault;
+		long singleData;
+
+
 		// We initialize the arrays that are going to be used
 		int heightAndDepthLength = (MAX_WORLD_Y_SIZE / 2 + 16) * 2;
 		short[] heightAndDepth = tLocalHeightAndDepth.get();
@@ -408,16 +418,30 @@ public class DataPointUtil
 			dataPoint = new long[dataPointLength];
 			tMaxVerticalData.set(dataPoint);
 		} else Arrays.fill(dataPoint, 0);
-		
-		byte genMode = getGenerationMode(dataToMerge[0]);
-		if (genMode == 0) genMode = 1; // FIXME: Hack to make the version 10 genMode never be 0.
+
+
+		//First we check if it's all void or all empty
 		boolean allEmpty = true;
 		boolean allVoid = true;
-		boolean limited = false;
-		boolean allDefault;
-		long singleData;
-		
-		
+		long tempData;
+
+		for (int index = 0; index < size; index++)
+		{
+			tempData = dataToMerge[index * inputVerticalData];
+			allVoid = allVoid && DataPointUtil.isVoid(tempData);
+			allEmpty = allEmpty && !DataPointUtil.doesItExist(tempData);
+		}
+
+		//We check if there is any data that's not empty or void
+		if (allEmpty)
+			return dataPoint;
+		if (allVoid)
+		{
+			dataPoint[0] = createVoidDataPoint(genMode);
+			return dataPoint;
+		}
+
+
 		short depth;
 		short height;
 		int count = 0;
@@ -428,10 +452,14 @@ public class DataPointUtil
 
 		//this check is used only to see if we have checked all the values in the array
 		boolean stillHasDataToCheck = true;
-		long tempData;
+		short prevHeight;
+		short prevDepth;
+
+
+
 		while(stillHasDataToCheck)
 		{
-			Arrays.fill(increaseIndex, false);
+			Arrays.fill(indexHandled, false);
 			boolean connected = true;
 			int newHeight = -10000;
 			int newDepth = -10000;
@@ -439,6 +467,7 @@ public class DataPointUtil
 			int tempDepth;
 			while(connected)
 			{
+				Arrays.fill(increaseIndex, false);
 				for (int index = 0; index < size; index++)
 				{
 					if(indeces[index] < inputVerticalData)
@@ -453,26 +482,42 @@ public class DataPointUtil
 								newDepth = tempDepth;
 								newHeight = tempHeight;
 								Arrays.fill(increaseIndex, false);
+								Arrays.fill(indexHandled, false);
 								increaseIndex[index] = true;
+								indexHandled[index] = true;
 							}else if((tempDepth >= newDepth) && (tempHeight <= newHeight)){
 								//the column we are checking is contained in the current column
 								//we simply increase this index
 								increaseIndex[index] = true;
-							}else if(tempHeight > newDepth){
+								indexHandled[index] = true;
+							}else if(tempHeight > newHeight && tempDepth <= newDepth){
+								newDepth = tempDepth;
+								newHeight = tempHeight;
+								increaseIndex[index] = true;
+								indexHandled[index] = true;
+							}else if(tempHeight > newDepth && tempHeight <= newHeight){
 								//the column we are checking touches the current column from the bottom
 								//for this reason we extend what's below
-								newDepth = tempDepth;
-								increaseIndex[index] = true;
-							}else if(tempDepth < newHeight){
+
+								//We want to avoid to expend this column if it has already been expanded by
+								//this index
+								if(!indexHandled[index]) {
+									newDepth = tempDepth;
+									increaseIndex[index] = true;
+									indexHandled[index] = true;
+								}
+
+							}else if(tempDepth < newHeight && tempDepth > newDepth){
 								//the column we are checking touches the current column from the top
 								//for this reason we extend the top
 								newHeight = tempHeight;
 								increaseIndex[index] = true;
 							}
+						}else{
+							indexHandled[index] = true;
 						}
 					}
 				}
-
 				//if we added any new data there is a chance that we could add more
 				//for this reason we would continue
 				//if no data is added than the colmn hasn't changed.
@@ -490,6 +535,13 @@ public class DataPointUtil
 
 			if(newDepth != newHeight)
 			{
+				if(count != 0)
+				{
+					prevDepth = heightAndDepth[(count-1)*2+1];
+					if(newHeight > prevDepth) {
+						newHeight = (short) Math.min(newHeight, prevDepth);
+					}
+				}
 				heightAndDepth[count*2] = (short) newHeight;
 				heightAndDepth[count*2+1] = (short) newDepth;
 				count++;
@@ -506,8 +558,19 @@ public class DataPointUtil
 				}
 			}
 		}
+/*
+		StringBuilder string4 = new StringBuilder();
+		string.append(Integer.toString(count));
+		string.append("\n");
+		for(int k = 0; k < count; k++)
+		{
+			string.append(Integer.toString(heightAndDepth[k * 2]));
+			string.append(" ");
+			string.append(Integer.toString(heightAndDepth[k * 2 + 1]));
+			string.append("\n");
+		}
 
-		SingletonHandler.get(IMinecraftClientWrapper.class).sendChatMessage(Integer.toString(count));
+		SingletonHandler.get(IMinecraftClientWrapper.class).sendChatMessage(string.toString());
 
 		if(count == 0){
 			allVoid = true;
@@ -526,8 +589,7 @@ public class DataPointUtil
 		{
 			dataPoint[0] = createVoidDataPoint(genMode);
 			return dataPoint;
-		}
-
+		}*/
 		
 		//we limit the vertical portion to maxVerticalData
 		int j = 0;
