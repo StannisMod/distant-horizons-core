@@ -520,7 +520,7 @@ public class DataPointUtil
 				}
 				//if we added any new data there is a chance that we could add more
 				//for this reason we would continue
-				//if no data is added than the colmn hasn't changed.
+				//if no data is added than the column hasn't changed.
 				//for this reason we can start working on a new column
 				connected = false;
 				for (int index = 0; index < size; index++)
@@ -533,6 +533,7 @@ public class DataPointUtil
 				}
 			}
 
+			//Now we add the height and depth data we extracted to the heightAndDepth array
 			if(newDepth != newHeight)
 			{
 				if(count != 0)
@@ -548,6 +549,7 @@ public class DataPointUtil
 			}
 
 			//Here we check the condition that makes the loop continue
+			//We stop the loop only if there is no more data to check
 			stillHasDataToCheck = false;
 			for (int index = 0; index < size; index++)
 			{
@@ -558,38 +560,6 @@ public class DataPointUtil
 				}
 			}
 		}
-/*
-		StringBuilder string4 = new StringBuilder();
-		string.append(Integer.toString(count));
-		string.append("\n");
-		for(int k = 0; k < count; k++)
-		{
-			string.append(Integer.toString(heightAndDepth[k * 2]));
-			string.append(" ");
-			string.append(Integer.toString(heightAndDepth[k * 2 + 1]));
-			string.append("\n");
-		}
-
-		SingletonHandler.get(IMinecraftClientWrapper.class).sendChatMessage(string.toString());
-
-		if(count == 0){
-			allVoid = true;
-			for (int index = 0; index < size; index++)
-			{
-				long data = dataToMerge[index * inputVerticalData];
-				allVoid = allVoid && DataPointUtil.isVoid(data);
-			}
-			allEmpty = !allVoid;
-		}
-
-		//We check if there is any data that's not empty or void
-		if (allEmpty)
-			return dataPoint;
-		if (allVoid)
-		{
-			dataPoint[0] = createVoidDataPoint(genMode);
-			return dataPoint;
-		}*/
 		
 		//we limit the vertical portion to maxVerticalData
 		int j = 0;
@@ -680,31 +650,23 @@ public class DataPointUtil
 						}
 					}
 				}
-				
-				if (allEmpty)
-					//no child has been initialized
-					dataPoint[j] = EMPTY_DATA;
-				else if (allVoid)
-					//all the children are void
-					dataPoint[j] = createVoidDataPoint(genMode);
-				else
+
+				//we have at least 1 child
+				if (size != 1)
 				{
-					//we have at least 1 child
-					if (size != 1)
-					{
-						tempRed = tempRed / numberOfChildren;
-						tempGreen = tempGreen / numberOfChildren;
-						tempBlue = tempBlue / numberOfChildren;
-						tempLightBlock = tempLightBlock / numberOfChildren;
-						tempLightSky = tempLightSky / numberOfChildren;
-					}
-					//data = createDataPoint(tempAlpha, tempRed, tempGreen, tempBlue, height, depth, tempLightSky, tempLightBlock, tempGenMode, allDefault);
-					//if (j > 0 && getColor(data) == getColor(dataPoint[j]))
-					//{
-					//	add simplification at the end due to color
-					//}
-					dataPoint[j] = createDataPoint(tempAlpha, (int) Math.sqrt(tempRed), (int) Math.sqrt(tempGreen), (int) Math.sqrt(tempBlue), height, depth, tempLightSky, tempLightBlock, genMode);
+					tempRed = tempRed / numberOfChildren;
+					tempGreen = tempGreen / numberOfChildren;
+					tempBlue = tempBlue / numberOfChildren;
+					tempLightBlock = tempLightBlock / numberOfChildren;
+					tempLightSky = tempLightSky / numberOfChildren;
 				}
+				//data = createDataPoint(tempAlpha, tempRed, tempGreen, tempBlue, height, depth, tempLightSky, tempLightBlock, tempGenMode, allDefault);
+				//if (j > 0 && getColor(data) == getColor(dataPoint[j]))
+				//{
+				//	add simplification at the end due to color
+				//}
+					dataPoint[j] = createDataPoint(tempAlpha, (int) Math.sqrt(tempRed), (int) Math.sqrt(tempGreen), (int) Math.sqrt(tempBlue), height, depth, tempLightSky, tempLightBlock, genMode);
+
 			}
 		}
 		return dataPoint;
