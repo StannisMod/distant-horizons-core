@@ -1,0 +1,37 @@
+plugins {
+    id "com.github.johnrengelman.shadow" version "7.1.0"
+}
+
+configurations {
+    common
+    shadowMe
+    implementation.extendsFrom shadowMe
+}
+
+dependencies {
+    // Toml
+    shadowMe("com.electronwill.night-config:toml:${rootProject.toml_version}") {}
+
+    // Compression
+    common('org.tukaani:xz:1.9')
+    common('org.apache.commons:commons-compress:1.21')
+    shadowMe 'org.tukaani:xz:1.9'
+    shadowMe 'org.apache.commons:commons-compress:1.21'
+}
+
+shadowJar {
+    configurations = [project.configurations.shadowMe]
+    relocate 'org.tukaani', 'shaded.tukaani'
+    relocate 'org.apache.commons.compress', 'shaded.apache.commons.compress'
+    relocate 'com.electronwill.nightconfig', 'shaded.electronwill.nightconfig'
+
+    relocate 'com.seibel.lod.common', 'fabric.com.seibel.lod.common'
+
+    classifier "dev-shadow"
+}
+
+remapJar {
+    input.set shadowJar.archiveFile
+    dependsOn shadowJar
+    classifier null
+}
