@@ -30,8 +30,8 @@ shadowJar {
     classifier "dev-shadow"
 }
 
-remapJar {
-    input.set shadowJar.archiveFile
-    dependsOn shadowJar
-    classifier null
-}
+//remapJar {
+//    input.set shadowJar.archiveFile
+//    dependsOn shadowJar
+//    classifier null
+//}
