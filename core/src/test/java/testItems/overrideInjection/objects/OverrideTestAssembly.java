@@ -1,6 +1,6 @@
 package testItems.overrideInjection.objects;
 
-import com.seibel.lod.core.util.StringUtil;
+import com.seibel.lod.coreapi.util.StringUtil;
 
 /**
  * assembly classes are used to reference the package they are in.

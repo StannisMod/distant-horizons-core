@@ -1,4 +1,4 @@
-package com.seibel.lod.core.util;
+package com.seibel.lod.coreapi.util;
 
 public class MathUtil
 {

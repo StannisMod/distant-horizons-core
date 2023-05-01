@@ -1,4 +1,4 @@
-package com.seibel.lod.core.util;
+package com.seibel.lod.coreapi.util;
 
 /**
  * A list of helper methods to make code easier to read. <br>

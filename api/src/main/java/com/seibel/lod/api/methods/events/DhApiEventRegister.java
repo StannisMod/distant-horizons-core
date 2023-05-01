@@ -2,7 +2,7 @@ package com.seibel.lod.api.methods.events;
 
 import com.seibel.lod.api.objects.DhApiResult;
 import com.seibel.lod.api.methods.events.interfaces.IDhApiEvent;
-import com.seibel.lod.core.DependencyInjection.ApiEventInjector;
+import com.seibel.lod.coreapi.DependencyInjection.ApiEventInjector;
 
 /**
  * Handles adding/removing event handlers.

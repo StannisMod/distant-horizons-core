@@ -16,7 +16,7 @@ import com.seibel.lod.core.pos.DhLodPos;
 import com.seibel.lod.core.pos.DhSectionPos;
 import com.seibel.lod.core.util.FileScanUtil;
 import com.seibel.lod.core.util.LodUtil;
-import com.seibel.lod.core.util.math.Mat4f;
+import com.seibel.lod.coreapi.util.math.Mat4f;
 import com.seibel.lod.core.wrapperInterfaces.chunk.IChunkWrapper;
 import com.seibel.lod.core.wrapperInterfaces.minecraft.IMinecraftClientWrapper;
 import com.seibel.lod.core.wrapperInterfaces.minecraft.IProfilerWrapper;

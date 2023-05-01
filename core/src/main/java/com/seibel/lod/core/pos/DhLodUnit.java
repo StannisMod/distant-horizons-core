@@ -1,6 +1,6 @@
 package com.seibel.lod.core.pos;
 
-import com.seibel.lod.core.util.BitShiftUtil;
+import com.seibel.lod.coreapi.util.BitShiftUtil;
 
 /**
  * Often used to measure LOD widths

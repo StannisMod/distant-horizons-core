@@ -25,7 +25,7 @@ import com.seibel.lod.core.render.renderer.LodRenderer;
 import com.seibel.lod.core.enums.ELodDirection;
 import com.seibel.lod.core.dependencyInjection.SingletonInjector;
 import com.seibel.lod.core.util.ColorUtil;
-import com.seibel.lod.core.util.MathUtil;
+import com.seibel.lod.coreapi.util.MathUtil;
 import com.seibel.lod.core.wrapperInterfaces.minecraft.IMinecraftClientWrapper;
 
 public class ColumnBox {

@@ -1,7 +1,7 @@
-package com.seibel.lod.core.util.converters;
+package com.seibel.lod.coreapi.util.converters;
 
 import com.seibel.lod.api.enums.rendering.ERendererMode;
-import com.seibel.lod.core.interfaces.config.IConverter;
+import com.seibel.lod.coreapi.interfaces.config.IConverter;
 
 /**
  * Used for simplifying the fake chunk rendering on/off setting.

@@ -19,7 +19,7 @@
  
 package com.seibel.lod.core.wrapperInterfaces;
 
-import com.seibel.lod.core.interfaces.dependencyInjection.IBindable;
+import com.seibel.lod.coreapi.interfaces.dependencyInjection.IBindable;
 
 /**
  * A singleton that contains variables specific to each version of Minecraft

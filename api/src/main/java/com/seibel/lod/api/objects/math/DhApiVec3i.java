@@ -19,8 +19,6 @@
 
 package com.seibel.lod.api.objects.math;
 
-import com.seibel.lod.core.util.MathUtil;
-
 /**
  * Often used to store block positions or any other 
  * position in 3D space.

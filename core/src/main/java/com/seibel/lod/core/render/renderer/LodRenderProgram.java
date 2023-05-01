@@ -29,8 +29,8 @@ import com.seibel.lod.core.render.glObject.shader.ShaderProgram;
 import com.seibel.lod.core.render.glObject.vertexAttribute.VertexAttribute;
 import com.seibel.lod.core.render.glObject.vertexAttribute.VertexAttributePostGL43;
 import com.seibel.lod.core.render.glObject.vertexAttribute.VertexAttributePreGL43;
-import com.seibel.lod.core.util.math.Mat4f;
-import com.seibel.lod.core.util.math.Vec3f;
+import com.seibel.lod.coreapi.util.math.Mat4f;
+import com.seibel.lod.coreapi.util.math.Vec3f;
 import com.seibel.lod.core.util.LodUtil;
 import com.seibel.lod.core.wrapperInterfaces.IVersionConstants;
 

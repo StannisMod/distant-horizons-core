@@ -17,7 +17,7 @@
  *    along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.seibel.lod.core.util.math;
+package com.seibel.lod.coreapi.util.math;
 
 import java.nio.FloatBuffer;
 

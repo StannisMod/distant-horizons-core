@@ -1,7 +1,7 @@
 package com.seibel.lod.core.pos;
 
 import com.seibel.lod.core.dataObjects.fullData.sources.IFullDataSource;
-import com.seibel.lod.core.util.BitShiftUtil;
+import com.seibel.lod.coreapi.util.BitShiftUtil;
 import com.seibel.lod.core.util.LodUtil;
 import org.jetbrains.annotations.NotNull;
 

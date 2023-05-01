@@ -19,7 +19,7 @@
 
 package com.seibel.lod.core.wrapperInterfaces.chunk;
 
-import com.seibel.lod.core.interfaces.dependencyInjection.IBindable;
+import com.seibel.lod.coreapi.interfaces.dependencyInjection.IBindable;
 import com.seibel.lod.core.pos.DhChunkPos;
 import com.seibel.lod.core.util.LodUtil;
 import com.seibel.lod.core.wrapperInterfaces.block.IBlockStateWrapper;

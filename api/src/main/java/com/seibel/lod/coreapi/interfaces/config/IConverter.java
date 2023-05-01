@@ -1,4 +1,4 @@
-package com.seibel.lod.core.interfaces.config;
+package com.seibel.lod.coreapi.interfaces.config;
 
 
 /**

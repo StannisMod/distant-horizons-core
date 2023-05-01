@@ -1,4 +1,4 @@
-package com.seibel.lod.core.interfaces.dependencyInjection;
+package com.seibel.lod.coreapi.interfaces.dependencyInjection;
 
 
 import java.util.ArrayList;

@@ -1,6 +1,6 @@
 package com.seibel.lod.core.jar.updater;
 
-import com.seibel.lod.core.ModInfo;
+import com.seibel.lod.coreapi.ModInfo;
 import com.seibel.lod.core.config.Config;
 import com.seibel.lod.core.dependencyInjection.SingletonInjector;
 import com.seibel.lod.core.jar.JarUtils;

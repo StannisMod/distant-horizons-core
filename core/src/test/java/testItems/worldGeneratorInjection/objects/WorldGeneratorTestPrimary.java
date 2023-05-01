@@ -1,7 +1,7 @@
 package testItems.worldGeneratorInjection.objects;
 
 import com.seibel.lod.api.enums.worldGeneration.EDhApiWorldGenThreadMode;
-import com.seibel.lod.core.DependencyInjection.OverrideInjector;
+import com.seibel.lod.coreapi.DependencyInjection.OverrideInjector;
 
 /**
  * Dummy test implementation object for world generator injection unit tests.

@@ -33,7 +33,7 @@ import com.seibel.lod.api.enums.config.EGpuUploadMethod;
 import com.seibel.lod.core.logging.DhLoggerBuilder;
 import com.seibel.lod.core.render.glObject.buffer.GLVertexBuffer;
 import com.seibel.lod.core.util.ColorUtil;
-import com.seibel.lod.core.util.MathUtil;
+import com.seibel.lod.coreapi.util.MathUtil;
 import org.apache.logging.log4j.Logger;
 
 //TODO: Recheck this class for refactoring

@@ -19,8 +19,7 @@
  
 package com.seibel.lod.core.pos;
 
-import com.seibel.lod.core.util.LodUtil;
-import com.seibel.lod.core.util.MathUtil;
+import com.seibel.lod.coreapi.util.MathUtil;
 
 import java.util.Objects;
 

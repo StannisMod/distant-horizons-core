@@ -19,20 +19,10 @@
 
 package tests;
 
-import com.seibel.lod.core.logging.DhLoggerBuilder;
-import com.seibel.lod.core.pos.DhBlockPos2D;
 import com.seibel.lod.core.pos.DhLodPos;
 import com.seibel.lod.core.pos.DhSectionPos;
-import com.seibel.lod.core.util.BitShiftUtil;
-import com.seibel.lod.core.util.LodUtil;
-import com.seibel.lod.core.util.objects.quadTree.QuadTree;
-import org.apache.logging.log4j.Level;
-import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.core.config.Configurator;
 import org.junit.Assert;
 import org.junit.Test;
-
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class DhSectionPosTest
 {

@@ -19,7 +19,7 @@
  
 package com.seibel.lod.core.wrapperInterfaces.modAccessor;
 
-import com.seibel.lod.core.interfaces.dependencyInjection.IBindable;
+import com.seibel.lod.coreapi.interfaces.dependencyInjection.IBindable;
 
 /**
  * Checks if a mod is loaded

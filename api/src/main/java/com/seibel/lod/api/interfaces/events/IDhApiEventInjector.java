@@ -20,7 +20,7 @@
 package com.seibel.lod.api.interfaces.events;
 
 import com.seibel.lod.api.methods.events.interfaces.IDhApiEvent;
-import com.seibel.lod.core.interfaces.dependencyInjection.IDependencyInjector;
+import com.seibel.lod.coreapi.interfaces.dependencyInjection.IDependencyInjector;
 
 /**
  * This class takes care of dependency injection for API events.

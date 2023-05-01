@@ -16,35 +16,27 @@
  *    You should have received a copy of the GNU Lesser General Public License
  *    along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
- 
-package com.seibel.lod.core.interfaces.dependencyInjection;
+
+package com.seibel.lod.coreapi.util;
 
 /**
- * Necessary for all singletons that can be dependency injected.
- * 
+ * Miscellaneous string helper functions.
+ *
  * @author James Seibel
- * @version 2022-7-16
+ * @version 2022-7-19
  */
-public interface IBindable
+public class StringUtil
 {
 	/**
-	 * Finish initializing this object. <br> <br>
-	 * 
-	 * Generally this should just be used for getting other objects through
-	 * dependency injection and is specifically designed to allow 
-	 * for circular references. <br><br>
-	 * 
-	 * If no circular dependencies are required this method 
-	 * doesn't have to be implemented.
-	 */
-	default void finishDelayedSetup() { }
-	
-	/**
-	 * Returns if this dependency has been setup yet. <Br> <Br>
+	 * Returns the n-th index of the given string. <br> <br>
 	 *
-	 * If this object doesn't require a delayed setup, this
-	 * method doesn't have to be implemented and should always return true.
+	 * Original source: https://stackoverflow.com/questions/3976616/how-to-find-nth-occurrence-of-character-in-a-string
 	 */
-	default boolean getDelayedSetupComplete() { return true; }
-	
+	public static int nthIndexOf(String str, String substr, int n)
+	{
+		int pos = str.indexOf(substr);
+		while (--n > 0 && pos != -1)
+			pos = str.indexOf(substr, pos + 1);
+		return pos;
+	}
 }

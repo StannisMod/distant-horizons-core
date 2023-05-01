@@ -1,9 +1,9 @@
 package com.seibel.lod.api.objects.config;
 
 import com.seibel.lod.api.interfaces.config.IDhApiConfigValue;
-import com.seibel.lod.core.interfaces.config.IConfigEntry;
-import com.seibel.lod.core.interfaces.config.IConverter;
-import com.seibel.lod.core.util.converters.DefaultConverter;
+import com.seibel.lod.coreapi.interfaces.config.IConfigEntry;
+import com.seibel.lod.coreapi.interfaces.config.IConverter;
+import com.seibel.lod.coreapi.util.converters.DefaultConverter;
 
 /**
  * A wrapper used to interface with Distant Horizon's Config. <br> <br>

@@ -38,7 +38,7 @@ import org.lwjgl.opengl.GLCapabilities;
 import org.lwjgl.opengl.GLUtil;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import com.seibel.lod.core.ModInfo;
+import com.seibel.lod.coreapi.ModInfo;
 import com.seibel.lod.api.enums.config.EGpuUploadMethod;
 import com.seibel.lod.api.enums.rendering.EGLProxyContext;
 import com.seibel.lod.core.dependencyInjection.SingletonInjector;

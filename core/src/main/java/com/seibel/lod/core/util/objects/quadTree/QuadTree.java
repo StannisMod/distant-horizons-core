@@ -5,10 +5,10 @@ import com.seibel.lod.core.pos.DhBlockPos2D;
 import com.seibel.lod.core.pos.DhLodPos;
 import com.seibel.lod.core.pos.DhSectionPos;
 import com.seibel.lod.core.pos.Pos2D;
-import com.seibel.lod.core.util.BitShiftUtil;
+import com.seibel.lod.coreapi.util.BitShiftUtil;
 import com.seibel.lod.core.util.DetailDistanceUtil;
 import com.seibel.lod.core.util.LodUtil;
-import com.seibel.lod.core.util.MathUtil;
+import com.seibel.lod.coreapi.util.MathUtil;
 import com.seibel.lod.core.util.gridList.MovableGridRingList;
 import org.apache.logging.log4j.Logger;
 

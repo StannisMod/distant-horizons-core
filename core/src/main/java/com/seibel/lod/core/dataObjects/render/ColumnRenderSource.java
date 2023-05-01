@@ -1,7 +1,7 @@
 package com.seibel.lod.core.dataObjects.render;
 
 import com.seibel.lod.api.enums.worldGeneration.EDhApiWorldGenerationStep;
-import com.seibel.lod.core.ModInfo;
+import com.seibel.lod.coreapi.ModInfo;
 import com.seibel.lod.core.dataObjects.fullData.accessor.ChunkSizedFullDataAccessor;
 import com.seibel.lod.core.dataObjects.render.columnViews.ColumnArrayView;
 import com.seibel.lod.core.dataObjects.render.columnViews.ColumnQuadView;
@@ -13,7 +13,7 @@ import com.seibel.lod.core.pos.DhSectionPos;
 import com.seibel.lod.core.enums.ELodDirection;
 import com.seibel.lod.core.logging.DhLoggerBuilder;
 import com.seibel.lod.core.level.IDhLevel;
-import com.seibel.lod.core.util.BitShiftUtil;
+import com.seibel.lod.coreapi.util.BitShiftUtil;
 import com.seibel.lod.core.util.ColorUtil;
 import com.seibel.lod.core.util.RenderDataPointUtil;
 import com.seibel.lod.core.util.objects.Reference;

@@ -20,7 +20,7 @@
 package com.seibel.lod.core.wrapperInterfaces.world;
 
 import com.seibel.lod.api.interfaces.block.IDhApiBiomeWrapper;
-import com.seibel.lod.core.interfaces.dependencyInjection.IBindable;
+import com.seibel.lod.coreapi.interfaces.dependencyInjection.IBindable;
 
 /**
  * @author James Seibel

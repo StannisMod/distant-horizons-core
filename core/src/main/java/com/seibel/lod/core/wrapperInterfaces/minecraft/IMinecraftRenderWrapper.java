@@ -22,14 +22,14 @@ package com.seibel.lod.core.wrapperInterfaces.minecraft;
 import java.awt.Color;
 import java.util.HashSet;
 
-import com.seibel.lod.core.interfaces.dependencyInjection.IBindable;
+import com.seibel.lod.coreapi.interfaces.dependencyInjection.IBindable;
 import com.seibel.lod.core.dependencyInjection.ModAccessorInjector;
 import com.seibel.lod.core.dependencyInjection.SingletonInjector;
 import com.seibel.lod.core.pos.DhBlockPos;
 import com.seibel.lod.core.pos.DhChunkPos;
-import com.seibel.lod.core.util.math.Mat4f;
-import com.seibel.lod.core.util.math.Vec3d;
-import com.seibel.lod.core.util.math.Vec3f;
+import com.seibel.lod.coreapi.util.math.Mat4f;
+import com.seibel.lod.coreapi.util.math.Vec3d;
+import com.seibel.lod.coreapi.util.math.Vec3f;
 import com.seibel.lod.core.wrapperInterfaces.IVersionConstants;
 import com.seibel.lod.core.wrapperInterfaces.IWrapperFactory;
 import com.seibel.lod.core.wrapperInterfaces.misc.ILightMapWrapper;

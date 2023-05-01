@@ -19,11 +19,7 @@
 
 package tests;
 
-import com.seibel.lod.core.api.external.methods.data.DhApiTerrainDataRepo;
 import com.seibel.lod.core.util.RayCastUtil;
-import com.seibel.lod.core.util.math.Vec3d;
-import com.seibel.lod.core.util.math.Vec3f;
-import com.seibel.lod.core.util.math.Vec3i;
 import org.junit.Assert;
 import org.junit.Test;
 

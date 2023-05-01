@@ -17,10 +17,10 @@
  *    along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.seibel.lod.core.util.math;
+package com.seibel.lod.coreapi.util.math;
 
 import com.seibel.lod.api.objects.math.DhApiVec3i;
-import com.seibel.lod.core.util.MathUtil;
+import com.seibel.lod.coreapi.util.MathUtil;
 
 /**
  * A (almost) exact copy of Minecraft's 1.16.5

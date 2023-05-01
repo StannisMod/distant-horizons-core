@@ -19,8 +19,8 @@
 
 package com.seibel.lod.core.dependencyInjection;
 
-import com.seibel.lod.core.DependencyInjection.DependencyInjector;
-import com.seibel.lod.core.interfaces.dependencyInjection.IBindable;
+import com.seibel.lod.coreapi.DependencyInjection.DependencyInjector;
+import com.seibel.lod.coreapi.interfaces.dependencyInjection.IBindable;
 import com.seibel.lod.core.logging.DhLoggerBuilder;
 import com.seibel.lod.core.wrapperInterfaces.modAccessor.IModAccessor;
 import org.apache.logging.log4j.Logger;

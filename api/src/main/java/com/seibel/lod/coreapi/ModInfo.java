@@ -17,7 +17,7 @@
  *    along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.seibel.lod.core;
+package com.seibel.lod.coreapi;
 
 /**
  * This file is similar to mcmod.info

@@ -19,8 +19,7 @@
 
 package com.seibel.lod.core;
 
-import com.seibel.lod.api.enums.rendering.EFogDrawMode;
-import com.seibel.lod.core.interfaces.dependencyInjection.IBindable;
+import com.seibel.lod.coreapi.interfaces.dependencyInjection.IBindable;
 
 /**
  * A singleton used to get variables from methods

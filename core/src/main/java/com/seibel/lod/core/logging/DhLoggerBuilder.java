@@ -1,6 +1,6 @@
 package com.seibel.lod.core.logging;
 
-import com.seibel.lod.core.ModInfo;
+import com.seibel.lod.coreapi.ModInfo;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 

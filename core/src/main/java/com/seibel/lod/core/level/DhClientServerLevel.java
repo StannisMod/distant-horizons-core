@@ -1,7 +1,7 @@
 package com.seibel.lod.core.level;
 
 import com.seibel.lod.api.interfaces.override.worldGenerator.IDhApiWorldGenerator;
-import com.seibel.lod.core.DependencyInjection.WorldGeneratorInjector;
+import com.seibel.lod.coreapi.DependencyInjection.WorldGeneratorInjector;
 import com.seibel.lod.core.config.AppliedConfigState;
 import com.seibel.lod.core.dependencyInjection.SingletonInjector;
 import com.seibel.lod.core.file.fullDatafile.FullDataFileHandler;

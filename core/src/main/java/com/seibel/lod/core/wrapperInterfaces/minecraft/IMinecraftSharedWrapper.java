@@ -1,6 +1,6 @@
 package com.seibel.lod.core.wrapperInterfaces.minecraft;
 
-import com.seibel.lod.core.interfaces.dependencyInjection.IBindable;
+import com.seibel.lod.coreapi.interfaces.dependencyInjection.IBindable;
 
 import java.io.File;
 

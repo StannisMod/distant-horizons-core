@@ -20,10 +20,8 @@
 package com.seibel.lod.core.render.glObject.vertexAttribute;
 
 import com.seibel.lod.core.render.glObject.GLProxy;
-import com.seibel.lod.core.util.MathUtil;
+import com.seibel.lod.coreapi.util.MathUtil;
 import org.lwjgl.opengl.GL32;
-
-import com.seibel.lod.core.util.LodUtil;
 
 public abstract class VertexAttribute {
 	

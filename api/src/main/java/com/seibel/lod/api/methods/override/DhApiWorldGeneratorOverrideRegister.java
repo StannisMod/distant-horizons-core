@@ -4,7 +4,7 @@ import com.seibel.lod.api.interfaces.override.worldGenerator.IDhApiWorldGenerato
 import com.seibel.lod.api.interfaces.override.worldGenerator.IDhApiWorldGeneratorOverrideRegister;
 import com.seibel.lod.api.interfaces.world.IDhApiLevelWrapper;
 import com.seibel.lod.api.objects.DhApiResult;
-import com.seibel.lod.core.DependencyInjection.WorldGeneratorInjector;
+import com.seibel.lod.coreapi.DependencyInjection.WorldGeneratorInjector;
 
 /**
  * Handles adding world generator overrides.

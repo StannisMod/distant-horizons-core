@@ -6,12 +6,12 @@ import com.seibel.lod.api.interfaces.override.worldGenerator.IDhApiWorldGenerato
 import com.seibel.lod.api.interfaces.render.IDhApiRenderProxy;
 import com.seibel.lod.api.interfaces.world.IDhApiWorldProxy;
 import com.seibel.lod.api.methods.override.DhApiWorldGeneratorOverrideRegister;
-import com.seibel.lod.core.DependencyInjection.ApiEventInjector;
-import com.seibel.lod.core.DependencyInjection.OverrideInjector;
-import com.seibel.lod.core.ModInfo;
+import com.seibel.lod.coreapi.DependencyInjection.ApiEventInjector;
+import com.seibel.lod.coreapi.DependencyInjection.OverrideInjector;
+import com.seibel.lod.coreapi.ModInfo;
 import com.seibel.lod.api.interfaces.data.IDhApiTerrainDataRepo;
 import com.seibel.lod.api.interfaces.events.IDhApiEventInjector;
-import com.seibel.lod.core.interfaces.dependencyInjection.IOverrideInjector;
+import com.seibel.lod.coreapi.interfaces.dependencyInjection.IOverrideInjector;
 
 /**
  * This is the masthead of the API, almost everything you could want to do

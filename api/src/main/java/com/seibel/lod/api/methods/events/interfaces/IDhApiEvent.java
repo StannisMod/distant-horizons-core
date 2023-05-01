@@ -1,7 +1,7 @@
 package com.seibel.lod.api.methods.events.interfaces;
 
 import com.seibel.lod.api.objects.events.DhApiEventDefinition;
-import com.seibel.lod.core.interfaces.dependencyInjection.IBindable;
+import com.seibel.lod.coreapi.interfaces.dependencyInjection.IBindable;
 
 /**
  * The interface used by all DH Api events.

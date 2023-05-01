@@ -1,7 +1,7 @@
 package com.seibel.lod.core.config.types;
 
 
-import com.seibel.lod.core.interfaces.config.IConfigEntry;
+import com.seibel.lod.coreapi.interfaces.config.IConfigEntry;
 
 import java.util.ArrayList;
 import java.util.Arrays;

@@ -1,17 +1,10 @@
 package com.seibel.lod.core.jar;
 
-import com.formdev.flatlaf.FlatDarkLaf;
-import com.formdev.flatlaf.FlatLightLaf;
-import com.seibel.lod.core.ModInfo;
-import com.seibel.lod.core.config.ConfigBase;
-import com.seibel.lod.core.jar.DarkModeDetector;
-import com.seibel.lod.core.jar.JarUtils;
+import com.seibel.lod.coreapi.ModInfo;
 import com.seibel.lod.core.jar.gui.BaseJFrame;
 import com.seibel.lod.core.jar.gui.cusomJObject.JBox;
 import com.seibel.lod.core.jar.installer.ModrinthGetter;
 import com.seibel.lod.core.jar.installer.WebDownloader;
-import com.seibel.lod.core.jar.JarDependencySetup;
-import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.LoggerContext;

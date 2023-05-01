@@ -20,15 +20,15 @@
 package com.seibel.lod.core.util;
 
 import com.seibel.lod.core.level.IDhClientLevel;
-import com.seibel.lod.core.world.AbstractDhWorld;
 import com.seibel.lod.core.world.IDhClientWorld;
 import com.seibel.lod.core.api.internal.SharedApi;
 import com.seibel.lod.core.config.Config;
 import com.seibel.lod.core.dependencyInjection.SingletonInjector;
 import com.seibel.lod.core.pos.DhBlockPos;
 import com.seibel.lod.core.pos.DhChunkPos;
-import com.seibel.lod.core.util.math.Mat4f;
-import com.seibel.lod.core.util.math.Vec3f;
+import com.seibel.lod.coreapi.util.MathUtil;
+import com.seibel.lod.coreapi.util.math.Mat4f;
+import com.seibel.lod.coreapi.util.math.Vec3f;
 import com.seibel.lod.core.wrapperInterfaces.minecraft.IMinecraftClientWrapper;
 import com.seibel.lod.core.wrapperInterfaces.minecraft.IMinecraftRenderWrapper;
 import com.seibel.lod.core.wrapperInterfaces.world.ILevelWrapper;

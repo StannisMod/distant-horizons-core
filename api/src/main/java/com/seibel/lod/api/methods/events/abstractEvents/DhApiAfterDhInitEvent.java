@@ -2,7 +2,6 @@ package com.seibel.lod.api.methods.events.abstractEvents;
 
 import com.seibel.lod.api.methods.events.interfaces.IDhApiEvent;
 import com.seibel.lod.api.objects.events.DhApiEventDefinition;
-import com.seibel.lod.core.events.ApiEventDefinitionHandler;
 
 /**
  * @author James Seibel

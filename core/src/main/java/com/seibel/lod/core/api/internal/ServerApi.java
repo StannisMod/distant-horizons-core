@@ -22,7 +22,7 @@ package com.seibel.lod.core.api.internal;
 import com.seibel.lod.api.methods.events.abstractEvents.DhApiLevelLoadEvent;
 import com.seibel.lod.api.methods.events.abstractEvents.DhApiLevelSaveEvent;
 import com.seibel.lod.api.methods.events.abstractEvents.DhApiLevelUnloadEvent;
-import com.seibel.lod.core.DependencyInjection.ApiEventInjector;
+import com.seibel.lod.coreapi.DependencyInjection.ApiEventInjector;
 import com.seibel.lod.core.level.IDhLevel;
 import com.seibel.lod.core.world.AbstractDhWorld;
 import com.seibel.lod.core.world.DhClientServerWorld;

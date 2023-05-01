@@ -17,7 +17,7 @@
  *    along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.seibel.lod.core.events;
+package com.seibel.lod.coreapi.events;
 
 import com.seibel.lod.api.methods.events.abstractEvents.*;
 import com.seibel.lod.api.methods.events.interfaces.IDhApiEvent;

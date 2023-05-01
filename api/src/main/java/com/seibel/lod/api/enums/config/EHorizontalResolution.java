@@ -22,7 +22,7 @@ package com.seibel.lod.api.enums.config;
 import java.util.ArrayList;
 import java.util.Collections;
 
-import com.seibel.lod.core.util.MathUtil;
+import com.seibel.lod.coreapi.util.MathUtil;
 
 /**
  * BLOCK <Br>

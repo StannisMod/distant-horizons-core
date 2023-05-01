@@ -6,7 +6,7 @@ import com.seibel.lod.core.logging.DhLoggerBuilder;
 import com.seibel.lod.core.pos.Pos2D;
 import com.seibel.lod.core.pos.DhSectionPos;
 import com.seibel.lod.core.render.renderer.LodRenderer;
-import com.seibel.lod.core.util.math.Vec3f;
+import com.seibel.lod.coreapi.util.math.Vec3f;
 import com.seibel.lod.core.util.objects.SortedArraySet;
 import com.seibel.lod.core.util.objects.quadTree.QuadNode;
 import org.apache.logging.log4j.Logger;

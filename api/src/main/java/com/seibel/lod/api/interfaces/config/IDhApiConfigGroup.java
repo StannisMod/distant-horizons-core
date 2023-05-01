@@ -1,6 +1,6 @@
 package com.seibel.lod.api.interfaces.config;
 
-import com.seibel.lod.core.interfaces.dependencyInjection.IBindable;
+import com.seibel.lod.coreapi.interfaces.dependencyInjection.IBindable;
 
 /**
  * This interface is just used to organize API config groups so

@@ -19,10 +19,6 @@
  
 package com.seibel.lod.core.util;
 
-import com.seibel.lod.core.util.math.Vec3d;
-import com.seibel.lod.core.util.math.Vec3f;
-import com.seibel.lod.core.util.math.Vec3i;
-
 /**
  * @author James Seibel
  * @version 2022-11-19

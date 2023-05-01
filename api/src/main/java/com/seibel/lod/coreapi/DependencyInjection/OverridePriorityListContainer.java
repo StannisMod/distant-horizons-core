@@ -1,7 +1,7 @@
-package com.seibel.lod.core.DependencyInjection;
+package com.seibel.lod.coreapi.DependencyInjection;
 
 import com.seibel.lod.api.interfaces.override.IDhApiOverrideable;
-import com.seibel.lod.core.interfaces.dependencyInjection.IBindable;
+import com.seibel.lod.coreapi.interfaces.dependencyInjection.IBindable;
 
 import java.util.ArrayList;
 

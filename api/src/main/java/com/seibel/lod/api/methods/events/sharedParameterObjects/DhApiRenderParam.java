@@ -1,6 +1,6 @@
 package com.seibel.lod.api.methods.events.sharedParameterObjects;
 
-import com.seibel.lod.core.util.math.Mat4f;
+import com.seibel.lod.coreapi.util.math.Mat4f;
 
 /**
  * Parameter passed into Render events.

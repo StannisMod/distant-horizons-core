@@ -1,7 +1,7 @@
 package com.seibel.lod.api.objects.data;
 
 import com.seibel.lod.api.objects.math.DhApiVec3i;
-import com.seibel.lod.core.util.math.Vec3i;
+import com.seibel.lod.coreapi.util.math.Vec3i;
 
 /**
  * Holds a single datapoint of terrain data

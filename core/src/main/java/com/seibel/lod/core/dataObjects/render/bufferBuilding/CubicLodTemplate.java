@@ -25,7 +25,7 @@ import com.seibel.lod.core.util.RenderDataPointUtil;
 import com.seibel.lod.api.enums.rendering.EDebugMode;
 import com.seibel.lod.core.dataObjects.render.columnViews.ColumnArrayView;
 import com.seibel.lod.core.pos.DhLodPos;
-import com.seibel.lod.core.util.BitShiftUtil;
+import com.seibel.lod.coreapi.util.BitShiftUtil;
 import com.seibel.lod.core.util.ColorUtil;
 import com.seibel.lod.core.util.LodUtil;
 
