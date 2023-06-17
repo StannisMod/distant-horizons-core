@@ -24,7 +24,6 @@ import com.seibel.lod.core.handlers.dependencyInjection.IBindable;
 import com.seibel.lod.core.util.LodUtil;
 import com.seibel.lod.core.wrapperInterfaces.block.IBlockDetailWrapper;
 import com.seibel.lod.core.wrapperInterfaces.world.IBiomeWrapper;
-import org.spongepowered.asm.mixin.injection.Inject;
 
 /**
  * @author James Seibel
