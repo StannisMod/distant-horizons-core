@@ -10,7 +10,7 @@ application {
 }
 
 configurations {
-    shadowedArtifact // Used by DH to specify that we want to implement the shadowed core JAR file instead of the regular JAR file
+    downgradedArtifact // Used by DH to specify that we want to implement the shadowed core JAR file instead of the regular JAR file
     shade
     implementation.extendsFrom shade
 }
@@ -39,9 +39,7 @@ dependencies { // All of these dependencies are in Vanilla Minecraft, but we nee
     runtimeOnly "org.lwjgl:lwjgl-opengl::$lwjglNatives"
     runtimeOnly "org.lwjgl:lwjgl-stb::$lwjglNatives"
     runtimeOnly "org.lwjgl:lwjgl-tinyfd::$lwjglNatives"
-
-    // FIXME for some reason this line doesn't actually shade in the library
-//    shade "it.unimi.dsi:fastutil:${rootProject.fastutil_version}" // Add our own fastutil version
+    implementation "org.joml:joml:${rootProject.joml_version}"
 
 
     // Some other dependencies
@@ -49,15 +47,8 @@ dependencies { // All of these dependencies are in Vanilla Minecraft, but we nee
     implementation("com.google.code.findbugs:jsr305:3.0.2")
     implementation("com.google.common:google-collect:0.5")
     implementation("com.google.guava:guava:31.1-jre")
-    
 }
 
 artifacts {
-    shadowedArtifact shadowJar // Setup the configuration shadowedArtifact to be the shadowJar
-}
-
-shadowJar {
-    def librariesLocation = "DistantHorizons.libraries"
-//    relocate "it.unimi.dsi.fastutil", "${librariesLocation}.unimi.dsi.fastutil"
-    mergeServiceFiles()
+    downgradedArtifact apiDowngrade // Setup the configuration downgradedArtifact to be the `apiDowngrade` which downgrades the core to a specified Java version
 }
