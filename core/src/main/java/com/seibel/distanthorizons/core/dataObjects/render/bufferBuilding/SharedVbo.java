@@ -5,12 +5,14 @@ import com.seibel.distanthorizons.core.logging.f3.F3Screen;
 import com.seibel.distanthorizons.core.render.glObject.GLProxy;
 import com.seibel.distanthorizons.core.util.LodUtil;
 import com.seibel.distanthorizons.coreapi.util.StringUtil;
-import it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.opengl.GL32;
 
 import java.nio.ByteBuffer;
+import java.util.ArrayDeque;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentHashMap;
 
 /** Used to allow multiple {@link ColumnRenderBuffer}'s to be put in a single VBO. */
 public class SharedVbo 
@@ -24,11 +26,13 @@ public class SharedVbo
 	public final int vboId;
 	
 	
-	private final int bufferTotalByteSize;
+	private final long bufferTotalByteSize;
 	/** the length of a single chunk of this VBO in bytes. */
 	private final int chunkByteSize;
 	
-	private final Int2ReferenceOpenHashMap<BufferSlice> bufferSliceByStartingIndex = new Int2ReferenceOpenHashMap<>();
+	private final ConcurrentHashMap<Long, BufferSlice> bufferSliceByStartingIndex = new ConcurrentHashMap<>();
+	private long nextMemoryAddress = 0L;
+	private final Queue<BufferSlice> availableSlices = new ArrayDeque<>();
 	
 	
 	
@@ -36,7 +40,7 @@ public class SharedVbo
 	// constructor //
 	//=============//
 	
-	public SharedVbo(int totalSize, int chunkByteSize) 
+	public SharedVbo(long totalSize, int chunkByteSize) 
 	{
 		LodUtil.assertTrue(GLProxy.getInstance().runningOnRenderThread(), "Buffer Handler has to be created on the render thread.");
 		
@@ -59,21 +63,27 @@ public class SharedVbo
 	@Nullable
 	public SharedVbo.BufferSlice allocateSlice()
 	{
+		BufferSlice availableSlice = this.availableSlices.poll();
+		if (availableSlice != null)
+		{
+			return availableSlice;
+		}
+		
 		// Find the first free chunk
-		for (int startingIndex = 0; startingIndex < this.bufferTotalByteSize; startingIndex += this.chunkByteSize)
+		for (long startingIndex = this.nextMemoryAddress; startingIndex < this.bufferTotalByteSize; startingIndex += this.chunkByteSize)
 		{
 			// check if this section is free
-			if (!this.bufferSliceByStartingIndex.containsKey(startingIndex))
+			BufferSlice newSlice = new BufferSlice(startingIndex, this.chunkByteSize);
+			if (this.bufferSliceByStartingIndex.putIfAbsent(startingIndex, newSlice) == null)
 			{
-				BufferSlice newSlice = new BufferSlice(startingIndex, this.chunkByteSize);
-				this.bufferSliceByStartingIndex.put(startingIndex, newSlice);
+				this.nextMemoryAddress = startingIndex;
 				return newSlice;
 			}
 		}
 		
 		return null; // No free chunk found
 	}
-	public void deallocateChunks(BufferSlice[] slices)
+	public void deallocate(BufferSlice[] slices)
 	{
 		if (slices != null)
 		{
@@ -82,18 +92,23 @@ public class SharedVbo
 				if (slice != null)
 				{
 					this.bufferSliceByStartingIndex.remove(slice.startIndex);
+					this.availableSlices.add(slice);
 				}
 			}
 		}
 	}
-	public void deallocateChunk(BufferSlice chunk) 
+	public void deallocate(BufferSlice slice) 
 	{
-		if (chunk != null)
+		if (slice != null)
 		{
-			this.bufferSliceByStartingIndex.remove(chunk.startIndex);
+			this.bufferSliceByStartingIndex.remove(slice.startIndex);
+			this.availableSlices.add(slice);
 		}
 	}
-	public void clear() { this.bufferSliceByStartingIndex.clear(); }
+	public void clear() 
+	{
+		this.bufferSliceByStartingIndex.clear(); 
+	}
 	
 	
 	
@@ -151,7 +166,7 @@ public class SharedVbo
 	/** represents a single allocated slice of the parent VBO */
 	public static class BufferSlice 
 	{
-		public final int startIndex;
+		public final long startIndex;
 		public final int length;
 		
 		public int vertexCount;
@@ -162,7 +177,7 @@ public class SharedVbo
 		// constructor //
 		//=============//
 		
-		public BufferSlice(int startIndex, int length) 
+		public BufferSlice(long startIndex, int length) 
 		{
 			this.startIndex = startIndex;
 			this.length = length;

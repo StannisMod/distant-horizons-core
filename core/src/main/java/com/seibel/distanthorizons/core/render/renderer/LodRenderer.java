@@ -55,10 +55,13 @@ import com.seibel.distanthorizons.coreapi.DependencyInjection.OverrideInjector;
 import com.seibel.distanthorizons.core.util.math.Mat4f;
 import com.seibel.distanthorizons.core.util.math.Vec3d;
 import com.seibel.distanthorizons.core.util.math.Vec3f;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
 import org.apache.logging.log4j.LogManager;
+import org.lwjgl.PointerBuffer;
 import org.lwjgl.opengl.GL32;
 
 import java.awt.*;
+import java.nio.IntBuffer;
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
@@ -497,7 +500,7 @@ public class LodRenderer
 		ApiEventInjector.INSTANCE.fireAllEvents(DhApiBeforeBufferRenderEvent.class, new DhApiBeforeBufferRenderEvent.EventParam(renderEventParam, modelPos));
 	}
 	
-	public void drawVbo(SharedVbo sharedVbo, SharedVbo.BufferSlice slice)
+	public void drawSharedVbo(SharedVbo sharedVbo, SharedVbo.BufferSlice[] slices)
 	{
 		IDhApiShaderProgram shaderProgram = this.lodRenderProgram;
 		IDhApiShaderProgram shaderProgramOverride = OverrideInjector.INSTANCE.get(IDhApiShaderProgram.class);
@@ -510,9 +513,33 @@ public class LodRenderer
 		sharedVbo.bind();
 		shaderProgram.bindVertexBuffer(sharedVbo.vboId);
 		
-		int vertexCount = (slice.vertexCount / 4) * 6; // 4 vertices per quad, 6 indices per quad
-		int startingVertexIndex = slice.startIndex / LodUtil.LOD_VERTEX_FORMAT.getByteSize(); // Adjust base vertex calculation
-		GL32.glDrawElementsBaseVertex(GL32.GL_TRIANGLES, vertexCount, this.quadIBO.getType(), 0, startingVertexIndex);
+		IntArrayList countList = new IntArrayList();
+		IntArrayList baseVertexList = new IntArrayList();
+		for (int i = 0; i < slices.length; i++)
+		{
+			SharedVbo.BufferSlice slice = slices[i];
+			if (slice != null && slice.vertexCount != 0)
+			{
+				countList.add((slice.vertexCount / 4) * 6); // 4 vertices per quad, 6 indices per quad
+				baseVertexList.add((int)slice.startIndex / LodUtil.LOD_VERTEX_FORMAT.getByteSize());
+			}
+		}
+		
+		int[] counts = countList.toIntArray();
+		PointerBuffer iboIndicies = PointerBuffer.allocateDirect(counts.length);
+		for (int i = 0; i < counts.length; i++)
+		{
+			iboIndicies.put(0L);
+		}
+		iboIndicies.rewind();
+		int[] baseVertecies = baseVertexList.toIntArray();
+		
+		
+		if (counts.length != 0)
+		{
+			GL32.glMultiDrawElementsBaseVertex(GL32.GL_TRIANGLES, counts, this.quadIBO.getType(), iboIndicies, baseVertecies);
+		}
+		
 		sharedVbo.unbind();
 	}
 	

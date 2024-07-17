@@ -176,7 +176,7 @@ public class ColumnRenderBuffer implements AutoCloseable
 		int opaqueSliceCount = builder.getCurrentNeededOpaqueVertexBufferCount();
 		if (this.opaqueBufferSlices.length != opaqueSliceCount)
 		{
-			SharedVbo.OPAQUE.deallocateChunks(this.opaqueBufferSlices);
+			SharedVbo.OPAQUE.deallocate(this.opaqueBufferSlices);
 			this.opaqueBufferSlices = new SharedVbo.BufferSlice[opaqueSliceCount];
 		}
 		uploadBuffersDirect(SharedVbo.OPAQUE, this.opaqueBufferSlices, builder.makeOpaqueVertexBuffers());
@@ -185,7 +185,7 @@ public class ColumnRenderBuffer implements AutoCloseable
 		int transparentSliceCount = builder.getCurrentNeededTransparentVertexBufferCount();
 		if (this.transparentBufferSlices.length != transparentSliceCount)
 		{
-			SharedVbo.TRANSPARENT.deallocateChunks(this.transparentBufferSlices);
+			SharedVbo.TRANSPARENT.deallocate(this.transparentBufferSlices);
 			this.transparentBufferSlices = new SharedVbo.BufferSlice[transparentSliceCount];
 		}
 		uploadBuffersDirect(SharedVbo.TRANSPARENT, this.transparentBufferSlices, builder.makeTransparentVertexBuffers());
@@ -217,7 +217,7 @@ public class ColumnRenderBuffer implements AutoCloseable
 			catch (Exception e)
 			{
 				bufferSlices[i] = null;
-				handler.deallocateChunk(slice);
+				handler.deallocate(slice);
 				LOGGER.error("Failed to upload buffer. Error: ["+e.getMessage()+"].", e);
 			}
 			
@@ -239,25 +239,13 @@ public class ColumnRenderBuffer implements AutoCloseable
 	public void renderOpaque(LodRenderer renderContext, DhApiRenderParam renderEventParam)
 	{
 		renderContext.setModelViewMatrixOffset(this.pos, renderEventParam);
-		for (SharedVbo.BufferSlice slice : this.opaqueBufferSlices)
-		{
-			if (slice != null && slice.length != 0)
-			{
-				renderContext.drawVbo(SharedVbo.OPAQUE, slice);
-			}
-		}
+		renderContext.drawSharedVbo(SharedVbo.OPAQUE, this.opaqueBufferSlices);
 	}
 	
 	public void renderTransparent(LodRenderer renderContext, DhApiRenderParam renderEventParam)
 	{
 		renderContext.setModelViewMatrixOffset(this.pos, renderEventParam);
-		for (SharedVbo.BufferSlice slice : this.transparentBufferSlices)
-		{
-			if (slice != null && slice.length != 0)
-			{
-				renderContext.drawVbo(SharedVbo.TRANSPARENT, slice);
-			}
-		}
+		renderContext.drawSharedVbo(SharedVbo.TRANSPARENT, this.transparentBufferSlices);
 	}
 	
 	
@@ -266,6 +254,7 @@ public class ColumnRenderBuffer implements AutoCloseable
 	// misc methods //
 	//==============//
 	
+	// TODO
 	/** can be used when debugging */
 	public boolean hasNonNullVbos() { return false; } //this.vbos != null || this.vbosTransparent != null; }
 	
@@ -298,8 +287,8 @@ public class ColumnRenderBuffer implements AutoCloseable
 	{
 		this.buffersUploaded = false;
 		
-		SharedVbo.OPAQUE.deallocateChunks(this.opaqueBufferSlices);
-		SharedVbo.TRANSPARENT.deallocateChunks(this.transparentBufferSlices);
+		SharedVbo.OPAQUE.deallocate(this.opaqueBufferSlices);
+		SharedVbo.TRANSPARENT.deallocate(this.transparentBufferSlices);
 	}
 	
 }
