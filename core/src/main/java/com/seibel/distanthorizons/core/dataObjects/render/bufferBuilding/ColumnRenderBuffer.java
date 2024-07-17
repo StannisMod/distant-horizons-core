@@ -59,8 +59,8 @@ public class ColumnRenderBuffer implements AutoCloseable
 	
 	public boolean buffersUploaded = false;
 	
-	private SharedVbo.BufferSlice[] opaqueBufferSlices;
-	private SharedVbo.BufferSlice[] transparentBufferSlices;
+	public SharedVbo.BufferSlice[] opaqueBufferSlices;
+	public SharedVbo.BufferSlice[] transparentBufferSlices;
 	
 	
 	
@@ -236,17 +236,17 @@ public class ColumnRenderBuffer implements AutoCloseable
 	// render //
 	//========//
 	
-	public void renderOpaque(LodRenderer renderContext, DhApiRenderParam renderEventParam)
-	{
-		renderContext.setModelViewMatrixOffset(this.pos, renderEventParam);
-		renderContext.drawSharedVbo(SharedVbo.OPAQUE, this.opaqueBufferSlices);
-	}
-	
-	public void renderTransparent(LodRenderer renderContext, DhApiRenderParam renderEventParam)
-	{
-		renderContext.setModelViewMatrixOffset(this.pos, renderEventParam);
-		renderContext.drawSharedVbo(SharedVbo.TRANSPARENT, this.transparentBufferSlices);
-	}
+	//public void renderOpaque(LodRenderer renderContext, DhApiRenderParam renderEventParam)
+	//{
+	//	renderContext.setModelViewMatrixOffset(this.pos, renderEventParam);
+	//	renderContext.drawSharedVbo(SharedVbo.OPAQUE, this.opaqueBufferSlices);
+	//}
+	//
+	//public void renderTransparent(LodRenderer renderContext, DhApiRenderParam renderEventParam)
+	//{
+	//	renderContext.setModelViewMatrixOffset(this.pos, renderEventParam);
+	//	renderContext.drawSharedVbo(SharedVbo.TRANSPARENT, this.transparentBufferSlices);
+	//}
 	
 	
 	

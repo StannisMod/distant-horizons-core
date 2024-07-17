@@ -305,7 +305,10 @@ public class LodRenderer
 				// terrain
 				profiler.popPush("LOD Opaque");
 				ApiEventInjector.INSTANCE.fireAllEvents(DhApiBeforeRenderPassEvent.class, renderEventParam);
+				
 				this.bufferHandler.renderOpaque(this, renderEventParam);
+				
+				
 				
 				// custom objects with SSAO
 				if (Config.Client.Advanced.Graphics.GenericRendering.enableRendering.get())
@@ -470,6 +473,7 @@ public class LodRenderer
 		GL32.glBlendEquation(GL32.GL_FUNC_ADD);
 		GL32.glBlendFuncSeparate(GL32.GL_SRC_ALPHA, GL32.GL_ONE_MINUS_SRC_ALPHA, GL32.GL_ONE, GL32.GL_ONE_MINUS_SRC_ALPHA);
 		ApiEventInjector.INSTANCE.fireAllEvents(DhApiBeforeRenderPassEvent.class, renderEventParam);
+		
 		this.bufferHandler.renderTransparent(this, renderEventParam);
 		GL32.glDepthMask(true); // Apparently the depth mask state is stored in the FBO, so glState fails to restore it...
 		

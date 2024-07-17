@@ -19,8 +19,8 @@ public class SharedVbo
 {
 	private static final Logger LOGGER = DhLoggerBuilder.getLogger();
 	
-	public static final SharedVbo OPAQUE = new SharedVbo(1_000_000_000/*1GB*/, 1024 * 1024/*1MB*/);
-	public static final SharedVbo TRANSPARENT = new SharedVbo(1_000_000_000/*1GB*/, 1024 * 1024/*1MB*/);
+	public static final SharedVbo OPAQUE = new SharedVbo(2_000_000_000L/*1GB*/, 1024 * 1024/*1MB*/);
+	public static final SharedVbo TRANSPARENT = new SharedVbo(2_000_000_000L/*1GB*/, 1024 * 1024/*1MB*/);
 	
 	
 	public final int vboId;

@@ -25,11 +25,13 @@ import com.seibel.distanthorizons.api.interfaces.override.rendering.IDhApiShadow
 import com.seibel.distanthorizons.api.methods.events.sharedParameterObjects.DhApiRenderParam;
 import com.seibel.distanthorizons.core.config.Config;
 import com.seibel.distanthorizons.core.dataObjects.render.bufferBuilding.ColumnRenderBuffer;
+import com.seibel.distanthorizons.core.dataObjects.render.bufferBuilding.SharedVbo;
 import com.seibel.distanthorizons.core.dependencyInjection.ModAccessorInjector;
 import com.seibel.distanthorizons.core.dependencyInjection.SingletonInjector;
 import com.seibel.distanthorizons.core.enums.EDhDirection;
 import com.seibel.distanthorizons.core.logging.DhLoggerBuilder;
 import com.seibel.distanthorizons.core.logging.f3.F3Screen;
+import com.seibel.distanthorizons.core.pos.DhBlockPos;
 import com.seibel.distanthorizons.core.pos.DhLodPos;
 import com.seibel.distanthorizons.core.pos.DhSectionPos;
 import com.seibel.distanthorizons.core.pos.Pos2D;
@@ -48,9 +50,7 @@ import org.apache.logging.log4j.Logger;
 import org.joml.Matrix4f;
 import org.joml.Matrix4fc;
 
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.ListIterator;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -348,7 +348,11 @@ public class RenderBufferHandler implements AutoCloseable
 		// TODO why can these sometimes be null when teleporting between multiverses
 		if (this.loadedNearToFarBuffers != null)
 		{
-			this.loadedNearToFarBuffers.forEach(loadedBuffer -> loadedBuffer.buffer.renderOpaque(renderContext, renderEventParam));
+			renderContext.setModelViewMatrixOffset(DhBlockPos.ZERO, renderEventParam);
+			
+			ArrayList<SharedVbo.BufferSlice> sliceList = new ArrayList<>();
+			this.loadedNearToFarBuffers.forEach(loadedBuffer -> sliceList.addAll(Arrays.asList(loadedBuffer.buffer.opaqueBufferSlices)));
+			renderContext.drawSharedVbo(SharedVbo.OPAQUE, sliceList.toArray(new SharedVbo.BufferSlice[0]));
 		}
 	}
 	public void renderTransparent(LodRenderer renderContext, DhApiRenderParam renderEventParam)
@@ -356,12 +360,11 @@ public class RenderBufferHandler implements AutoCloseable
 		// TODO why can these sometimes be null when teleporting between multiverses
 		if (this.loadedNearToFarBuffers != null)
 		{
-			ListIterator<LoadedRenderBuffer> iter = this.loadedNearToFarBuffers.listIterator(this.loadedNearToFarBuffers.size());
-			while (iter.hasPrevious())
-			{
-				LoadedRenderBuffer loadedBuffer = iter.previous();
-				loadedBuffer.buffer.renderTransparent(renderContext, renderEventParam);
-			}
+			renderContext.setModelViewMatrixOffset(DhBlockPos.ZERO, renderEventParam);
+			
+			ArrayList<SharedVbo.BufferSlice> sliceList = new ArrayList<>();
+			this.loadedNearToFarBuffers.forEach(loadedBuffer -> sliceList.addAll(Arrays.asList(loadedBuffer.buffer.transparentBufferSlices)));
+			renderContext.drawSharedVbo(SharedVbo.TRANSPARENT, sliceList.toArray(new SharedVbo.BufferSlice[0]));
 		}
 	}
 	
