@@ -20,6 +20,7 @@
 package com.seibel.distanthorizons.core.logging.f3;
 
 import com.seibel.distanthorizons.core.api.internal.SharedApi;
+import com.seibel.distanthorizons.core.dataObjects.render.bufferBuilding.SharedVbo;
 import com.seibel.distanthorizons.core.level.IDhLevel;
 import com.seibel.distanthorizons.core.render.RenderBufferHandler;
 import com.seibel.distanthorizons.core.render.renderer.generic.GenericObjectRenderer;
@@ -111,6 +112,11 @@ public class F3Screen
 				messageList.add(genericRenderer.getVboRenderDebugMenuString());
 			}
 		}
+		messageList.add("");
+		// GPU memory
+		messageList.add("GPU Opaque " + SharedVbo.OPAQUE.getDebugMenuString());
+		messageList.add("GPU Transp " + SharedVbo.TRANSPARENT.getDebugMenuString());
+		messageList.add("");
 	}
 	
 	

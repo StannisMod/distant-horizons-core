@@ -20,15 +20,11 @@
 package com.seibel.distanthorizons.core.dataObjects.render.bufferBuilding;
 
 import com.seibel.distanthorizons.api.methods.events.sharedParameterObjects.DhApiRenderParam;
-import com.seibel.distanthorizons.core.config.Config;
 import com.seibel.distanthorizons.core.dependencyInjection.SingletonInjector;
 import com.seibel.distanthorizons.core.logging.DhLoggerBuilder;
 import com.seibel.distanthorizons.core.pos.DhBlockPos;
-import com.seibel.distanthorizons.core.render.glObject.GLProxy;
-import com.seibel.distanthorizons.core.render.glObject.buffer.GLVertexBuffer;
 import com.seibel.distanthorizons.core.render.renderer.LodRenderer;
 import com.seibel.distanthorizons.core.util.LodUtil;
-import com.seibel.distanthorizons.core.util.objects.StatsMap;
 import com.seibel.distanthorizons.api.enums.config.EDhApiGpuUploadMethod;
 import com.seibel.distanthorizons.core.util.*;
 import com.seibel.distanthorizons.core.wrapperInterfaces.minecraft.IMinecraftClientWrapper;
@@ -59,13 +55,12 @@ public class ColumnRenderBuffer implements AutoCloseable
 	
 	
 	
-	
 	public final DhBlockPos pos;
 	
 	public boolean buffersUploaded = false;
 	
-	private GLVertexBuffer[] vbos;
-	private GLVertexBuffer[] vbosTransparent;
+	private SharedVbo.BufferSlice[] opaqueBufferSlices;
+	private SharedVbo.BufferSlice[] transparentBufferSlices;
 	
 	
 	
@@ -76,11 +71,9 @@ public class ColumnRenderBuffer implements AutoCloseable
 	public ColumnRenderBuffer(DhBlockPos pos)
 	{
 		this.pos = pos;
-		this.vbos = new GLVertexBuffer[0];
-		this.vbosTransparent = new GLVertexBuffer[0];
+		this.opaqueBufferSlices = new SharedVbo.BufferSlice[0];
+		this.transparentBufferSlices = new SharedVbo.BufferSlice[0];
 	}
-	
-	
 	
 	
 	
@@ -128,128 +121,114 @@ public class ColumnRenderBuffer implements AutoCloseable
 	}
 	private void uploadBuffersUsingUploadMethod(LodQuadBuilder builder, EDhApiGpuUploadMethod gpuUploadMethod) throws InterruptedException
 	{
-		if (gpuUploadMethod.useEarlyMapping)
-		{
-			this.uploadBuffersMapped(builder, gpuUploadMethod);
-		}
-		else
-		{
-			this.uploadBuffersDirect(builder, gpuUploadMethod);
-		}
+		//if (gpuUploadMethod.useEarlyMapping)
+		//{
+		//	this.uploadBuffersMapped(builder, gpuUploadMethod);
+		//}
+		//else
+		//{
+			this.uploadBuffersDirect(builder);
+		//}
 		
 		this.buffersUploaded = true;
 	}
 	
 	
 	
-	private void uploadBuffersMapped(LodQuadBuilder builder, EDhApiGpuUploadMethod method)
+	//private void uploadBuffersMapped(LodQuadBuilder builder, EDhApiGpuUploadMethod method)
+	//{
+	//	// opaque vbos //
+	//	
+	//	this.vbos = ColumnRenderBufferBuilder.resizeBuffer(this.vbos, builder.getCurrentNeededOpaqueVertexBufferCount());
+	//	for (int i = 0; i < this.vbos.length; i++)
+	//	{
+	//		if (this.vbos[i] == null)
+	//		{
+	//			this.vbos[i] = new GLVertexBuffer(method.useBufferStorage);
+	//		}
+	//	}
+	//	LodQuadBuilder.BufferFiller func = builder.makeOpaqueBufferFiller(method);
+	//	for (GLVertexBuffer vbo : this.vbos)
+	//	{
+	//		func.fill(vbo);
+	//	}
+	//	
+	//	
+	//	// transparent vbos //
+	//	
+	//	this.vbosTransparent = ColumnRenderBufferBuilder.resizeBuffer(this.vbosTransparent, builder.getCurrentNeededTransparentVertexBufferCount());
+	//	for (int i = 0; i < this.vbosTransparent.length; i++)
+	//	{
+	//		if (this.vbosTransparent[i] == null)
+	//		{
+	//			this.vbosTransparent[i] = new GLVertexBuffer(method.useBufferStorage);
+	//		}
+	//	}
+	//	LodQuadBuilder.BufferFiller transparentFillerFunc = builder.makeTransparentBufferFiller(method);
+	//	for (GLVertexBuffer vbo : this.vbosTransparent)
+	//	{
+	//		transparentFillerFunc.fill(vbo);
+	//	}
+	//}
+	
+	private void uploadBuffersDirect(LodQuadBuilder builder)
 	{
-		// opaque vbos //
-		
-		this.vbos = ColumnRenderBufferBuilder.resizeBuffer(this.vbos, builder.getCurrentNeededOpaqueVertexBufferCount());
-		for (int i = 0; i < this.vbos.length; i++)
+		int opaqueSliceCount = builder.getCurrentNeededOpaqueVertexBufferCount();
+		if (this.opaqueBufferSlices.length != opaqueSliceCount)
 		{
-			if (this.vbos[i] == null)
-			{
-				this.vbos[i] = new GLVertexBuffer(method.useBufferStorage);
-			}
+			SharedVbo.OPAQUE.deallocateChunks(this.opaqueBufferSlices);
+			this.opaqueBufferSlices = new SharedVbo.BufferSlice[opaqueSliceCount];
 		}
-		LodQuadBuilder.BufferFiller func = builder.makeOpaqueBufferFiller(method);
-		for (GLVertexBuffer vbo : this.vbos)
-		{
-			func.fill(vbo);
-		}
+		uploadBuffersDirect(SharedVbo.OPAQUE, this.opaqueBufferSlices, builder.makeOpaqueVertexBuffers());
 		
 		
-		// transparent vbos //
-		
-		this.vbosTransparent = ColumnRenderBufferBuilder.resizeBuffer(this.vbosTransparent, builder.getCurrentNeededTransparentVertexBufferCount());
-		for (int i = 0; i < this.vbosTransparent.length; i++)
+		int transparentSliceCount = builder.getCurrentNeededTransparentVertexBufferCount();
+		if (this.transparentBufferSlices.length != transparentSliceCount)
 		{
-			if (this.vbosTransparent[i] == null)
-			{
-				this.vbosTransparent[i] = new GLVertexBuffer(method.useBufferStorage);
-			}
+			SharedVbo.TRANSPARENT.deallocateChunks(this.transparentBufferSlices);
+			this.transparentBufferSlices = new SharedVbo.BufferSlice[transparentSliceCount];
 		}
-		LodQuadBuilder.BufferFiller transparentFillerFunc = builder.makeTransparentBufferFiller(method);
-		for (GLVertexBuffer vbo : this.vbosTransparent)
-		{
-			transparentFillerFunc.fill(vbo);
-		}
+		uploadBuffersDirect(SharedVbo.TRANSPARENT, this.transparentBufferSlices, builder.makeTransparentVertexBuffers());
 	}
 	
-	private void uploadBuffersDirect(LodQuadBuilder builder, EDhApiGpuUploadMethod method) throws InterruptedException
+	private static void uploadBuffersDirect(SharedVbo handler, SharedVbo.BufferSlice[] bufferSlices, Iterator<ByteBuffer> iter)
 	{
-		this.vbos = ColumnRenderBufferBuilder.resizeBuffer(this.vbos, builder.getCurrentNeededOpaqueVertexBufferCount());
-		uploadBuffersDirect(this.vbos, builder.makeOpaqueVertexBuffers(), method);
-		
-		this.vbosTransparent = ColumnRenderBufferBuilder.resizeBuffer(this.vbosTransparent, builder.getCurrentNeededTransparentVertexBufferCount());
-		uploadBuffersDirect(this.vbosTransparent, builder.makeTransparentVertexBuffers(), method);
-	}
-	private static void uploadBuffersDirect(GLVertexBuffer[] vbos, Iterator<ByteBuffer> iter, EDhApiGpuUploadMethod method) throws InterruptedException
-	{
-		long remainingMS = 0;
-		long MBPerMS = Config.Client.Advanced.GpuBuffers.gpuUploadPerMegabyteInMilliseconds.get();
-		int vboIndex = 0;
+		int i = 0;
 		while (iter.hasNext())
 		{
-			if (vboIndex >= vbos.length)
+			if (i >= bufferSlices.length)
 			{
 				throw new RuntimeException("Too many vertex buffers!!");
 			}
 			
-			
-			// get or create the VBO
-			if (vbos[vboIndex] == null)
+			// get or create the buffer
+			if (bufferSlices[i] == null)
 			{
-				vbos[vboIndex] = new GLVertexBuffer(method.useBufferStorage);
+				bufferSlices[i] = handler.allocateSlice();
 			}
-			GLVertexBuffer vbo = vbos[vboIndex];
+			SharedVbo.BufferSlice slice = bufferSlices[i];
 			
 			
-			ByteBuffer bb = iter.next();
-			int size = bb.limit() - bb.position();
-			
+			ByteBuffer buffer = iter.next();
 			try
 			{
-				vbo.bind();
-				vbo.uploadBuffer(bb, size / LodUtil.LOD_VERTEX_FORMAT.getByteSize(), method, FULL_SIZED_BUFFER);
+				handler.updateBuffer(slice, buffer);
 			}
 			catch (Exception e)
 			{
-				vbos[vboIndex] = null;
-				vbo.close();
-				LOGGER.error("Failed to upload buffer: ", e);
+				bufferSlices[i] = null;
+				handler.deallocateChunk(slice);
+				LOGGER.error("Failed to upload buffer. Error: ["+e.getMessage()+"].", e);
 			}
 			
-			
-			if (MBPerMS > 0)
-			{
-				// upload buffers over an extended period of time
-				// to hopefully prevent stuttering.
-				remainingMS += size * MBPerMS;
-				if (remainingMS >= TimeUnit.NANOSECONDS.convert(1000 / 60, TimeUnit.MILLISECONDS))
-				{
-					if (remainingMS > MAX_BUFFER_UPLOAD_TIMEOUT_NANOSECONDS)
-					{
-						remainingMS = MAX_BUFFER_UPLOAD_TIMEOUT_NANOSECONDS;
-					}
-					
-					Thread.sleep(remainingMS / 1000000, (int) (remainingMS % 1000000));
-					remainingMS = 0;
-				}
-			}
-			
-			vboIndex++;
+			i++;
 		}
 		
-		if (vboIndex < vbos.length)
+		if (i < bufferSlices.length)
 		{
-			throw new RuntimeException("Too few vertex buffers!!");
+			throw new RuntimeException("Too few buffer chunks!");
 		}
 	}
-	
-	
 	
 	
 	
@@ -257,63 +236,28 @@ public class ColumnRenderBuffer implements AutoCloseable
 	// render //
 	//========//
 	
-	/** @return true if something was rendered, false otherwise */
-	public boolean renderOpaque(LodRenderer renderContext, DhApiRenderParam renderEventParam)
+	public void renderOpaque(LodRenderer renderContext, DhApiRenderParam renderEventParam)
 	{
-		boolean hasRendered = false;
 		renderContext.setModelViewMatrixOffset(this.pos, renderEventParam);
-		for (GLVertexBuffer vbo : this.vbos)
+		for (SharedVbo.BufferSlice slice : this.opaqueBufferSlices)
 		{
-			if (vbo == null)
+			if (slice != null && slice.length != 0)
 			{
-				continue;
+				renderContext.drawVbo(SharedVbo.OPAQUE, slice);
 			}
-			
-			if (vbo.getVertexCount() == 0)
-			{
-				continue;
-			}
-			
-			hasRendered = true;
-			renderContext.drawVbo(vbo);
-			//LodRenderer.tickLogger.info("Vertex buffer: {}", vbo);
 		}
-		return hasRendered;
 	}
 	
-	/** @return true if something was rendered, false otherwise */
-	public boolean renderTransparent(LodRenderer renderContext, DhApiRenderParam renderEventParam)
+	public void renderTransparent(LodRenderer renderContext, DhApiRenderParam renderEventParam)
 	{
-		boolean hasRendered = false;
-		
-		try
+		renderContext.setModelViewMatrixOffset(this.pos, renderEventParam);
+		for (SharedVbo.BufferSlice slice : this.transparentBufferSlices)
 		{
-			// can throw an IllegalStateException if the GL program was freed before it should've been
-			renderContext.setModelViewMatrixOffset(this.pos, renderEventParam);
-			
-			for (GLVertexBuffer vbo : this.vbosTransparent)
+			if (slice != null && slice.length != 0)
 			{
-				if (vbo == null)
-				{
-					continue;
-				}
-				
-				if (vbo.getVertexCount() == 0)
-				{
-					continue;
-				}
-				
-				hasRendered = true;
-				renderContext.drawVbo(vbo);
-				//LodRenderer.tickLogger.info("Vertex buffer: {}", vbo);
+				renderContext.drawVbo(SharedVbo.TRANSPARENT, slice);
 			}
 		}
-		catch (IllegalStateException e)
-		{
-			LOGGER.error("renderContext program doesn't exist for pos: "+this.pos, e);
-		}
-		
-		return hasRendered;
 	}
 	
 	
@@ -323,47 +267,24 @@ public class ColumnRenderBuffer implements AutoCloseable
 	//==============//
 	
 	/** can be used when debugging */
-	public boolean hasNonNullVbos() { return this.vbos != null || this.vbosTransparent != null; }
+	public boolean hasNonNullVbos() { return false; } //this.vbos != null || this.vbosTransparent != null; }
 	
 	/** can be used when debugging */
-	public int vboBufferCount() 
+	public int bufferSliceCount() 
 	{
 		int count = 0;
 		
-		if (this.vbos != null)
+		if (this.opaqueBufferSlices != null)
 		{
-			count += this.vbos.length;
+			count += this.opaqueBufferSlices.length;
 		}
-		
-		if (this.vbosTransparent != null)
+
+		if (this.transparentBufferSlices != null)
 		{
-			count += this.vbosTransparent.length;
+			count += this.transparentBufferSlices.length;
 		}
 		
 		return count;
-	}
-	
-	public void debugDumpStats(StatsMap statsMap)
-	{
-		statsMap.incStat("RenderBuffers");
-		statsMap.incStat("SimpleRenderBuffers");
-		for (GLVertexBuffer vertexBuffer : vbos)
-		{
-			if (vertexBuffer != null)
-			{
-				statsMap.incStat("VBOs");
-				if (vertexBuffer.getSize() == FULL_SIZED_BUFFER)
-				{
-					statsMap.incStat("FullsizedVBOs");
-				}
-				
-				if (vertexBuffer.getSize() == 0)
-				{
-					GLProxy.GL_LOGGER.warn("VBO with size 0");
-				}
-				statsMap.incBytesStat("TotalUsage", vertexBuffer.getSize());
-			}
-		}
 	}
 	
 	/**
@@ -377,24 +298,8 @@ public class ColumnRenderBuffer implements AutoCloseable
 	{
 		this.buffersUploaded = false;
 		
-		GLProxy.getInstance().queueRunningOnRenderThread(() ->
-		{
-			for (GLVertexBuffer buffer : this.vbos)
-			{
-				if (buffer != null)
-				{
-					buffer.destroyAsync();
-				}
-			}
-			
-			for (GLVertexBuffer buffer : this.vbosTransparent)
-			{
-				if (buffer != null)
-				{
-					buffer.destroyAsync();
-				}
-			}
-		});
+		SharedVbo.OPAQUE.deallocateChunks(this.opaqueBufferSlices);
+		SharedVbo.TRANSPARENT.deallocateChunks(this.transparentBufferSlices);
 	}
 	
 }

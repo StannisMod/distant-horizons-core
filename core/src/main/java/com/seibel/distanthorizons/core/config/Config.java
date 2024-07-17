@@ -1054,20 +1054,6 @@ public class Config
 								+ "")
 						.build();
 				
-				public static ConfigEntry<Integer> gpuUploadPerMegabyteInMilliseconds = new ConfigEntry.Builder<Integer>()
-						.setMinDefaultMax(0, 0, 50)
-						.comment(""
-								+ "How long should a buffer wait per Megabyte of data uploaded? \n"
-								+ "Helpful resource for frame times: https://fpstoms.com \n"
-								+ "\n"
-								+ "Longer times may reduce stuttering but will make LODs \n"
-								+ "transition and load slower. Change this to [0] for no timeout. \n"
-								+ "\n"
-								+ "NOTE:\n"
-								+ "Before changing this config, try changing the \"GPU Upload method\" first. \n"
-								+ "")
-						.build();
-				
 			}
 			
 			public static class AutoUpdater

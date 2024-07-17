@@ -25,6 +25,7 @@ import com.seibel.distanthorizons.api.interfaces.override.rendering.IDhApiShader
 import com.seibel.distanthorizons.api.methods.events.abstractEvents.*;
 import com.seibel.distanthorizons.api.methods.events.sharedParameterObjects.DhApiRenderParam;
 import com.seibel.distanthorizons.core.config.Config;
+import com.seibel.distanthorizons.core.dataObjects.render.bufferBuilding.SharedVbo;
 import com.seibel.distanthorizons.core.dataObjects.render.bufferBuilding.ColumnRenderBuffer;
 import com.seibel.distanthorizons.core.dependencyInjection.ModAccessorInjector;
 import com.seibel.distanthorizons.core.dependencyInjection.SingletonInjector;
@@ -35,11 +36,11 @@ import com.seibel.distanthorizons.core.render.DhApiRenderProxy;
 import com.seibel.distanthorizons.core.render.RenderBufferHandler;
 import com.seibel.distanthorizons.core.render.glObject.GLProxy;
 import com.seibel.distanthorizons.core.render.glObject.GLState;
-import com.seibel.distanthorizons.core.render.glObject.buffer.GLVertexBuffer;
 import com.seibel.distanthorizons.core.render.glObject.buffer.QuadElementBuffer;
 import com.seibel.distanthorizons.core.render.glObject.texture.*;
 import com.seibel.distanthorizons.core.render.renderer.generic.GenericObjectRenderer;
 import com.seibel.distanthorizons.core.render.renderer.shaders.*;
+import com.seibel.distanthorizons.core.util.LodUtil;
 import com.seibel.distanthorizons.core.wrapperInterfaces.minecraft.IMinecraftClientWrapper;
 import com.seibel.distanthorizons.core.wrapperInterfaces.minecraft.IMinecraftRenderWrapper;
 import com.seibel.distanthorizons.core.wrapperInterfaces.minecraft.IProfilerWrapper;
@@ -496,31 +497,23 @@ public class LodRenderer
 		ApiEventInjector.INSTANCE.fireAllEvents(DhApiBeforeBufferRenderEvent.class, new DhApiBeforeBufferRenderEvent.EventParam(renderEventParam, modelPos));
 	}
 	
-	public void drawVbo(GLVertexBuffer vbo)
+	public void drawVbo(SharedVbo sharedVbo, SharedVbo.BufferSlice slice)
 	{
-		//// can be uncommented to add additional debug validation to prevent crashes if invalid buffers are being created
-		//// shouldn't be used in production due to the performance hit
-		//if (GL32.glIsBuffer(vbo.getId()))
+		IDhApiShaderProgram shaderProgram = this.lodRenderProgram;
+		IDhApiShaderProgram shaderProgramOverride = OverrideInjector.INSTANCE.get(IDhApiShaderProgram.class);
+		if (shaderProgramOverride != null && shaderProgram.overrideThisFrame())
 		{
-			IDhApiShaderProgram shaderProgram = this.lodRenderProgram;
-			IDhApiShaderProgram shaderProgramOverride = OverrideInjector.INSTANCE.get(IDhApiShaderProgram.class);
-			if (shaderProgramOverride != null && shaderProgram.overrideThisFrame())
-			{
-				shaderProgram = shaderProgramOverride;
-			}
-			
-			
-			vbo.bind();
-			shaderProgram.bindVertexBuffer(vbo.getId());
-			GL32.glDrawElements(GL32.GL_TRIANGLES, (vbo.getVertexCount() / 4) * 6, // TODO what does the 4 and 6 here represent?
-					this.quadIBO.getType(), 0);
-			vbo.unbind();
+			shaderProgram = shaderProgramOverride;
 		}
-		//else
-		//{
-		//	// will spam the log if uncommented, but helpful for validation
-		//	//LOGGER.warn("Unable to draw VBO: "+vbo.getId());
-		//}
+		
+		
+		sharedVbo.bind();
+		shaderProgram.bindVertexBuffer(sharedVbo.vboId);
+		
+		int vertexCount = (slice.vertexCount / 4) * 6; // 4 vertices per quad, 6 indices per quad
+		int startingVertexIndex = slice.startIndex / LodUtil.LOD_VERTEX_FORMAT.getByteSize(); // Adjust base vertex calculation
+		GL32.glDrawElementsBaseVertex(GL32.GL_TRIANGLES, vertexCount, this.quadIBO.getType(), 0, startingVertexIndex);
+		sharedVbo.unbind();
 	}
 	
 	

@@ -36,13 +36,4 @@ public interface IDhApiGpuBuffersConfig extends IDhApiConfigGroup
 	/** Defines how geometry data is uploaded to the GPU. */
 	IDhApiConfigValue<EDhApiGpuUploadMethod> gpuUploadMethod();
 	
-	/**
-	 * Defines how long we should wait after uploading one
-	 * Megabyte of geometry data to the GPU before uploading
-	 * the next Megabyte of data. <br>
-	 * This can be set to a non-zero number to reduce stuttering caused by
-	 * uploading buffers to the GPU.
-	 */
-	IDhApiConfigValue<Integer> gpuUploadPerMegabyteInMilliseconds();
-	
 }

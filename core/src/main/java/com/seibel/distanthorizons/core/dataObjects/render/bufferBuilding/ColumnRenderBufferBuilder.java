@@ -333,32 +333,4 @@ public class ColumnRenderBufferBuilder
 		quadBuilder.finalizeData();
 	}
 	
-	
-	
-	//=================//
-	// vbo interaction //
-	//=================//
-	
-	public static GLVertexBuffer[] resizeBuffer(GLVertexBuffer[] vbos, int newSize)
-	{
-		if (vbos.length == newSize)
-		{
-			return vbos;
-		}
-		
-		GLVertexBuffer[] newVbos = new GLVertexBuffer[newSize];
-		System.arraycopy(vbos, 0, newVbos, 0, Math.min(vbos.length, newSize));
-		if (newSize < vbos.length)
-		{
-			for (int i = newSize; i < vbos.length; i++)
-			{
-				if (vbos[i] != null)
-				{
-					vbos[i].close();
-				}
-			}
-		}
-		return newVbos;
-	}
-	
 }

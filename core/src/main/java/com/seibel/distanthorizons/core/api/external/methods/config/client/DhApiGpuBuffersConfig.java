@@ -36,7 +36,4 @@ public class DhApiGpuBuffersConfig implements IDhApiGpuBuffersConfig
 	public IDhApiConfigValue<EDhApiGpuUploadMethod> gpuUploadMethod()
 	{ return new DhApiConfigValue<>(Config.Client.Advanced.GpuBuffers.gpuUploadMethod); }
 	
-	public IDhApiConfigValue<Integer> gpuUploadPerMegabyteInMilliseconds()
-	{ return new DhApiConfigValue<>(Config.Client.Advanced.GpuBuffers.gpuUploadPerMegabyteInMilliseconds); }
-	
 }

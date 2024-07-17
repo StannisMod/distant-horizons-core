@@ -31,7 +31,6 @@ import com.seibel.distanthorizons.core.pos.DhBlockPos2D;
 import com.seibel.distanthorizons.core.pos.DhSectionPos;
 import com.seibel.distanthorizons.core.render.renderer.DebugRenderer;
 import com.seibel.distanthorizons.core.render.renderer.IDebugRenderable;
-import com.seibel.distanthorizons.core.sql.repo.BeaconBeamRepo;
 import com.seibel.distanthorizons.core.util.LodUtil;
 import com.seibel.distanthorizons.core.util.ThreadUtil;
 import com.seibel.distanthorizons.core.util.objects.quadTree.QuadNode;
@@ -647,7 +646,7 @@ public class LodQuadTree extends QuadTree<LodRenderSection> implements IDebugRen
 				}
 				else if (renderSection.renderBuffer.hasNonNullVbos())
 				{
-					if (renderSection.renderBuffer.vboBufferCount() != 0)
+					if (renderSection.renderBuffer.bufferSliceCount() != 0)
 					{
 						color = Color.GREEN;
 					}

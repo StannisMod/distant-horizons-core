@@ -19,7 +19,8 @@
 
 package com.seibel.distanthorizons.coreapi.util;
 
-import java.util.ArrayList;
+import java.text.CharacterIterator;
+import java.text.StringCharacterIterator;
 import java.util.Arrays;
 
 /**
@@ -83,6 +84,27 @@ public class StringUtil
 			hexChars[i * 2 + 1] = HEX_ARRAY[v & 0x0F];
 		}
 		return new String(hexChars);
+	}
+	
+	/**
+	 * Source:
+	 * https://stackoverflow.com/questions/3758606/how-can-i-convert-byte-size-into-a-human-readable-format-in-java#3758880
+	 */
+	public static String convertByteCountToHumanReadableSI(long bytes)
+	{
+		if (-1000 < bytes && bytes < 1000)
+		{
+			return bytes + " B";
+		}
+		
+		CharacterIterator ci = new StringCharacterIterator("kMGTPE");
+		while (bytes <= -999_950 || bytes >= 999_950)
+		{
+			bytes /= 1000;
+			ci.next();
+		}
+		
+		return String.format("%.1f %cB", bytes / 1000.0, ci.current());
 	}
 	
 }
