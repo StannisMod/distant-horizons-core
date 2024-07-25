@@ -172,11 +172,10 @@ public class SharedApi
 		AbstractDhWorld dhWorld = SharedApi.getAbstractDhWorld();
 		if (dhWorld == null)
 		{
-			if (level instanceof IClientLevelWrapper)
+			if (level instanceof IClientLevelWrapper clientLevel)
 			{
 				// If the client world isn't loaded yet, keep track of which chunks were loaded so we can use them later.
 				// This may happen if the client world and client level load events happen out of order
-				IClientLevelWrapper clientLevel = (IClientLevelWrapper) level;
 				ClientApi.INSTANCE.waitingChunkByClientLevelAndPos.replace(new Pair<>(clientLevel, chunkWrapper.getChunkPos()), chunkWrapper);
 			}
 			
@@ -187,10 +186,9 @@ public class SharedApi
 		IDhLevel dhLevel = dhWorld.getLevel(level);
 		if (dhLevel == null)
 		{
-			if (level instanceof IClientLevelWrapper)
+			if (level instanceof IClientLevelWrapper clientLevel)
 			{
 				// the client level isn't loaded yet
-				IClientLevelWrapper clientLevel = (IClientLevelWrapper) level;
 				ClientApi.INSTANCE.waitingChunkByClientLevelAndPos.replace(new Pair<>(clientLevel, chunkWrapper.getChunkPos()), chunkWrapper);
 			}
 			

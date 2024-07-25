@@ -233,7 +233,7 @@ public class LodUtil
 		
 		Iterator<DhChunkPos> posIter = MC_RENDER.getVanillaRenderedChunks().iterator();
 		
-		return new EdgeDistanceBooleanGrid(new Iterator<Pos2D>()
+		return new EdgeDistanceBooleanGrid(new Iterator<>()
 		{
 			@Override
 			public boolean hasNext()

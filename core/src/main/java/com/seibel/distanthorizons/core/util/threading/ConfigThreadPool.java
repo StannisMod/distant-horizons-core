@@ -56,8 +56,8 @@ public class ConfigThreadPool
 		this.activeThreadCountSemaphore = activeThreadCountSemaphore;
 		
 		this.threadCountConfig = threadCountConfig;
-		this.threadCountConfigListener = new ConfigChangeListener<>(threadCountConfig, 
-				(threadCount) -> { this.setThreadPoolSize(threadCount); });
+		this.threadCountConfigListener = new ConfigChangeListener<>(threadCountConfig,
+				this::setThreadPoolSize);
 		this.runTimeRatioConfig = runTimeRatioConfig;
 		
 		this.setThreadPoolSize(threadCountConfig.get());

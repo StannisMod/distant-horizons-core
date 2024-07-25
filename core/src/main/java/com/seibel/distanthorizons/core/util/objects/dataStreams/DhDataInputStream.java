@@ -53,19 +53,15 @@ public class DhDataInputStream extends DataInputStream
 	{
 		try
 		{
-			switch (compressionMode)
+			return switch (compressionMode)
 			{
-				case UNCOMPRESSED:
-					return stream;
-				case LZ4:
-					return new LZ4FrameInputStream(stream);
-				case LZMA2:
+				case UNCOMPRESSED -> stream;
+				case LZ4 -> new LZ4FrameInputStream(stream);
+				case LZMA2 ->
 					// Note: all LZMA/XZ compressors can be decompressed using this same InputStream
-					return new XZInputStream(stream);
-				
-				default:
-					throw new IllegalArgumentException("No compressor defined for [" + compressionMode + "]");
-			}
+						new XZInputStream(stream);
+				default -> throw new IllegalArgumentException("No compressor defined for [" + compressionMode + "]");
+			};
 		}
 		catch (Error e)
 		{

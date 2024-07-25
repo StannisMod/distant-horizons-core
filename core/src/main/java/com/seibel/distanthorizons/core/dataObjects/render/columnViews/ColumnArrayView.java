@@ -199,7 +199,7 @@ public final class ColumnArrayView implements IColumnDataView
 		for (int i = offset; i < end; i++)
 		{
 			long element = a.getLong(i);
-			int elementHash = (int) (element ^ (element >>> 32));
+			int elementHash = Long.hashCode(element);
 			result = 31 * result + elementHash;
 		}
 		return result;

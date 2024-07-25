@@ -34,14 +34,14 @@ public class DhApiMultiThreadingConfig implements IDhApiMultiThreadingConfig
 	
 	@Override
 	public IDhApiConfigValue<Integer> worldGeneratorThreads()
-	{ return new DhApiConfigValue<Integer, Integer>(Config.Client.Advanced.MultiThreading.numberOfWorldGenerationThreads); }
+	{ return new DhApiConfigValue<>(Config.Client.Advanced.MultiThreading.numberOfWorldGenerationThreads); }
 	
 	@Override
 	public IDhApiConfigValue<Integer> fileHandlerThreads()
-	{ return new DhApiConfigValue<Integer, Integer>(Config.Client.Advanced.MultiThreading.numberOfFileHandlerThreads); }
+	{ return new DhApiConfigValue<>(Config.Client.Advanced.MultiThreading.numberOfFileHandlerThreads); }
 	
 	@Override
 	public IDhApiConfigValue<Integer> lodBuilderThreads()
-	{ return new DhApiConfigValue<Integer, Integer>(Config.Client.Advanced.MultiThreading.numberOfLodBuilderThreads); }
+	{ return new DhApiConfigValue<>(Config.Client.Advanced.MultiThreading.numberOfLodBuilderThreads); }
 	
 }

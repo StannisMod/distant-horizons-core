@@ -96,19 +96,17 @@ public abstract class AbstractOptifineAccessor implements IOptifineAccessor
 			e.printStackTrace();
 		}
 		
-		switch (returnNum)
-		{
-			default:
-			case 0: // optifine's "default" option,
-				// it should never be used, so default to fog Enabled
-				
-				// normal options
-			case 1: // fast
-			case 2: // fancy
-				return EDhApiFogDrawMode.FOG_ENABLED;
-			case 3: // off
-				return EDhApiFogDrawMode.FOG_DISABLED;
-		}
+		return switch (returnNum)
+		{ // optifine's "default" option,
+			// it should never be used, so default to fog Enabled
+			
+			// normal options
+			// fast
+			default -> // fancy
+					EDhApiFogDrawMode.FOG_ENABLED;
+			case 3 -> // off
+					EDhApiFogDrawMode.FOG_DISABLED;
+		};
 	}
 	
 	@Override

@@ -49,8 +49,8 @@ public class DhLightingEngine
 	 * Since these objects are always mutated anyway, using a {@link ThreadLocal} will allow us to
 	 * only create as many of these {@link DhBlockPos} as necessary.
 	 */
-	private static final ThreadLocal<DhBlockPos> PRIMARY_BLOCK_POS_REF = ThreadLocal.withInitial(() -> new DhBlockPos());
-	private static final ThreadLocal<DhBlockPos> SECONDARY_BLOCK_POS_REF = ThreadLocal.withInitial(() -> new DhBlockPos());
+	private static final ThreadLocal<DhBlockPos> PRIMARY_BLOCK_POS_REF = ThreadLocal.withInitial(DhBlockPos::new);
+	private static final ThreadLocal<DhBlockPos> SECONDARY_BLOCK_POS_REF = ThreadLocal.withInitial(DhBlockPos::new);
 	
 	
 	

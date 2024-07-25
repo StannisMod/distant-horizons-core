@@ -175,17 +175,12 @@ public class JarUtils
 	@Deprecated
 	public static OperatingSystem getOperatingSystem()
 	{ // Get the os and turn it into that enum
-		switch (EPlatform.get())
-		{
-			case WINDOWS:
-				return OperatingSystem.WINDOWS;
-			case LINUX:
-				return OperatingSystem.LINUX;
-			case MACOS:
-				return OperatingSystem.MACOS;
-			default:
-				return OperatingSystem.NONE;
-		}
+        return switch (EPlatform.get()) {
+            case WINDOWS -> OperatingSystem.WINDOWS;
+            case LINUX -> OperatingSystem.LINUX;
+            case MACOS -> OperatingSystem.MACOS;
+            default -> OperatingSystem.NONE;
+        };
 	}
 	
 }

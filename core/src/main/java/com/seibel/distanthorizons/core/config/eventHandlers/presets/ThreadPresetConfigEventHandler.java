@@ -42,7 +42,7 @@ public class ThreadPresetConfigEventHandler extends AbstractPresetConfigEventHan
 	
 	public static int getWorldGenDefaultThreadCount() { return getThreadCountByPercent(0.1); }
 	private final ConfigEntryWithPresetOptions<EDhApiThreadPreset, Integer> worldGenThreadCount = new ConfigEntryWithPresetOptions<>(Config.Client.Advanced.MultiThreading.numberOfWorldGenerationThreads,
-			new HashMap<EDhApiThreadPreset, Integer>()
+			new HashMap<>()
 			{{
 				this.put(EDhApiThreadPreset.MINIMAL_IMPACT, 1);
 				this.put(EDhApiThreadPreset.LOW_IMPACT, getWorldGenDefaultThreadCount());
@@ -52,7 +52,7 @@ public class ThreadPresetConfigEventHandler extends AbstractPresetConfigEventHan
 			}});
 	public static double getWorldGenDefaultRunTimeRatio() { return 0.5; }
 	private final ConfigEntryWithPresetOptions<EDhApiThreadPreset, Double> worldGenRunTime = new ConfigEntryWithPresetOptions<>(Config.Client.Advanced.MultiThreading.runTimeRatioForWorldGenerationThreads,
-			new HashMap<EDhApiThreadPreset, Double>()
+			new HashMap<>()
 			{{
 				this.put(EDhApiThreadPreset.MINIMAL_IMPACT, 0.1);
 				this.put(EDhApiThreadPreset.LOW_IMPACT, getWorldGenDefaultRunTimeRatio());
@@ -64,7 +64,7 @@ public class ThreadPresetConfigEventHandler extends AbstractPresetConfigEventHan
 	
 	public static int getFileHandlerDefaultThreadCount() { return getThreadCountByPercent(0.1); }
 	private final ConfigEntryWithPresetOptions<EDhApiThreadPreset, Integer> fileHandlerThreadCount = new ConfigEntryWithPresetOptions<>(Config.Client.Advanced.MultiThreading.numberOfFileHandlerThreads,
-			new HashMap<EDhApiThreadPreset, Integer>()
+			new HashMap<>()
 			{{
 				this.put(EDhApiThreadPreset.MINIMAL_IMPACT, 1);
 				this.put(EDhApiThreadPreset.LOW_IMPACT, getFileHandlerDefaultThreadCount());
@@ -74,7 +74,7 @@ public class ThreadPresetConfigEventHandler extends AbstractPresetConfigEventHan
 			}});
 	public static double getFileHandlerDefaultRunTimeRatio() { return 0.5; }
 	private final ConfigEntryWithPresetOptions<EDhApiThreadPreset, Double> fileHandlerRunTime = new ConfigEntryWithPresetOptions<>(Config.Client.Advanced.MultiThreading.runTimeRatioForFileHandlerThreads,
-			new HashMap<EDhApiThreadPreset, Double>()
+			new HashMap<>()
 			{{
 				this.put(EDhApiThreadPreset.MINIMAL_IMPACT, 0.25);
 				this.put(EDhApiThreadPreset.LOW_IMPACT, getFileHandlerDefaultRunTimeRatio());
@@ -86,7 +86,7 @@ public class ThreadPresetConfigEventHandler extends AbstractPresetConfigEventHan
 	
 	public static int getUpdatePropagatorDefaultThreadCount() { return getThreadCountByPercent(0.10); }
 	private final ConfigEntryWithPresetOptions<EDhApiThreadPreset, Integer> UpdatePropagatorThreadCount = new ConfigEntryWithPresetOptions<>(Config.Client.Advanced.MultiThreading.numberOfUpdatePropagatorThreads,
-			new HashMap<EDhApiThreadPreset, Integer>()
+			new HashMap<>()
 			{{
 				this.put(EDhApiThreadPreset.MINIMAL_IMPACT, 1);
 				this.put(EDhApiThreadPreset.LOW_IMPACT, getUpdatePropagatorDefaultThreadCount());
@@ -96,7 +96,7 @@ public class ThreadPresetConfigEventHandler extends AbstractPresetConfigEventHan
 			}});
 	public static double getUpdatePropagatorDefaultRunTimeRatio() { return 0.25; }
 	private final ConfigEntryWithPresetOptions<EDhApiThreadPreset, Double> UpdatePropagatorRunTime = new ConfigEntryWithPresetOptions<>(Config.Client.Advanced.MultiThreading.runTimeRatioForUpdatePropagatorThreads,
-			new HashMap<EDhApiThreadPreset, Double>()
+			new HashMap<>()
 			{{
 				this.put(EDhApiThreadPreset.MINIMAL_IMPACT, 0.1);
 				this.put(EDhApiThreadPreset.LOW_IMPACT, getUpdatePropagatorDefaultRunTimeRatio());
@@ -108,7 +108,7 @@ public class ThreadPresetConfigEventHandler extends AbstractPresetConfigEventHan
 	
 	public static int getLodBuilderDefaultThreadCount() { return getThreadCountByPercent(0.1); }
 	private final ConfigEntryWithPresetOptions<EDhApiThreadPreset, Integer> lodBuilderThreadCount = new ConfigEntryWithPresetOptions<>(Config.Client.Advanced.MultiThreading.numberOfLodBuilderThreads,
-			new HashMap<EDhApiThreadPreset, Integer>()
+			new HashMap<>()
 			{{
 				this.put(EDhApiThreadPreset.MINIMAL_IMPACT, 1);
 				this.put(EDhApiThreadPreset.LOW_IMPACT, getLodBuilderDefaultThreadCount());
@@ -118,7 +118,7 @@ public class ThreadPresetConfigEventHandler extends AbstractPresetConfigEventHan
 			}});
 	public static double getLodBuilderDefaultRunTimeRatio() { return 0.25; }
 	private final ConfigEntryWithPresetOptions<EDhApiThreadPreset, Double> lodBuilderRunTime = new ConfigEntryWithPresetOptions<>(Config.Client.Advanced.MultiThreading.runTimeRatioForLodBuilderThreads,
-			new HashMap<EDhApiThreadPreset, Double>()
+			new HashMap<>()
 			{{
 				this.put(EDhApiThreadPreset.MINIMAL_IMPACT, 0.1);
 				this.put(EDhApiThreadPreset.LOW_IMPACT, getLodBuilderDefaultRunTimeRatio());
@@ -153,7 +153,7 @@ public class ThreadPresetConfigEventHandler extends AbstractPresetConfigEventHan
 		for (ConfigEntryWithPresetOptions<EDhApiThreadPreset, ?> config : this.configList)
 		{
 			// ignore try-using, the listeners should only ever be added once and should never be removed
-			new ConfigChangeListener<>(config.configEntry, (val) -> { this.onConfigValueChanged(); });
+			new ConfigChangeListener<>(config.configEntry, (val) -> this.onConfigValueChanged());
 		}
 	}
 	

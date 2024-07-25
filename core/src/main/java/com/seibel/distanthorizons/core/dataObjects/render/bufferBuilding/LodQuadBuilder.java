@@ -168,8 +168,8 @@ public class LodQuadBuilder
 		ArrayList<BufferQuad> quadList = (this.doTransparency && ColorUtil.getAlpha(color) < 255) ? this.transparentQuads[dir.ordinal()] : this.opaqueQuads[dir.ordinal()];
 		if (!quadList.isEmpty() &&
 				(
-						quadList.get(quadList.size() - 1).tryMerge(quad, BufferMergeDirectionEnum.EastWest)
-								|| quadList.get(quadList.size() - 1).tryMerge(quad, BufferMergeDirectionEnum.NorthSouthOrUpDown))
+						quadList.getLast().tryMerge(quad, BufferMergeDirectionEnum.EastWest)
+								|| quadList.getLast().tryMerge(quad, BufferMergeDirectionEnum.NorthSouthOrUpDown))
 		)
 		{
 			this.premergeCount++;
@@ -196,8 +196,8 @@ public class LodQuadBuilder
 		// attempt to merge this quad with adjacent ones
 		if (!quadList.isEmpty() &&
 				(
-					quadList.get(quadList.size() - 1).tryMerge(quad, BufferMergeDirectionEnum.EastWest)
-					|| quadList.get(quadList.size() - 1).tryMerge(quad, BufferMergeDirectionEnum.NorthSouthOrUpDown))
+					quadList.getLast().tryMerge(quad, BufferMergeDirectionEnum.EastWest)
+					|| quadList.getLast().tryMerge(quad, BufferMergeDirectionEnum.NorthSouthOrUpDown))
 			)
 		{
 			this.premergeCount++;
@@ -215,8 +215,8 @@ public class LodQuadBuilder
 		ArrayList<BufferQuad> qs = (doTransparency && ColorUtil.getAlpha(color) < 255)
 				? transparentQuads[EDhDirection.DOWN.ordinal()] : opaqueQuads[EDhDirection.DOWN.ordinal()];
 		if (!qs.isEmpty() &&
-				(qs.get(qs.size() - 1).tryMerge(quad, BufferMergeDirectionEnum.EastWest)
-						|| qs.get(qs.size() - 1).tryMerge(quad, BufferMergeDirectionEnum.NorthSouthOrUpDown))
+				(qs.getLast().tryMerge(quad, BufferMergeDirectionEnum.EastWest)
+						|| qs.getLast().tryMerge(quad, BufferMergeDirectionEnum.NorthSouthOrUpDown))
 		)
 		{
 			premergeCount++;
@@ -434,7 +434,7 @@ public class LodQuadBuilder
 	
 	public Iterator<ByteBuffer> makeOpaqueVertexBuffers()
 	{
-		return new Iterator<ByteBuffer>()
+		return new Iterator<>()
 		{
 			final ByteBuffer bb = ByteBuffer.allocateDirect(ColumnRenderBuffer.FULL_SIZED_BUFFER)
 					.order(ByteOrder.nativeOrder());
@@ -502,7 +502,7 @@ public class LodQuadBuilder
 	
 	public Iterator<ByteBuffer> makeTransparentVertexBuffers()
 	{
-		return new Iterator<ByteBuffer>()
+		return new Iterator<>()
 		{
 			final ByteBuffer bb = ByteBuffer.allocateDirect(ColumnRenderBuffer.FULL_SIZED_BUFFER)
 					.order(ByteOrder.nativeOrder());

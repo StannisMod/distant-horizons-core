@@ -133,7 +133,7 @@ public class GitlabGetter
 	public static void main(String[] args) {
 		GitlabGetter gitlabGetter = new GitlabGetter();
 		
-		System.out.println(gitlabGetter.getDownloads(gitlabGetter.projectPipelines.get(0).get("id")));
+		System.out.println(gitlabGetter.getDownloads(gitlabGetter.projectPipelines.getFirst().get("id")));
 	}
 	
 	

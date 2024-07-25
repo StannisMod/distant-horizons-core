@@ -50,7 +50,7 @@ public class DummyRunExecutorService implements ExecutorService
 	public List<Runnable> shutdownNow()
 	{
 		shutdownCalled = true;
-		return new ArrayList<Runnable>();
+		return new ArrayList<>();
 	}
 	
 	@Override
@@ -116,7 +116,7 @@ public class DummyRunExecutorService implements ExecutorService
 	@Override
 	public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks)
 	{
-		List<Future<T>> futures = new ArrayList<Future<T>>(tasks.size());
+		List<Future<T>> futures = new ArrayList<>(tasks.size());
 		for (Callable<T> t : tasks)
 		{
 			futures.add(submit(t));

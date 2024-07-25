@@ -50,5 +50,5 @@ dependencies { // All of these dependencies are in Vanilla Minecraft, but we nee
 }
 
 artifacts {
-    downgradedArtifact apiDowngrade // Setup the configuration downgradedArtifact to be the `apiDowngrade` which downgrades the core to a specified Java version
+    downgradedArtifact shadeDowngradedApi // Setup the configuration downgradedArtifact to be the `shadeDowngradedApi` which downgrades the core to a specified Java version
 }

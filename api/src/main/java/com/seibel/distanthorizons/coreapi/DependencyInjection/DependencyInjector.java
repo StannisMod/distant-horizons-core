@@ -87,7 +87,7 @@ public class DependencyInjector<BindableType extends IBindable> implements IDepe
 		// make sure the hashSet has an array to hold the dependency
 		if (!this.dependencies.containsKey(dependencyInterface))
 		{
-			this.dependencies.put(dependencyInterface, new ArrayList<BindableType>());
+			this.dependencies.put(dependencyInterface, new ArrayList<>());
 		}
 		
 		// add the dependency
@@ -134,7 +134,7 @@ public class DependencyInjector<BindableType extends IBindable> implements IDepe
 	@Override
 	public <T extends BindableType> T get(Class<T> interfaceClass) throws ClassCastException
 	{
-		return (T) this.getInternalLogic(interfaceClass, false).get(0);
+		return (T) this.getInternalLogic(interfaceClass, false).getFirst();
 	}
 	
 	@Override
@@ -146,7 +146,7 @@ public class DependencyInjector<BindableType extends IBindable> implements IDepe
 	@Override
 	public <T extends BindableType> T get(Class<T> interfaceClass, boolean allowIncompleteDependencies) throws ClassCastException
 	{
-		return (T) this.getInternalLogic(interfaceClass, allowIncompleteDependencies).get(0);
+		return (T) this.getInternalLogic(interfaceClass, allowIncompleteDependencies).getFirst();
 	}
 	
 	/**
@@ -175,7 +175,7 @@ public class DependencyInjector<BindableType extends IBindable> implements IDepe
 		
 		
 		// return an empty list to prevent null pointers
-		ArrayList<T> emptyList = new ArrayList<T>();
+		ArrayList<T> emptyList = new ArrayList<>();
 		emptyList.add(null);
 		return emptyList;
 	}

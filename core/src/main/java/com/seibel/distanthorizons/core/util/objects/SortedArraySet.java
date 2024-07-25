@@ -61,13 +61,13 @@ public class SortedArraySet<E> implements SortedSet<E>
 	@Override
 	public E first()
 	{
-		return list.get(0);
+		return list.getFirst();
 	}
 	
 	@Override
 	public E last()
 	{
-		return list.get(list.size() - 1);
+		return list.getLast();
 	}
 	
 	@Override

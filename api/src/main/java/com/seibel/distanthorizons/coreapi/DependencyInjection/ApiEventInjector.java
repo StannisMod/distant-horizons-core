@@ -163,9 +163,8 @@ public class ApiEventInjector extends DependencyInjector<IDhApiEvent> implements
 					DhApiEventParam<T> eventParam = createEventParamWrapper(event, input);
 					event.fireEvent(eventParam);
 					
-					if (eventParam instanceof DhApiCancelableEventParam)
+					if (eventParam instanceof DhApiCancelableEventParam<T> cancelableEventParam)
 					{
-						DhApiCancelableEventParam<T> cancelableEventParam = (DhApiCancelableEventParam<T>) eventParam;
 						cancelEvent |= cancelableEventParam.isEventCanceled();
 					}
 					

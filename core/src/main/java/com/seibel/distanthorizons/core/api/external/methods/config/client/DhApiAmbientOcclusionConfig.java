@@ -35,30 +35,30 @@ public class DhApiAmbientOcclusionConfig implements IDhApiAmbientOcclusionConfig
 	
 	@Override
 	public IDhApiConfigValue<Boolean> enabled()
-	{ return new DhApiConfigValue<Boolean, Boolean>(Config.Client.Advanced.Graphics.Ssao.enabled); }
+	{ return new DhApiConfigValue<>(Config.Client.Advanced.Graphics.Ssao.enabled); }
 	
 	@Override
 	public IDhApiConfigValue<Integer> sampleCount()
-	{ return new DhApiConfigValue<Integer, Integer>(Config.Client.Advanced.Graphics.Ssao.sampleCount); }
+	{ return new DhApiConfigValue<>(Config.Client.Advanced.Graphics.Ssao.sampleCount); }
 	
 	@Override
 	public IDhApiConfigValue<Double> radius()
-	{ return new DhApiConfigValue<Double, Double>(Config.Client.Advanced.Graphics.Ssao.radius); }
+	{ return new DhApiConfigValue<>(Config.Client.Advanced.Graphics.Ssao.radius); }
 	
 	@Override
 	public IDhApiConfigValue<Double> strength()
-	{ return new DhApiConfigValue<Double, Double>(Config.Client.Advanced.Graphics.Ssao.strength); }
+	{ return new DhApiConfigValue<>(Config.Client.Advanced.Graphics.Ssao.strength); }
 	
 	@Override
 	public IDhApiConfigValue<Double> bias()
-	{ return new DhApiConfigValue<Double, Double>(Config.Client.Advanced.Graphics.Ssao.bias); }
+	{ return new DhApiConfigValue<>(Config.Client.Advanced.Graphics.Ssao.bias); }
 	
 	@Override
 	public IDhApiConfigValue<Double> minLight()
-	{ return new DhApiConfigValue<Double, Double>(Config.Client.Advanced.Graphics.Ssao.minLight); }
+	{ return new DhApiConfigValue<>(Config.Client.Advanced.Graphics.Ssao.minLight); }
 	
 	@Override
 	public IDhApiConfigValue<Integer> blurRadius()
-	{ return new DhApiConfigValue<Integer, Integer>(Config.Client.Advanced.Graphics.Ssao.blurRadius); }
+	{ return new DhApiConfigValue<>(Config.Client.Advanced.Graphics.Ssao.blurRadius); }
 	
 }

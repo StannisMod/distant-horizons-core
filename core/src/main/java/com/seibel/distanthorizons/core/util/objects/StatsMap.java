@@ -25,8 +25,8 @@ import java.util.TreeMap;
 
 public class StatsMap
 {
-	final TreeMap<String, Long> longMap = new TreeMap<String, Long>();
-	final TreeMap<String, UnitBytes> bytesMap = new TreeMap<String, UnitBytes>();
+	final TreeMap<String, Long> longMap = new TreeMap<>();
+	final TreeMap<String, UnitBytes> bytesMap = new TreeMap<>();
 	
 	/**
 	 *

@@ -85,9 +85,8 @@ public class DhBlockPos2D
 	@Override
 	public boolean equals(Object obj)
 	{
-		if (obj instanceof DhBlockPos2D)
+		if (obj instanceof DhBlockPos2D other)
 		{
-			DhBlockPos2D other = (DhBlockPos2D) obj;
 			return this.x == other.x && this.z == other.z;
 		}
 		

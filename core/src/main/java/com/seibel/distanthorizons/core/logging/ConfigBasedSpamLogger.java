@@ -38,7 +38,7 @@ public class ConfigBasedSpamLogger
 	private static final IMinecraftClientWrapper MC = SingletonInjector.INSTANCE.get(IMinecraftClientWrapper.class);
 	
 	public static final List<WeakReference<ConfigBasedSpamLogger>> loggers
-			= Collections.synchronizedList(new LinkedList<WeakReference<ConfigBasedSpamLogger>>());
+			= Collections.synchronizedList(new LinkedList<>());
 	
 	public static synchronized void updateAll(boolean flush)
 	{

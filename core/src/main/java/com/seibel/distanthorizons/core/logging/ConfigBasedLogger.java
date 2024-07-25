@@ -38,7 +38,7 @@ public class ConfigBasedLogger
 	
 	
 	public static final List<WeakReference<ConfigBasedLogger>> loggers
-			= Collections.synchronizedList(new LinkedList<WeakReference<ConfigBasedLogger>>());
+			= Collections.synchronizedList(new LinkedList<>());
 	
 	public static synchronized void updateAll()
 	{

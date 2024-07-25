@@ -60,16 +60,15 @@ public class DhApi
 	 * 
 	 * Note: Don't use this string in your code. It may change and is only for reference.
 	 */
-	public static final String READ_ME = 
-			"If you don't see Javadocs something is wrong. \n" +
-			"If you are only using the full DH Mod in your build script, you won't have access to our javadocs and could potentially call into unsafe code. \n" +
-			"\n" +
-			"Please use the API jar in your build script as a compile time dependency " +
-			"and the full DH jar as a runtime dependency. \n" +
-			"\n" +
-			"Please refer to the example API project or the DH Developer Wiki for additional information " +
-			"and suggested setup. \n" + // DH Dev note: no links were included to prevent link rot. 
-			"";
+	public static final String READ_ME =
+			"""
+			If you don't see Javadocs something is wrong.
+			If you are only using the full DH Mod in your build script, you won't have access to our javadocs and could potentially call into unsafe code.
+			
+			Please use the API jar in your build script as a compile time dependency and the full DH jar as a runtime dependency.
+			
+			Please refer to the example API project or the DH Developer Wiki for additional information and suggested setup.
+			"""; // DH Dev note: no links were included to prevent link rot. 
 	public static String readMe() { return READ_ME; }
 	
 	/**

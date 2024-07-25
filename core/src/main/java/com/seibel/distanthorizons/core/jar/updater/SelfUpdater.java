@@ -136,7 +136,7 @@ public class SelfUpdater
 	{
 		if (GitlabGetter.INSTANCE.projectPipelines.size() == 0)
 			return false;
-		com.electronwill.nightconfig.core.Config pipeline = GitlabGetter.INSTANCE.projectPipelines.get(0);
+		com.electronwill.nightconfig.core.Config pipeline = GitlabGetter.INSTANCE.projectPipelines.getFirst();
 		
 		if (!pipeline.get("ref").equals(ModJarInfo.Git_Branch))
 		{
@@ -186,16 +186,13 @@ public class SelfUpdater
 	}
 	public static boolean updateMod(String minecraftVersion, File file)
 	{
-		boolean returnValue = false;
-		switch (Config.Client.Advanced.AutoUpdater.updateBranch.get())
+		boolean returnValue = switch (Config.Client.Advanced.AutoUpdater.updateBranch.get())
 		{
-			case STABLE:
-				returnValue = updateStableMod(minecraftVersion, file);
-				break;
-			case NIGHTLY:
-				returnValue = updateNightlyMod(minecraftVersion, file);
-				break;
+			case STABLE -> updateStableMod(minecraftVersion, file);
+			case NIGHTLY -> updateNightlyMod(minecraftVersion, file);
+			default -> false;
 		};
+		;
 		return returnValue;
 	}
 	
@@ -253,7 +250,7 @@ public class SelfUpdater
 			
 			File mergedZip = file.getParentFile().toPath().resolve("merged.zip").toFile();
 			
-			WebDownloader.downloadAsFile(GitlabGetter.INSTANCE.getDownloads(GitlabGetter.INSTANCE.projectPipelines.get(0).get("id")).get(minecraftVersion), mergedZip);
+			WebDownloader.downloadAsFile(GitlabGetter.INSTANCE.getDownloads(GitlabGetter.INSTANCE.projectPipelines.getFirst().get("id")).get(minecraftVersion), mergedZip);
 			
 			ZipInputStream zis = new ZipInputStream(new FileInputStream(mergedZip));
 			ZipEntry zipEntry = zis.getNextEntry();
@@ -301,7 +298,7 @@ public class SelfUpdater
 		}
 		catch (Exception e)
 		{
-			LOGGER.warn("Failed to update " + ModInfo.READABLE_NAME + " to version " + GitlabGetter.INSTANCE.projectPipelines.get(0).get("sha"));
+			LOGGER.warn("Failed to update " + ModInfo.READABLE_NAME + " to version " + GitlabGetter.INSTANCE.projectPipelines.getFirst().get("sha"));
 			e.printStackTrace();
 			return false;
 		}

@@ -58,7 +58,7 @@ public class LzmaArrayCache extends ArrayCache
 			return new byte[size];
 		}
 		
-		byte[] array = cacheList.remove(cacheList.size()-1);
+		byte[] array = cacheList.removeLast();
 		if (array == null)
 		{
 			return new byte[size];
@@ -102,7 +102,7 @@ public class LzmaArrayCache extends ArrayCache
 			return new int[size];
 		}
 		
-		int[] array = cacheList.remove(cacheList.size()-1);
+		int[] array = cacheList.removeLast();
 		if (array == null)
 		{
 			return new int[size];

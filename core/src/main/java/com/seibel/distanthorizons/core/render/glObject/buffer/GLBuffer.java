@@ -70,7 +70,7 @@ public class GLBuffer implements AutoCloseable
 	// constructors //
 	//==============//
 	
-	static { CLEANUP_THREAD.execute(() -> runPhantomReferenceCleanupLoop()); }
+	static { CLEANUP_THREAD.execute(GLBuffer::runPhantomReferenceCleanupLoop); }
 	
 	public GLBuffer(boolean isBufferStorage) { this.create(isBufferStorage); }
 	

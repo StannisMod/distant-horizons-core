@@ -77,7 +77,7 @@ public class ConfigBase
 	 * <br> Map<String, T>
 	 * <br> HashMap<String, T>
 	 */
-	public static final List<Class<?>> acceptableInputs = new ArrayList<Class<?>>()
+	public static final List<Class<?>> acceptableInputs = new ArrayList<>()
 	{{
 		add(Boolean.class);
 		add(Byte.class);
@@ -149,7 +149,7 @@ public class ConfigBase
 					LOGGER.warn(exception);
 				}
 				
-				AbstractConfigType<?, ?> entry = entries.get(entries.size() - 1);
+				AbstractConfigType<?, ?> entry = entries.getLast();
 				entry.category = category;
 				entry.name = field.getName();
 				entry.configBase = this;
@@ -160,7 +160,7 @@ public class ConfigBase
 					{
 						LOGGER.error("Invalid variable type at [" + (category.isEmpty() ? "" : category + ".") + field.getName() + "].");
 						LOGGER.error("Type [" + entry.getType() + "] is not one of these types [" + acceptableInputs.toString() + "]");
-						entries.remove(entries.size() - 1); // Delete the entry if it is invalid so the game can still run
+						entries.removeLast(); // Delete the entry if it is invalid so the game can still run
 					}
 				}
 				

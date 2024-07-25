@@ -97,61 +97,28 @@ public class CubicLodTemplate
 			case SHOW_BLOCK_MATERIAL:
 			{
 				
-				switch (EDhApiBlockMaterial.getFromIndex(blockMaterialId))
+				color = switch (EDhApiBlockMaterial.getFromIndex(blockMaterialId))
 				{
-					case UNKNOWN:
-					case AIR: // shouldn't normally be rendered, but just in case
-						color = ColorUtil.HOT_PINK;
-						break;
-						
-					case LEAVES:
-						color = ColorUtil.DARK_GREEN;
-						break;
-					case STONE:
-						color = ColorUtil.GRAY;
-						break;
-					case WOOD:
-						color = ColorUtil.BROWN;
-						break;
-					case METAL:
-						color = ColorUtil.DARK_GRAY;
-						break;
-					case DIRT:
-						color = ColorUtil.LIGHT_BROWN;
-						break;
-					case LAVA:
-						color = ColorUtil.ORANGE;
-						break;
-					case DEEPSLATE:
-						color = ColorUtil.BLACK;
-						break;
-					case SNOW:
-						color = ColorUtil.WHITE;
-						break;
-					case SAND:
-						color = ColorUtil.TAN;
-						break;
-					case TERRACOTTA:
-						color = ColorUtil.DARK_ORANGE;
-						break;
-					case NETHER_STONE:
-						color = ColorUtil.DARK_RED;
-						break;
-					case WATER:
-						color = ColorUtil.BLUE;
-						break;
-					case GRASS:
-						color = ColorUtil.GREEN;
-						break;
-					case ILLUMINATED:
-						color = ColorUtil.YELLOW;
-						break;
-					
-					default:
+					case UNKNOWN, AIR -> // shouldn't normally be rendered, but just in case
+							ColorUtil.HOT_PINK;
+					case LEAVES -> ColorUtil.DARK_GREEN;
+					case STONE -> ColorUtil.GRAY;
+					case WOOD -> ColorUtil.BROWN;
+					case METAL -> ColorUtil.DARK_GRAY;
+					case DIRT -> ColorUtil.LIGHT_BROWN;
+					case LAVA -> ColorUtil.ORANGE;
+					case DEEPSLATE -> ColorUtil.BLACK;
+					case SNOW -> ColorUtil.WHITE;
+					case SAND -> ColorUtil.TAN;
+					case TERRACOTTA -> ColorUtil.DARK_ORANGE;
+					case NETHER_STONE -> ColorUtil.DARK_RED;
+					case WATER -> ColorUtil.BLUE;
+					case GRASS -> ColorUtil.GREEN;
+					case ILLUMINATED -> ColorUtil.YELLOW;
+					default ->
 						// undefined color
-						color = ColorUtil.CYAN;
-						break;
-				}
+							ColorUtil.CYAN;
+				};
 				
 				fullBright = true;
 				break;

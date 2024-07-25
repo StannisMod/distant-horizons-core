@@ -35,7 +35,7 @@ import java.util.Map;
 public class ConfigTypeConverters
 {
 	// Once you've made a converter add it to here where the first value is the type you want to convert and the 2nd value is the converter
-	public static final Map<Class<?>, ConverterBase> convertObjects = new HashMap<Class<?>, ConverterBase>()
+	public static final Map<Class<?>, ConverterBase> convertObjects = new HashMap<>()
 	{{
 		this.put(Short.class, new ShortConverter());
 		this.put(Long.class, new LongConverter());

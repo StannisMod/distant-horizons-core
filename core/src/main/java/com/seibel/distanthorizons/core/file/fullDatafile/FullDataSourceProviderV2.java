@@ -125,10 +125,10 @@ public class FullDataSourceProviderV2
 		
 		// start migrating any legacy data sources present in the background
 		this.migrationThreadPool = ThreadUtil.makeRateLimitedThreadPool(1, MIGRATION_THREAD_NAME_PREFIX +"["+dimensionName+"]", Config.Client.Advanced.MultiThreading.runTimeRatioForUpdatePropagatorThreads.get(), Thread.MIN_PRIORITY, (Semaphore)null);
-		this.migrationThreadPool.execute(() -> this.convertLegacyDataSources());
+		this.migrationThreadPool.execute(this::convertLegacyDataSources);
 		
 		this.updateQueueProcessor = ThreadUtil.makeSingleThreadPool("Parent Update Queue ["+dimensionName+"]");
-		this.updateQueueProcessor.execute(() -> this.runUpdateQueue());
+		this.updateQueueProcessor.execute(this::runUpdateQueue);
 	}
 	
 	
@@ -604,12 +604,12 @@ public class FullDataSourceProviderV2
 	public void debugRender(DebugRenderer renderer)
 	{
 		this.lockedPosSet
-				.forEach((pos) -> { renderer.renderBox(new DebugRenderer.Box(pos, -32f, 74f, 0.15f, Color.PINK)); });
+				.forEach((pos) -> renderer.renderBox(new DebugRenderer.Box(pos, -32f, 74f, 0.15f, Color.PINK)));
 		
 		this.queuedUpdateCountsByPos
-				.forEach((pos, updateCountRef) -> { renderer.renderBox(new DebugRenderer.Box(pos, -32f, 80f + (updateCountRef.get() * 16f), 0.20f, Color.WHITE)); });
+				.forEach((pos, updateCountRef) -> renderer.renderBox(new DebugRenderer.Box(pos, -32f, 80f + (updateCountRef.get() * 16f), 0.20f, Color.WHITE)));
 		this.parentUpdatingPosSet
-				.forEach((pos) -> { renderer.renderBox(new DebugRenderer.Box(pos, -32f, 80f, 0.20f, Color.MAGENTA)); });
+				.forEach((pos) -> renderer.renderBox(new DebugRenderer.Box(pos, -32f, 80f, 0.20f, Color.MAGENTA)));
 	}
 	
 	@Override 

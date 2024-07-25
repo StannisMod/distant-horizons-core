@@ -70,7 +70,7 @@ public class EdgeDistanceBooleanGrid extends PosArrayGridList<BoolType>
 	{
 		if (edgeCache != null) return;
 		
-		edgeCache = new ArrayGridList<Integer>(gridSize, (ox, oy) -> {
+		edgeCache = new ArrayGridList<>(gridSize, (ox, oy) -> {
 			BoolType b = get(ox + getOffsetX(), oy + getOffsetY());
 			return b == null ? -1 : 0;
 		});
@@ -79,9 +79,7 @@ public class EdgeDistanceBooleanGrid extends PosArrayGridList<BoolType>
 		while (!isDone[0])
 		{
 			isDone[0] = true;
-			edgeCache.forEachPos((ox, oy) -> {
-				isDone[0] &= updatePos(edgeCache, ox, oy);
-			});
+			edgeCache.forEachPos((ox, oy) -> isDone[0] &= updatePos(edgeCache, ox, oy));
 		}
 	}
 	

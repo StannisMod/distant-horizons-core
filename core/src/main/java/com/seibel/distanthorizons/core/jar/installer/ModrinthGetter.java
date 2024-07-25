@@ -72,8 +72,8 @@ public class ModrinthGetter
 					downloadUrl.put(workingID,
 							new URL(
 									((Config)
-											((ArrayList) currentRelease.get("files"))
-													.get(0))
+											((ArrayList<?>) currentRelease.get("files"))
+													.getFirst())
 											.get("url")
 											.toString()
 							));
@@ -112,7 +112,7 @@ public class ModrinthGetter
 	{
 		try
 		{
-			return mcVerToReleaseID.get(mcVer).get(0);
+			return mcVerToReleaseID.get(mcVer).getFirst();
 		}
 		catch (Exception e)
 		{
@@ -121,17 +121,17 @@ public class ModrinthGetter
 	}
 	public static String getLatestNameForVersion(String mcVer)
 	{
-		return releaseNames.get(mcVerToReleaseID.get(mcVer).get(0));
+		return releaseNames.get(mcVerToReleaseID.get(mcVer).getFirst());
 	}
 	public static URL getLatestDownloadForVersion(String mcVer)
 	{
-		return downloadUrl.get(mcVerToReleaseID.get(mcVer).get(0));
+		return downloadUrl.get(mcVerToReleaseID.get(mcVer).getFirst());
 	}
 	public static String getLatestShaForVersion(String mcVer)
 	{
 		return (((ArrayList<Config>) idToJson.get(
-				mcVerToReleaseID.get(mcVer).get(0)
-		).get("files")).get(0).get("hashes.sha1")
+				mcVerToReleaseID.get(mcVer).getFirst()
+		).get("files")).getFirst().get("hashes.sha1")
 				.toString());
 	}
 	

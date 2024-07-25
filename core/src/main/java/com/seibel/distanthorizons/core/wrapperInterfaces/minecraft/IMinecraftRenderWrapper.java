@@ -130,7 +130,7 @@ public interface IMinecraftRenderWrapper extends IBindable
 		int chunkDist2Mul4 = chunkDist * chunkDist * 4;
 		
 		// add every position within render distance
-		HashSet<DhChunkPos> renderedPos = new HashSet<DhChunkPos>();
+		HashSet<DhChunkPos> renderedPos = new HashSet<>();
 		for (int deltaChunkX = -chunkDist; deltaChunkX <= chunkDist; deltaChunkX++)
 		{
 			for (int deltaChunkZ = -chunkDist; deltaChunkZ <= chunkDist; deltaChunkZ++)

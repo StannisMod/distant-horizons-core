@@ -131,7 +131,7 @@ public class JarMain
 		
 		
 		// Selected download
-		AtomicReference<String> downloadID = new AtomicReference<String>("");
+		AtomicReference<String> downloadID = new AtomicReference<>("");
 		
 		
 		// This is for the panel to show the update description

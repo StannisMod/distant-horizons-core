@@ -40,20 +40,14 @@ public class DarkModeDetector
 	
 	public static boolean isDarkMode()
 	{
-		switch (EPlatform.get())
+		return switch (EPlatform.get())
 		{
-			case WINDOWS:
-				return isWindowsDarkMode();
-			case MACOS:
-				return isMacOsDarkMode();
-			case LINUX:
-				// Most Unix(-like) distros also use a lot of the same things as Linux (like desktop environments and window managers)
-			case BSD:
-			case UNIX:
-				return checkLinuxDark();
-			default:
-				return false;
-		}
+			case WINDOWS -> isWindowsDarkMode();
+			case MACOS -> isMacOsDarkMode();
+			// Most Unix(-like) distros also use a lot of the same things as Linux (like desktop environments and window managers)
+			case LINUX, BSD, UNIX -> checkLinuxDark();
+			default -> false;
+		};
 	}
 	
 	// Needs checking as I dont use Mac

@@ -56,34 +56,23 @@ public enum EDhApiDebugRendering
 	
 	public static EDhApiDebugRendering next(EDhApiDebugRendering type)
 	{
-		switch (type)
-		{
-			case OFF:
-				return SHOW_DETAIL;
-			case SHOW_DETAIL:
-				return SHOW_BLOCK_MATERIAL;
-			case SHOW_BLOCK_MATERIAL:
-				return SHOW_OVERLAPPING_QUADS;
-			case SHOW_OVERLAPPING_QUADS:
-				return SHOW_RENDER_SOURCE_FLAG;
-			default:
-				return OFF;
-		}
+        return switch (type) {
+            case OFF -> SHOW_DETAIL;
+            case SHOW_DETAIL -> SHOW_BLOCK_MATERIAL;
+            case SHOW_BLOCK_MATERIAL -> SHOW_OVERLAPPING_QUADS;
+            case SHOW_OVERLAPPING_QUADS -> SHOW_RENDER_SOURCE_FLAG;
+            default -> OFF;
+        };
 	}
 	
 	public static EDhApiDebugRendering previous(EDhApiDebugRendering type)
 	{
-		switch (type)
-		{
-			case OFF:
-				return SHOW_RENDER_SOURCE_FLAG;
-			case SHOW_RENDER_SOURCE_FLAG:
-				return SHOW_OVERLAPPING_QUADS;
-			case SHOW_OVERLAPPING_QUADS:
-				return SHOW_DETAIL;
-			default:
-				return OFF;
-		}
+        return switch (type) {
+            case OFF -> SHOW_RENDER_SOURCE_FLAG;
+            case SHOW_RENDER_SOURCE_FLAG -> SHOW_OVERLAPPING_QUADS;
+            case SHOW_OVERLAPPING_QUADS -> SHOW_DETAIL;
+            default -> OFF;
+        };
 	}
 	
 }

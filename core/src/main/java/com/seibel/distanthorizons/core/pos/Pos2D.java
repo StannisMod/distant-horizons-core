@@ -80,9 +80,8 @@ public class Pos2D
 	{
 		if (otherObj == this)
 			return true;
-		if (otherObj instanceof Pos2D)
+		if (otherObj instanceof Pos2D otherPos)
 		{
-			Pos2D otherPos = (Pos2D) otherObj;
 			return this.x == otherPos.x && this.y == otherPos.y;
 		}
 		return false;

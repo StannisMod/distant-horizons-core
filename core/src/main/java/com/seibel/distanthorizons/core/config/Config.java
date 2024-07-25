@@ -867,8 +867,8 @@ public class Config
 				
 				static
 				{
-					ignoredRenderBlockCsv.addListener(new ConfigChangeListener<String>(Config.Client.Advanced.LodBuilding.ignoredRenderBlockCsv, 
-							(blockCsv) -> 
+					ignoredRenderBlockCsv.addListener(new ConfigChangeListener<>(Config.Client.Advanced.LodBuilding.ignoredRenderBlockCsv,
+							(blockCsv) ->
 							{
 								IWrapperFactory wrapperFactory = SingletonInjector.INSTANCE.get(IWrapperFactory.class);
 								if (wrapperFactory != null)
@@ -878,8 +878,8 @@ public class Config
 								}
 							}));
 					
-					ignoredRenderCaveBlockCsv.addListener(new ConfigChangeListener<String>(Config.Client.Advanced.LodBuilding.ignoredRenderCaveBlockCsv, 
-							(blockCsv) -> 
+					ignoredRenderCaveBlockCsv.addListener(new ConfigChangeListener<>(Config.Client.Advanced.LodBuilding.ignoredRenderCaveBlockCsv,
+							(blockCsv) ->
 							{
 								IWrapperFactory wrapperFactory = SingletonInjector.INSTANCE.get(IWrapperFactory.class);
 								if (wrapperFactory != null)
@@ -1497,27 +1497,25 @@ public class Config
 							.build();
 					
 					public static ConfigEntry<List<String>> listTest = new ConfigEntry.Builder<List<String>>()
-							.set(new ArrayList<String>(Arrays.asList("option 1", "option 2", "option 3")))
+							.set(new ArrayList<>(Arrays.asList("option 1", "option 2", "option 3")))
 							.build();
 					
 					public static ConfigEntry<Map<String, String>> mapTest = new ConfigEntry.Builder<Map<String, String>>()
-							.set(new HashMap<String, String>())
+							.set(new HashMap<>())
 							.build();
 					
-					public static ConfigUIButton uiButtonTest = new ConfigUIButton(() -> 
-					{
-						new Thread(() -> 
-						{
-							if (!GraphicsEnvironment.isHeadless())
+					public static ConfigUIButton uiButtonTest = new ConfigUIButton(() ->
+							new Thread(() -> 
 							{
-								JOptionPane.showMessageDialog(null, "Button pressed!", "UITester dialog", JOptionPane.INFORMATION_MESSAGE);
-							}
-							else
-							{
-								LOGGER.info("button pressed!");
-							}
-						});
-					});
+								if (!GraphicsEnvironment.isHeadless())
+								{
+									JOptionPane.showMessageDialog(null, "Button pressed!", "UITester dialog", JOptionPane.INFORMATION_MESSAGE);
+								}
+								else
+								{
+									LOGGER.info("button pressed!");
+								}
+							}));
 					
 					public static ConfigCategory categoryTest = new ConfigCategory.Builder().set(CategoryTest.class).build();
 					

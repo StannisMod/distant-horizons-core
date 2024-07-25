@@ -428,18 +428,16 @@ public class WorldGenerationQueue implements IFullDataSourceRetrievalQueue, IDeb
 	{
 		EDhApiDistantGeneratorMode generatorMode = Config.Client.Advanced.WorldGenerator.distantGeneratorMode.get();
 		EDhApiWorldGeneratorReturnType returnType = this.generator.getReturnType();
-		switch (returnType) 
+		return switch (returnType)
 		{
-			case VANILLA_CHUNKS: 
-			{
-				return this.generator.generateChunks(
+			case VANILLA_CHUNKS -> this.generator.generateChunks(
 					chunkPosMin.x,
 					chunkPosMin.z,
 					granularity,
 					targetDataDetail,
 					generatorMode,
 					ThreadPoolUtil.getWorldGenExecutor(),
-					(Object[] generatedObjectArray) -> 
+					(Object[] generatedObjectArray) ->
 					{
 						try
 						{
@@ -454,11 +452,8 @@ public class WorldGenerationQueue implements IFullDataSourceRetrievalQueue, IDeb
 							Config.Client.Advanced.WorldGenerator.enableDistantGeneration.set(false);
 						}
 					}
-				);
-			}
-			case API_CHUNKS: 
-			{
-				return this.generator.generateApiChunks(
+			);
+			case API_CHUNKS -> this.generator.generateApiChunks(
 					chunkPosMin.x,
 					chunkPosMin.z,
 					granularity,
@@ -483,14 +478,13 @@ public class WorldGenerationQueue implements IFullDataSourceRetrievalQueue, IDeb
 							Config.Client.Advanced.WorldGenerator.enableDistantGeneration.set(false);
 						}
 					}
-				);
-			}
-			default: 
+			);
+			default ->
 			{
 				Config.Client.Advanced.WorldGenerator.enableDistantGeneration.set(false);
 				throw new AssertFailureException("Unknown return type: " + returnType);
 			}
-		}
+		};
 	}
 	
 	
@@ -616,8 +610,8 @@ public class WorldGenerationQueue implements IFullDataSourceRetrievalQueue, IDeb
 	@Override
 	public void debugRender(DebugRenderer renderer)
 	{
-		this.waitingTasks.keySet().forEach((pos) -> { renderer.renderBox(new DebugRenderer.Box(pos, -32f, 64f, 0.05f, Color.blue)); });
-		this.inProgressGenTasksByLodPos.forEach((pos, t) -> { renderer.renderBox(new DebugRenderer.Box(pos, -32f, 64f, 0.05f, Color.red)); });
+		this.waitingTasks.keySet().forEach((pos) -> renderer.renderBox(new DebugRenderer.Box(pos, -32f, 64f, 0.05f, Color.blue)));
+		this.inProgressGenTasksByLodPos.forEach((pos, t) -> renderer.renderBox(new DebugRenderer.Box(pos, -32f, 64f, 0.05f, Color.red)));
 	}
 	
 	

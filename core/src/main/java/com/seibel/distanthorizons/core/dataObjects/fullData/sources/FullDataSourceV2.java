@@ -927,11 +927,10 @@ public class FullDataSourceV2 implements IDataSource<IDhLevel>
 	@Override 
 	public boolean equals(Object obj)
 	{
-		if (!(obj instanceof FullDataSourceV2))
+		if (!(obj instanceof FullDataSourceV2 other))
 		{
 			return false;
 		}
-		FullDataSourceV2 other = (FullDataSourceV2) obj;
 		
 		if (other.pos != this.pos)
 		{

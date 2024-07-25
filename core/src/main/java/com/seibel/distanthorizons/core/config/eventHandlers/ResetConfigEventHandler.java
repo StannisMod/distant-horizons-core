@@ -32,7 +32,7 @@ public class ResetConfigEventHandler
 	/** private since we only ever need one handler at a time */
 	private ResetConfigEventHandler()
 	{
-		this.configChangeListener = new ConfigChangeListener<>(Config.Client.ResetConfirmation.resetAllSettings, (resetSettings) -> { doStuff(resetSettings); });
+		this.configChangeListener = new ConfigChangeListener<>(Config.Client.ResetConfirmation.resetAllSettings, this::doStuff);
 		
 	}
 	

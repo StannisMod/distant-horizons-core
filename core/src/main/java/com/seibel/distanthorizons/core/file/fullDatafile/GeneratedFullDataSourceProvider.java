@@ -111,7 +111,7 @@ public class GeneratedFullDataSourceProvider extends FullDataSourceProviderV2 im
 		// if the generation task was split up into smaller positions, add the on-complete event to them
 		for (CompletableFuture<WorldGenResult> siblingFuture : genTaskResult.childFutures)
 		{
-			siblingFuture.whenComplete((siblingGenTaskResult, siblingEx) -> this.onWorldGenTaskComplete(siblingGenTaskResult, siblingEx));
+			siblingFuture.whenComplete(this::onWorldGenTaskComplete);
 		}
 	}
 	
@@ -215,7 +215,7 @@ public class GeneratedFullDataSourceProvider extends FullDataSourceProviderV2 im
 		
 		GenTask genTask = new GenTask(genPos);
 		CompletableFuture<WorldGenResult> worldGenFuture = worldGenQueue.submitGenTask(genPos, (byte) (DhSectionPos.getDetailLevel(genPos) - DhSectionPos.SECTION_MINIMUM_DETAIL_LEVEL), genTask);
-		worldGenFuture.whenComplete((genTaskResult, ex) -> this.onWorldGenTaskComplete(genTaskResult, ex));
+		worldGenFuture.whenComplete(this::onWorldGenTaskComplete);
 		
 		return true;
 	}
@@ -362,7 +362,7 @@ public class GeneratedFullDataSourceProvider extends FullDataSourceProviderV2 im
 		super.debugRender(renderer);
 		
 		this.delayedFullDataSourceSaveCache.dataSourceByPosition
-				.forEach((pos, dataSource) -> { renderer.renderBox(new DebugRenderer.Box(pos, -32f, 80f, 0.20f, Color.green.darker())); });
+				.forEach((pos, dataSource) -> renderer.renderBox(new DebugRenderer.Box(pos, -32f, 80f, 0.20f, Color.green.darker())));
 	}
 	
 	
@@ -387,10 +387,7 @@ public class GeneratedFullDataSourceProvider extends FullDataSourceProviderV2 im
 		@Override
 		public Consumer<FullDataSourceV2> getChunkDataConsumer()
 		{
-			return (chunkSizedFullDataSource) ->
-			{
-				GeneratedFullDataSourceProvider.this.delayedFullDataSourceSaveCache.queueDataSourceForUpdateAndSave(chunkSizedFullDataSource);
-			};
+			return GeneratedFullDataSourceProvider.this.delayedFullDataSourceSaveCache::queueDataSourceForUpdateAndSave;
 		}
 	}
 	private void onDataSourceSave(FullDataSourceV2 fullDataSource) 

@@ -64,14 +64,14 @@ public class OverridePriorityListContainer implements IBindable
 		else
 		{
 			// last item should have the highest priority
-			return this.overridePairList.get(this.overridePairList.size() - 1).override;
+			return this.overridePairList.getLast().override;
 		}
 	}
 	public IDhApiOverrideable getOverrideWithHighestPriority()
 	{
 		if (this.overridePairList.size() != 0)
 		{
-			return this.overridePairList.get(0).override;
+			return this.overridePairList.getFirst().override;
 		}
 		else
 		{

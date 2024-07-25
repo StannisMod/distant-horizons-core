@@ -72,7 +72,7 @@ public class ThreadUtil
 		
 		RateLimitedThreadPoolExecutor executor = makeRateLimitedThreadPool(poolSize, runTimeRatioConfigEntry.get(), threadFactory, activeThreadCountSemaphore);
 		
-		ConfigChangeListener<Double> changeListener = new ConfigChangeListener<>(runTimeRatioConfigEntry, (newRunTimeRatio) -> { executor.runTimeRatio = newRunTimeRatio; });
+		ConfigChangeListener<Double> changeListener = new ConfigChangeListener<>(runTimeRatioConfigEntry, (newRunTimeRatio) -> executor.runTimeRatio = newRunTimeRatio);
 		THREAD_CHANGE_LISTENERS_BY_THREAD_NAME.put(threadFactory.threadName, changeListener);
 		
 		return executor;
@@ -102,7 +102,7 @@ public class ThreadUtil
 		// ThreadPoolExecutor vs the more generic ExecutorService
 		return new ThreadPoolExecutor(/*corePoolSize*/ poolSize, /*maxPoolSize*/ poolSize,
 				0L, TimeUnit.MILLISECONDS,
-				new LinkedBlockingQueue<Runnable>(),
+                new LinkedBlockingQueue<>(),
 				new DhThreadFactory(name, priority));
 	}
 	

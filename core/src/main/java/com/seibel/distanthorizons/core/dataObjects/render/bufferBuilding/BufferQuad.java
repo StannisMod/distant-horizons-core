@@ -99,33 +99,23 @@ public final class BufferQuad
 		
 		if (compareDirection == BufferMergeDirectionEnum.EastWest)
 		{
-			switch (this.direction.getAxis())
+			return switch (this.direction.getAxis())
 			{
-				case X:
-					return threeDimensionalCompare(this.x, this.y, this.z, quad.x, quad.y, quad.z);
-				case Y:
-					return threeDimensionalCompare(this.y, this.z, this.x, quad.y, quad.z, quad.x);
-				case Z:
-					return threeDimensionalCompare(this.z, this.y, this.x, quad.z, quad.y, quad.x);
-				
-				default:
-					throw new IllegalArgumentException("Invalid Axis enum: " + this.direction.getAxis());
-			}
+				case X -> threeDimensionalCompare(this.x, this.y, this.z, quad.x, quad.y, quad.z);
+				case Y -> threeDimensionalCompare(this.y, this.z, this.x, quad.y, quad.z, quad.x);
+				case Z -> threeDimensionalCompare(this.z, this.y, this.x, quad.z, quad.y, quad.x);
+				default -> throw new IllegalArgumentException("Invalid Axis enum: " + this.direction.getAxis());
+			};
 		}
 		else
 		{
-			switch (this.direction.getAxis())
+			return switch (this.direction.getAxis())
 			{
-				case X:
-					return threeDimensionalCompare(this.x, this.z, this.y, quad.x, quad.z, quad.y);
-				case Y:
-					return threeDimensionalCompare(this.y, this.x, this.z, quad.y, quad.x, quad.z);
-				case Z:
-					return threeDimensionalCompare(this.z, this.x, this.y, quad.z, quad.x, quad.y);
-				
-				default:
-					throw new IllegalArgumentException("Invalid Axis enum: " + this.direction.getAxis());
-			}
+				case X -> threeDimensionalCompare(this.x, this.z, this.y, quad.x, quad.z, quad.y);
+				case Y -> threeDimensionalCompare(this.y, this.x, this.z, quad.y, quad.x, quad.z);
+				case Z -> threeDimensionalCompare(this.z, this.x, this.y, quad.z, quad.x, quad.y);
+				default -> throw new IllegalArgumentException("Invalid Axis enum: " + this.direction.getAxis());
+			};
 		}
 	}
 	/**

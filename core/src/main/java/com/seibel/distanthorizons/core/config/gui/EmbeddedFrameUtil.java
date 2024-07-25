@@ -73,33 +73,28 @@ public final class EmbeddedFrameUtil
 	
 	private static String getEmbeddedFrameImpl()
 	{
-		switch (EPlatform.get())
+		return switch (EPlatform.get())
 		{
-			case LINUX:
-				return "sun.awt.X11.XEmbeddedFrame";
-			case WINDOWS:
-				return "sun.awt.windows.WEmbeddedFrame";
-			case MACOS:
-				return "sun.lwawt.macosx.CViewEmbeddedFrame";
-			default:
-				throw new IllegalStateException();
-		}
+			case LINUX -> "sun.awt.X11.XEmbeddedFrame";
+			case WINDOWS -> "sun.awt.windows.WEmbeddedFrame";
+			case MACOS -> "sun.lwawt.macosx.CViewEmbeddedFrame";
+			default -> throw new IllegalStateException();
+		};
 	}
 	
 	private static long getEmbeddedFrameHandle(long window)
 	{
-		switch (EPlatform.get())
+		return switch (EPlatform.get())
 		{
-			case LINUX:
-				return glfwGetX11Window(window);
-			case WINDOWS:
-				return glfwGetWin32Window(window);
-			case MACOS:
+			case LINUX -> glfwGetX11Window(window);
+			case WINDOWS -> glfwGetWin32Window(window);
+			case MACOS ->
+			{
 				long objc_msgSend = ObjCRuntime.getLibrary().getFunctionAddress("objc_msgSend");
-				return invokePPP(glfwGetCocoaWindow(window), sel_getUid("contentView"), objc_msgSend);
-			default:
-				throw new IllegalStateException();
-		}
+				yield invokePPP(glfwGetCocoaWindow(window), sel_getUid("contentView"), objc_msgSend);
+			}
+			default -> throw new IllegalStateException();
+		};
 	}
 	
 	public static Frame embeddedFrameCreate(long window)

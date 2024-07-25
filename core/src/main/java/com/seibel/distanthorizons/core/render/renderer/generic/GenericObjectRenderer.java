@@ -308,8 +308,8 @@ public class GenericObjectRenderer implements IDhApiCustomRenderRegister
 			{
 				blockPos.y = 140f;
 
-				Color newColor = (massRelativePosBoxGroup.get(0).color == Color.RED) ? Color.RED.darker() : Color.RED;
-				massRelativePosBoxGroup.forEach((box) -> { box.color = newColor; });
+				Color newColor = (massRelativePosBoxGroup.getFirst().color == Color.RED) ? Color.RED.darker() : Color.RED;
+				massRelativePosBoxGroup.forEach((box) -> box.color = newColor);
 				massRelativePosBoxGroup.triggerBoxChange();
 			}
 
@@ -327,14 +327,13 @@ public class GenericObjectRenderer implements IDhApiCustomRenderRegister
 	@Override
 	public void add(IDhApiRenderableBoxGroup iBoxGroup) throws IllegalArgumentException 
 	{
-		if (!(iBoxGroup instanceof RenderableBoxGroup))
+		if (!(iBoxGroup instanceof RenderableBoxGroup boxGroup))
 		{
 			throw new IllegalArgumentException("Box group must be of type ["+ RenderableBoxGroup.class.getSimpleName()+"], type received: ["+(iBoxGroup != null ? iBoxGroup.getClass() : "NULL")+"].");
 		}
-		RenderableBoxGroup boxGroup = (RenderableBoxGroup) iBoxGroup;
-		
-		
-		long id = boxGroup.getId();
+
+
+        long id = boxGroup.getId();
 		if (this.boxGroupById.containsKey(id))
 		{
 			throw new IllegalArgumentException("A box group with the ID [" + id + "] is already present.");

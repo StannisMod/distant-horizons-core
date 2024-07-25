@@ -42,29 +42,21 @@ public enum EDhApiRendererMode
 	/** Used by the config GUI to cycle through the available rendering options */
 	public static EDhApiRendererMode next(EDhApiRendererMode type)
 	{
-		switch (type)
-		{
-			case DEFAULT:
-				return DEBUG;
-			case DEBUG:
-				return DISABLED;
-			default:
-				return DEFAULT;
-		}
+        return switch (type) {
+            case DEFAULT -> DEBUG;
+            case DEBUG -> DISABLED;
+            default -> DEFAULT;
+        };
 	}
 	
 	/** Used by the config GUI to cycle through the available rendering options */
 	public static EDhApiRendererMode previous(EDhApiRendererMode type)
 	{
-		switch (type)
-		{
-			case DEFAULT:
-				return DISABLED;
-			case DEBUG:
-				return DEFAULT;
-			default:
-				return DEBUG;
-		}
+        return switch (type) {
+            case DEFAULT -> DISABLED;
+            case DEBUG -> DEFAULT;
+            default -> DEBUG;
+        };
 	}
 	
 }

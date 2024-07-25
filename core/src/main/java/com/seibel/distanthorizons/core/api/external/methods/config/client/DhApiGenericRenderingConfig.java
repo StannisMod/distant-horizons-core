@@ -35,12 +35,12 @@ public class DhApiGenericRenderingConfig implements IDhApiGenericRenderingConfig
 	
 	@Override 
 	public IDhApiConfigValue<Boolean> renderingEnabled()
-	{ return new DhApiConfigValue<Boolean, Boolean>(Config.Client.Advanced.Graphics.GenericRendering.enableRendering); }
+	{ return new DhApiConfigValue<>(Config.Client.Advanced.Graphics.GenericRendering.enableRendering); }
 	@Override
 	public IDhApiConfigValue<Boolean> beaconRenderingEnabled()
-	{ return new DhApiConfigValue<Boolean, Boolean>(Config.Client.Advanced.Graphics.GenericRendering.enableBeaconRendering); }
+	{ return new DhApiConfigValue<>(Config.Client.Advanced.Graphics.GenericRendering.enableBeaconRendering); }
 	@Override 
 	public IDhApiConfigValue<Boolean> cloudRenderingEnabled()
-	{ return new DhApiConfigValue<Boolean, Boolean>(Config.Client.Advanced.Graphics.GenericRendering.enableCloudRendering); }
+	{ return new DhApiConfigValue<>(Config.Client.Advanced.Graphics.GenericRendering.enableCloudRendering); }
 	
 }

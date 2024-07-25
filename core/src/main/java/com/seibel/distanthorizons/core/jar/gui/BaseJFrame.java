@@ -89,7 +89,7 @@ public class BaseJFrame extends JFrame
 				final BufferedReader br = new BufferedReader(isr)
 		)
 		{
-			List<Object> col = Collections.unmodifiableList(new ArrayList<>(Arrays.asList(br.lines().toArray())));
+			List<Object> col = List.of(br.lines().toArray());
 			for (Object obj : col)
 			{
 				langsToChoose.add(((String) obj).replaceAll("\\.json", ""));
@@ -101,7 +101,7 @@ public class BaseJFrame extends JFrame
 		}
 		
 		// Creates the box
-		JComboBox<String> languageBox = new JComboBox(new DefaultComboBoxModel(langsToChoose.toArray()));
+		JComboBox<String> languageBox = new JComboBox<>(new DefaultComboBoxModel(langsToChoose.toArray()));
 		languageBox.setSelectedIndex(langsToChoose.indexOf(Locale.getDefault().toString().toLowerCase()));
 		languageBox.addActionListener(e -> {
 			Locale.setDefault(Locale.forLanguageTag(languageBox.getSelectedItem().toString())); // Change lang on update

@@ -179,21 +179,15 @@ public class ColorUtil
 		float q = v * (1f - s * f);
 		float t = v * (1f - s * (1f - f));
 		
-		switch (i)
+		return switch (i)
 		{
-			case 0:
-				return ColorUtil.rgbToInt(a, v, t, p);
-			case 1:
-				return ColorUtil.rgbToInt(a, q, v, p);
-			case 2:
-				return ColorUtil.rgbToInt(a, p, v, t);
-			case 3:
-				return ColorUtil.rgbToInt(a, p, q, v);
-			case 4:
-				return ColorUtil.rgbToInt(a, t, p, v);
-			default:
-				return ColorUtil.rgbToInt(a, v, p, q);  // case 5
-		}
+			case 0 -> ColorUtil.rgbToInt(a, v, t, p);
+			case 1 -> ColorUtil.rgbToInt(a, q, v, p);
+			case 2 -> ColorUtil.rgbToInt(a, p, v, t);
+			case 3 -> ColorUtil.rgbToInt(a, p, q, v);
+			case 4 -> ColorUtil.rgbToInt(a, t, p, v);
+			default -> ColorUtil.rgbToInt(a, v, p, q);  // case 5
+		};
 	}
 	
 	/** Returns the hex value for the Alpha, Red, Green, and Blue channels. */

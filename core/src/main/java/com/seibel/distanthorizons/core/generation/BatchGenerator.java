@@ -109,23 +109,17 @@ public class BatchGenerator implements IDhApiWorldGenerator
 			int chunkPosMinX, int chunkPosMinZ, byte granularity, byte targetDataDetail, EDhApiDistantGeneratorMode generatorMode,
 			ExecutorService worldGeneratorThreadPool, Consumer<Object[]> resultConsumer)
 	{
-		EDhApiWorldGenerationStep targetStep = null;
-		switch (generatorMode)
+		EDhApiWorldGenerationStep targetStep = switch (generatorMode)
 		{
-			case PRE_EXISTING_ONLY: // Only load in existing chunks. Note: this requires the biome generation step in order for biomes to be properly initialized.
-			//case BIOME_ONLY: // No blocks. Require fake height in LodBuilder
-				targetStep = EDhApiWorldGenerationStep.BIOMES; 
-				break;
+			case PRE_EXISTING_ONLY -> // Only load in existing chunks. Note: this requires the biome generation step in order for biomes to be properly initialized.
+				//case BIOME_ONLY: // No blocks. Require fake height in LodBuilder
+					EDhApiWorldGenerationStep.BIOMES;
 			//case BIOME_ONLY_SIMULATE_HEIGHT:
 			//	targetStep = EDhApiWorldGenerationStep.NOISE; // Stone only. Requires a fake surface
 			//	break;
-			case SURFACE:
-				targetStep = EDhApiWorldGenerationStep.SURFACE;
-				break;
-			case FEATURES:
-				targetStep = EDhApiWorldGenerationStep.FEATURES;
-				break;
-		}
+			case SURFACE -> EDhApiWorldGenerationStep.SURFACE;
+			case FEATURES -> EDhApiWorldGenerationStep.FEATURES;
+		};
 		
 		int genChunkSize = BitShiftUtil.powerOfTwo(granularity - 4); // minus 4 is equal to dividing by 16 to convert to chunk scale
 		

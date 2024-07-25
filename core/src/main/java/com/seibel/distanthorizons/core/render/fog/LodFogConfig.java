@@ -179,15 +179,19 @@ public class LodFogConfig
 		
 		if (farFogSetting == null)
 		{
-			str.append("\n" +
-					"float getFarFogThickness(float dist) { return 0.0; } \n" +
-					"float getHeightFogThickness(float dist) { return 0.0; } \n" +
-					"float calculateFarFogDepth(float horizontal, float dist, float uNearFogStart) { return 0.0; } \n" +
-					"float calculateHeightFogDepth(float vertical, float realY) { return 0.0; } \n" +
-					"float mixFogThickness(float near, float far, float height) \n" +
-					"{ \n" +
-					"    return 0.0; \n" +
-					"} \n\n");
+			str.append("""
+					
+					float getFarFogThickness(float dist) { return 0.0; }
+					float getHeightFogThickness(float dist) { return 0.0; }
+					float calculateFarFogDepth(float horizontal, float dist, float uNearFogStart) { return 0.0; }
+					float calculateHeightFogDepth(float vertical, float realY) { return 0.0; }
+					float mixFogThickness(float near, float far, float height)
+					{
+					    return 0.0;
+					}
+					
+					
+					""");
 		}
 		else
 		{
@@ -269,18 +273,13 @@ public class LodFogConfig
 	
 	private static String getFarFogMethod(EDhApiFogFalloff fogType)
 	{
-		switch (fogType)
+		return switch (fogType)
 		{
-			case LINEAR:
-				return "return linearFog(dist, farFogStart, farFogLength, farFogMin, farFogRange);\n";
-			case EXPONENTIAL:
-				return "return exponentialFog(dist, farFogStart, farFogLength, farFogMin, farFogRange, farFogDensity);\n";
-			case EXPONENTIAL_SQUARED:
-				return "return exponentialSquaredFog(dist, farFogStart, farFogLength, farFogMin, farFogRange, farFogDensity);\n";
-			
-			default:
-				throw new IllegalArgumentException("FogType [" + fogType + "] not implemented for [getFarFogMethod].");
-		}
+			case LINEAR -> "return linearFog(dist, farFogStart, farFogLength, farFogMin, farFogRange);\n";
+			case EXPONENTIAL -> "return exponentialFog(dist, farFogStart, farFogLength, farFogMin, farFogRange, farFogDensity);\n";
+			case EXPONENTIAL_SQUARED -> "return exponentialSquaredFog(dist, farFogStart, farFogLength, farFogMin, farFogRange, farFogDensity);\n";
+			default -> throw new IllegalArgumentException("FogType [" + fogType + "] not implemented for [getFarFogMethod].");
+		};
 	}
 	
 	private static String getHeightDepthMethod(EDhApiHeightFogMode heightMode, float heightFogHeight)
@@ -317,18 +316,13 @@ public class LodFogConfig
 	 */
 	private static String getHeightFogMethod(EDhApiFogFalloff fogType)
 	{
-		switch (fogType)
+		return switch (fogType)
 		{
-			case LINEAR:
-				return "	return linearFog(dist, heightFogStart, heightFogLength, heightFogMin, heightFogRange);\n";
-			case EXPONENTIAL:
-				return "	return exponentialFog(dist, heightFogStart, heightFogLength, heightFogMin, heightFogRange, heightFogDensity);\n";
-			case EXPONENTIAL_SQUARED:
-				return "	return exponentialSquaredFog(dist, heightFogStart, heightFogLength, heightFogMin, heightFogRange, heightFogDensity);\n";
-			
-			default:
-				throw new IllegalArgumentException("FogType [" + fogType + "] not implemented for [getHeightFogMethod].");
-		}
+			case LINEAR -> "	return linearFog(dist, heightFogStart, heightFogLength, heightFogMin, heightFogRange);\n";
+			case EXPONENTIAL -> "	return exponentialFog(dist, heightFogStart, heightFogLength, heightFogMin, heightFogRange, heightFogDensity);\n";
+			case EXPONENTIAL_SQUARED -> "	return exponentialSquaredFog(dist, heightFogStart, heightFogLength, heightFogMin, heightFogRange, heightFogDensity);\n";
+			default -> throw new IllegalArgumentException("FogType [" + fogType + "] not implemented for [getHeightFogMethod].");
+		};
 	}
 	
 	/**

@@ -48,9 +48,9 @@ public class EventTimer
 	public void nextEvent(String name)
 	{
 		long timeNs = System.nanoTime();
-		if (lastEventNs != -1 && !events.isEmpty() && events.get(events.size() - 1).timeNs == -1)
+		if (lastEventNs != -1 && !events.isEmpty() && events.getLast().timeNs == -1)
 		{
-			events.get(events.size() - 1).timeNs = timeNs - lastEventNs;
+			events.getLast().timeNs = timeNs - lastEventNs;
 		}
 		lastEventNs = timeNs;
 		events.add(new Event(name));
@@ -59,9 +59,9 @@ public class EventTimer
 	public void complete()
 	{
 		long timeNs = System.nanoTime();
-		if (lastEventNs != -1 && !events.isEmpty() && events.get(events.size() - 1).timeNs == -1)
+		if (lastEventNs != -1 && !events.isEmpty() && events.getLast().timeNs == -1)
 		{
-			events.get(events.size() - 1).timeNs = timeNs - lastEventNs;
+			events.getLast().timeNs = timeNs - lastEventNs;
 		}
 		lastEventNs = -1;
 	}

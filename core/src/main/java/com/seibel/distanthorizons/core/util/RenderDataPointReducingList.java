@@ -452,18 +452,14 @@ public class RenderDataPointReducingList
 			0,
 			size,
 			// comparator
-			(int index1, int index2) -> 
-			{
-				return Integer.compare(
-					this.getSize(this.getSortingIndex(index1)),
-					this.getSize(this.getSortingIndex(index2))
-				);
-			},
+			(int index1, int index2) ->
+					Integer.compare(
+						this.getSize(this.getSortingIndex(index1)),
+						this.getSize(this.getSortingIndex(index2))
+					),
 			// swapper
-			(int index1, int index2) -> 
-			{
-				ShortArrays.swap(array, index1, index2);
-			}
+			(int index1, int index2) ->
+					ShortArrays.swap(array, index1, index2)
 		);
 	}
 	
@@ -479,18 +475,14 @@ public class RenderDataPointReducingList
 			0,
 			size,
 			// comparator
-			(int index1, int index2) -> 
-			{
-				return Integer.compare(
-					this.getMinY(this.getSortingIndex(index1)),
-					this.getMinY(this.getSortingIndex(index2))
-				);
-			},
+			(int index1, int index2) ->
+					Integer.compare(
+						this.getMinY(this.getSortingIndex(index1)),
+						this.getMinY(this.getSortingIndex(index2))
+					),
 			// swapper
-			(int index1, int index2) -> 
-			{
-				ShortArrays.swap(array, index1, index2);
-			}
+			(int index1, int index2) ->
+					ShortArrays.swap(array, index1, index2)
 		);
 	}
 	

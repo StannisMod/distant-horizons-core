@@ -35,7 +35,7 @@ public class SpamReducedLogger
 	private static final Logger LOGGER = LogManager.getLogger(MethodHandles.lookup().lookupClass().getSimpleName());
 	
 	public static final List<WeakReference<SpamReducedLogger>> loggers
-			= Collections.synchronizedList(new LinkedList<WeakReference<SpamReducedLogger>>());
+			= Collections.synchronizedList(new LinkedList<>());
 	
 	public static synchronized void flushAll()
 	{
@@ -53,7 +53,7 @@ public class SpamReducedLogger
 	public SpamReducedLogger(int maxLogPerSec)
 	{
 		maxLogCount = maxLogPerSec;
-		loggers.add(new WeakReference<SpamReducedLogger>(this));
+		loggers.add(new WeakReference<>(this));
 	}
 	
 	public void reset()

@@ -124,20 +124,14 @@ public class QuadNode<T>
 	 */
 	public QuadNode<T> getChildByIndex(int child0to3) throws IllegalArgumentException
 	{
-		switch (child0to3)
+		return switch (child0to3)
 		{
-			case 0:
-				return nwChild;
-			case 1:
-				return swChild;
-			case 2:
-				return neChild;
-			case 3:
-				return seChild;
-			
-			default:
-				throw new IllegalArgumentException("child0to3 must be between 0 and 3");
-		}
+			case 0 -> nwChild;
+			case 1 -> swChild;
+			case 2 -> neChild;
+			case 3 -> seChild;
+			default -> throw new IllegalArgumentException("child0to3 must be between 0 and 3");
+		};
 	}
 	
 	

@@ -141,7 +141,7 @@ public class QuadTree<T>
 				return null;
 			}
 			
-			topQuadNode = new QuadNode<T>(rootPos, this.treeMaxDetailLevel);
+			topQuadNode = new QuadNode<>(rootPos, this.treeMaxDetailLevel);
 			boolean successfullyAdded = this.topRingList.set(ringListPosX, ringListPosZ, topQuadNode);
 			if (!successfullyAdded)
 			{

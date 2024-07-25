@@ -247,7 +247,7 @@ public class ChunkLightStorage
 			}
 			else
 			{
-				return recycled.remove(recycled.size() - 1);
+				return recycled.removeLast();
 			}
 		}
 		

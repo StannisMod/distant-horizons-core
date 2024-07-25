@@ -85,9 +85,8 @@ public class ClientOnlySaveStructure extends AbstractSaveStructure
 		return this.levelWrapperToFileMap.computeIfAbsent(levelWrapper, (newLevelWrapper) ->
 		{
 			// Use the server provided key if one was provided
-			if (newLevelWrapper instanceof IServerKeyedClientLevel)
+			if (newLevelWrapper instanceof IServerKeyedClientLevel keyedClientLevel)
 			{
-				IServerKeyedClientLevel keyedClientLevel = (IServerKeyedClientLevel) newLevelWrapper;
 				LOGGER.info("Loading level " + newLevelWrapper.getDimensionType().getDimensionName() + " with key: " + keyedClientLevel.getServerLevelKey());
 				// This world was identified by the server directly, so we can know for sure which folder to use.
 				return new File(getSaveStructureFolderPath() + File.separatorChar + keyedClientLevel.getServerLevelKey());
@@ -95,9 +94,8 @@ public class ClientOnlySaveStructure extends AbstractSaveStructure
 			
 			
 			// use multiverse matching if enabled and in multiplayer (the server should already know where the player is)
-			if (newLevelWrapper instanceof IClientLevelWrapper && Config.Client.Advanced.Multiplayer.multiverseSimilarityRequiredPercent.get() != 0)
+			if (newLevelWrapper instanceof IClientLevelWrapper newClientLevelWrapper && Config.Client.Advanced.Multiplayer.multiverseSimilarityRequiredPercent.get() != 0)
 			{
-				IClientLevelWrapper newClientLevelWrapper = (IClientLevelWrapper) newLevelWrapper;
 				
 				// create the matcher if one doesn't exist
 				if (this.subDimMatcher == null || !this.subDimMatcher.isFindingLevel(newClientLevelWrapper))
@@ -134,12 +132,12 @@ public class ClientOnlySaveStructure extends AbstractSaveStructure
 	private File getLevelFolderWithoutSimilarityMatching(ILevelWrapper level)
 	{
 		List<File> folders = this.getDhDataFoldersForDimension(level.getDimensionType());
-		if (!folders.isEmpty() && folders.get(0) != null)
+		if (!folders.isEmpty() && folders.getFirst() != null)
 		{
 			// use the first existing sub-dimension
-			String folderName = folders.get(0).getName();
+			String folderName = folders.getFirst().getName();
 			LOGGER.info("Default Sub Dimension set to: [" + LodUtil.shortenString(folderName, 8) + "...]");
-			return folders.get(0);
+			return folders.getFirst();
 		}
 		else
 		{
@@ -270,27 +268,14 @@ public class ClientOnlySaveStructure extends AbstractSaveStructure
 		
 		
 		// generate the folder name
-		String folderName;
-		switch (folderNameMode)
+		String folderName = switch (folderNameMode)
 		{
-			default:
-			case NAME_ONLY:
-				folderName = serverName;
-				break;
-			case IP_ONLY:
-				folderName = serverIpCleaned;
-				break;
-			
-			case NAME_IP:
-				folderName = serverName + ", IP " + serverIpCleaned;
-				break;
-			case NAME_IP_PORT:
-				folderName = serverName + ", IP " + serverIpCleaned + (serverPortCleaned.length() != 0 ? ("-" + serverPortCleaned) : "");
-				break;
-			case NAME_IP_PORT_MC_VERSION:
-				folderName = serverName + ", IP " + serverIpCleaned + (serverPortCleaned.length() != 0 ? ("-" + serverPortCleaned) : "") + ", GameVersion " + serverMcVersion;
-				break;
-		}
+			default -> serverName;
+			case IP_ONLY -> serverIpCleaned;
+			case NAME_IP -> serverName + ", IP " + serverIpCleaned;
+			case NAME_IP_PORT -> serverName + ", IP " + serverIpCleaned + (serverPortCleaned.length() != 0 ? ("-" + serverPortCleaned) : "");
+			case NAME_IP_PORT_MC_VERSION -> serverName + ", IP " + serverIpCleaned + (serverPortCleaned.length() != 0 ? ("-" + serverPortCleaned) : "") + ", GameVersion " + serverMcVersion;
+		};
 		
 		// PercentEscaper makes the characters all part of the standard alphameric character set
 		// This fixes some issues when the server is named something in other languages

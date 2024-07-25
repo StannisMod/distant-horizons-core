@@ -516,10 +516,9 @@ public class FullDataPointIdMap
 			if (otherObj == this)
 				return true;
 			
-			if (!(otherObj instanceof Entry))
+			if (!(otherObj instanceof Entry other))
 				return false;
 			
-			Entry other = (Entry) otherObj;
 			return other.biome.getSerialString().equals(this.biome.getSerialString())
 					&& other.blockState.getSerialString().equals(this.blockState.getSerialString());
 		}

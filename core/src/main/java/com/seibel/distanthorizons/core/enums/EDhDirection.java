@@ -98,9 +98,7 @@ public enum EDhDirection
 	private static final EDhDirection[] VALUES = values();
 	
 	private static final Map<String, EDhDirection> BY_NAME = Arrays.stream(VALUES).collect(Collectors.toMap(EDhDirection::getName, (p_199787_0_) ->
-	{
-		return p_199787_0_;
-	}));
+			p_199787_0_));
 
 //	private static final LodDirection[] BY_3D_DATA = Arrays.stream(VALUES).sorted(Comparator.comparingInt((p_199790_0_) ->
 //	{
@@ -247,36 +245,26 @@ public enum EDhDirection
 	
 	public EDhDirection getClockWise()
 	{
-		switch (this)
+		return switch (this)
 		{
-			case NORTH:
-				return EAST;
-			case SOUTH:
-				return WEST;
-			case WEST:
-				return NORTH;
-			case EAST:
-				return SOUTH;
-			default:
-				throw new IllegalStateException("Unable to get Y-rotated facing of " + this);
-		}
+			case NORTH -> EAST;
+			case SOUTH -> WEST;
+			case WEST -> NORTH;
+			case EAST -> SOUTH;
+			default -> throw new IllegalStateException("Unable to get Y-rotated facing of " + this);
+		};
 	}
 	
 	public EDhDirection getCounterClockWise()
 	{
-		switch (this)
+		return switch (this)
 		{
-			case NORTH:
-				return WEST;
-			case SOUTH:
-				return EAST;
-			case WEST:
-				return SOUTH;
-			case EAST:
-				return NORTH;
-			default:
-				throw new IllegalStateException("Unable to get CCW facing of " + this);
-		}
+			case NORTH -> WEST;
+			case SOUTH -> EAST;
+			case WEST -> SOUTH;
+			case EAST -> NORTH;
+			default -> throw new IllegalStateException("Unable to get CCW facing of " + this);
+		};
 	}
 	
 	public String getName()
@@ -317,16 +305,11 @@ public enum EDhDirection
 	
 	public static EDhDirection fromAxisAndDirection(EDhDirection.Axis p_211699_0_, EDhDirection.AxisDirection p_211699_1_)
 	{
-		switch (p_211699_0_)
-		{
-			case X:
-				return p_211699_1_ == EDhDirection.AxisDirection.POSITIVE ? EAST : WEST;
-			case Y:
-				return p_211699_1_ == EDhDirection.AxisDirection.POSITIVE ? UP : DOWN;
-			case Z:
-			default:
-				return p_211699_1_ == EDhDirection.AxisDirection.POSITIVE ? SOUTH : NORTH;
-		}
+        return switch (p_211699_0_) {
+            case X -> p_211699_1_ == AxisDirection.POSITIVE ? EAST : WEST;
+            case Y -> p_211699_1_ == AxisDirection.POSITIVE ? UP : DOWN;
+            default -> p_211699_1_ == AxisDirection.POSITIVE ? SOUTH : NORTH;
+        };
 	}
 
 //	public float toYRot()
@@ -436,9 +419,7 @@ public enum EDhDirection
 		private static final EDhDirection.Axis[] VALUES = values();
 		
 		private static final Map<String, EDhDirection.Axis> BY_NAME = Arrays.stream(VALUES).collect(Collectors.toMap(EDhDirection.Axis::getName, (p_199785_0_) ->
-		{
-			return p_199785_0_;
-		}));
+                p_199785_0_));
 		private final String name;
 		
 		Axis(String name)

@@ -187,22 +187,20 @@ public class DhApiTerrainDataRepo implements IDhApiTerrainDataRepo
 			return DhApiResult.createFail("Unable to get terrain data before the world has loaded.");
 		}
 		
-		if (!(levelWrapper instanceof ILevelWrapper))
+		if (!(levelWrapper instanceof ILevelWrapper coreLevelWrapper))
 		{
 			// custom level wrappers aren't supported,
 			// the API user must get a level wrapper from our code somewhere
 			return DhApiResult.createFail("Unsupported [" + IDhApiLevelWrapper.class.getSimpleName() + "] implementation, only the core class [" + IDhLevel.class.getSimpleName() + "] is a valid parameter.");
 		}
-		ILevelWrapper coreLevelWrapper = (ILevelWrapper) levelWrapper;
 		
 		
-		if (!(apiDataCache instanceof DhApiTerrainDataCache))
+		if (!(apiDataCache instanceof DhApiTerrainDataCache dataCache))
 		{
 			// custom level wrappers aren't supported,
 			// the API user must get a level wrapper from our code somewhere
 			return DhApiResult.createFail("Unsupported [" + IDhApiTerrainDataCache.class.getSimpleName() + "] implementation, only the core class [" + DhApiTerrainDataCache.class.getSimpleName() + "] is a valid parameter.");
 		}
-		DhApiTerrainDataCache dataCache = (DhApiTerrainDataCache) apiDataCache;
 		
 		
 		IDhLevel level = currentWorld.getLevel(coreLevelWrapper);

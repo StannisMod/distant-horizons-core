@@ -289,7 +289,7 @@ public abstract class AbstractDhRepo<TKey, TDTO extends IBaseDTO<TKey>> implemen
 		try
 		{
 			List<Map<String, Object>> objectList = this.query(sql);
-			return !objectList.isEmpty() ? objectList.get(0) : null;
+			return !objectList.isEmpty() ? objectList.getFirst() : null;
 		}
 		catch (DbConnectionClosedException e)
 		{
@@ -512,7 +512,7 @@ public abstract class AbstractDhRepo<TKey, TDTO extends IBaseDTO<TKey>> implemen
 			for (int columnIndex = 1; columnIndex <= resultColumnCount; columnIndex++) // column indices start at 1
 			{
 				String columnName = resultMetaData.getColumnName(columnIndex);
-				if (columnName == null || columnName.equals(""))
+				if (columnName == null || columnName.isEmpty())
 				{
 					throw new RuntimeException("SQL result set is missing a column name for column ["+resultMetaData.getTableName(columnIndex)+"."+columnIndex+"].");
 				}
@@ -521,22 +521,13 @@ public abstract class AbstractDhRepo<TKey, TDTO extends IBaseDTO<TKey>> implemen
 				// some values need explicit conversion
 				// Example: Long values that are within the bounds of an int would automatically be incorrectly returned as "Integer" objects
 				String columnType = resultMetaData.getColumnTypeName(columnIndex).toUpperCase();
-				Object columnValue;
-				switch (columnType)
+				Object columnValue = switch (columnType)
 				{
-					case "BIGINT":
-						columnValue = resultSet.getLong(columnIndex);
-						break;
-					case "SMALLINT":
-						columnValue = resultSet.getShort(columnIndex);
-						break;
-					case "TINYINT":
-						columnValue = resultSet.getByte(columnIndex);
-						break;
-					default:
-						columnValue = resultSet.getObject(columnIndex);
-						break;
-				}
+					case "BIGINT" -> resultSet.getLong(columnIndex);
+					case "SMALLINT" -> resultSet.getShort(columnIndex);
+					case "TINYINT" -> resultSet.getByte(columnIndex);
+					default -> resultSet.getObject(columnIndex);
+				};
 				
 				
 				object.put(columnName, columnValue);
