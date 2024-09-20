@@ -61,60 +61,235 @@ public class Config
 {
 	private static final Logger LOGGER = DhLoggerBuilder.getLogger();
 	
-	public static ConfigCategory client = new ConfigCategory.Builder().set(Client.class).build();
-	
-	
-	
-	public static class Client
+	private static Config GLOBAL_INSTANCE;
+	public static void initializeGlobalConfig()
 	{
-		public static ConfigEntry<Boolean> quickEnableRendering = new ConfigEntry.Builder<Boolean>()
-				.set(true)
-				.comment(""
-						+ "If true, Distant Horizons will render LODs beyond the vanilla render distance."
-						+ "")
-				.setAppearance(EConfigEntryAppearance.ONLY_IN_GUI)
+		if (GLOBAL_INSTANCE != null)
+		{
+			throw new IllegalStateException("Cannot reinitialize the Config");
+		}
+		GLOBAL_INSTANCE = new Config();
+	}
+	public static Config getGlobalConfig() { return GLOBAL_INSTANCE; }
+	
+	public final QuickSettings quickSettings = new QuickSettings();
+	public final Graphics graphics = new Graphics();
+	
+	public class QuickSettings
+	{
+		public final ConfigEntry<Boolean> enableRendering = new ConfigEntry.Builder<Boolean>()
+				.computed(
+						() -> Config.this.debugging.rendererMode.get() != EDhApiRendererMode.DISABLED,
+						enableRendering -> Config.this.debugging.rendererMode.set(enableRendering
+								? EDhApiRendererMode.DEFAULT
+								: EDhApiRendererMode.DISABLED
+						)
+				)
 				.build();
 		
-		public static ConfigLinkedEntry quickLodChunkRenderDistance = new ConfigLinkedEntry(Advanced.Graphics.Quality.lodChunkRenderDistanceRadius);
-		
-		public static ConfigEntry<EDhApiQualityPreset> qualityPresetSetting = new ConfigEntry.Builder<EDhApiQualityPreset>()
-				.set(EDhApiQualityPreset.MEDIUM) // the default value is set via the listener when accessed
-				.comment(""
-						+ "Changing this setting will modify a number of different settings that will change the \n"
-						+ "visual fidelity of the rendered LODs.\n"
-						+ "\n"
-						+ "Higher settings will improve the graphical quality while increasing GPU and memory use.\n"
-						+ "")
-				.setAppearance(EConfigEntryAppearance.ONLY_IN_GUI)
-				.addListener(RenderQualityPresetConfigEventHandler.INSTANCE)
+		public final ConfigEntry<Integer> lodChunkRenderDistanceRadius = new ConfigEntry.Builder<Integer>()
+				.linkedTo(() -> Config.this.graphics.quality.lodChunkRenderDistanceRadius)
 				.build();
 		
-		public static ConfigEntry<EDhApiThreadPreset> threadPresetSetting = new ConfigEntry.Builder<EDhApiThreadPreset>()
+		public final ConfigEntry<EDhApiQualityPreset> qualityPreset = new ConfigEntry.Builder<EDhApiQualityPreset>()
+				.preset(
+						new ConfigEntry.PresetBuilder<>(EDhApiQualityPreset.CUSTOM)
+								.addConfigEntry(() -> Config.this.graphics.quality.maxHorizontalResolution, map -> {
+									map.put(EDhApiQualityPreset.MINIMUM, EDhApiMaxHorizontalResolution.TWO_BLOCKS);
+									map.put(EDhApiQualityPreset.LOW, EDhApiMaxHorizontalResolution.BLOCK);
+									map.put(EDhApiQualityPreset.MEDIUM, EDhApiMaxHorizontalResolution.BLOCK);
+									map.put(EDhApiQualityPreset.HIGH, EDhApiMaxHorizontalResolution.BLOCK);
+									map.put(EDhApiQualityPreset.EXTREME, EDhApiMaxHorizontalResolution.BLOCK);
+								})
+								.addConfigEntry(() -> Config.this.graphics.quality.verticalQuality, map -> {
+									map.put(EDhApiQualityPreset.MINIMUM, EDhApiVerticalQuality.HEIGHT_MAP);
+									map.put(EDhApiQualityPreset.LOW, EDhApiVerticalQuality.LOW);
+									map.put(EDhApiQualityPreset.MEDIUM, EDhApiVerticalQuality.MEDIUM);
+									map.put(EDhApiQualityPreset.HIGH, EDhApiVerticalQuality.HIGH);
+									map.put(EDhApiQualityPreset.EXTREME, EDhApiVerticalQuality.EXTREME);
+								})
+								.addConfigEntry(() -> Config.this.graphics.quality.horizontalQuality, map -> {
+									map.put(EDhApiQualityPreset.MINIMUM, EDhApiHorizontalQuality.LOWEST);
+									map.put(EDhApiQualityPreset.LOW, EDhApiHorizontalQuality.LOW);
+									map.put(EDhApiQualityPreset.MEDIUM, EDhApiHorizontalQuality.MEDIUM);
+									map.put(EDhApiQualityPreset.HIGH, EDhApiHorizontalQuality.HIGH);
+									map.put(EDhApiQualityPreset.EXTREME, EDhApiHorizontalQuality.EXTREME);
+								})
+								.addConfigEntry(() -> Config.this.graphics.quality.transparency, map -> {
+									map.put(EDhApiQualityPreset.MINIMUM, EDhApiTransparency.DISABLED);
+									map.put(EDhApiQualityPreset.LOW, EDhApiTransparency.DISABLED); // should be fake if/when fake is fixed
+									map.put(EDhApiQualityPreset.MEDIUM, EDhApiTransparency.COMPLETE);
+									map.put(EDhApiQualityPreset.HIGH, EDhApiTransparency.COMPLETE);
+									map.put(EDhApiQualityPreset.EXTREME, EDhApiTransparency.COMPLETE);
+								})
+								.addConfigEntry(() -> Config.this.graphics.quality.ssao.enabled, map -> {
+									map.put(EDhApiQualityPreset.MINIMUM, false);
+									map.put(EDhApiQualityPreset.LOW, false);
+									map.put(EDhApiQualityPreset.MEDIUM, true);
+									map.put(EDhApiQualityPreset.HIGH, true);
+									map.put(EDhApiQualityPreset.EXTREME, true);
+								})
+				)
+				.build();
+		
+		public final ConfigEntry<EDhApiThreadPreset> threadPreset = new ConfigEntry.Builder<EDhApiThreadPreset>()
 				.set(EDhApiThreadPreset.LOW_IMPACT) // the default value is set via the listener when accessed
-				.comment(""
-						+ "Changing this setting will modify a number of different settings that will change \n"
-						+ "the load that Distant Horizons is allowed to put on your CPU. \n"
-						+ "\n"
-						+ "Higher options will improve LOD generation and loading speed, \n"
-						+ "but will increase CPU load and may introduce stuttering.\n"
-						+ "\n"
-						+ "Note: on CPUs with 4 cores or less these settings will be less effective \n"
-						+ "      and some settings will give similar results. \n"
-						+ "")
 				.setAppearance(EConfigEntryAppearance.ONLY_IN_GUI)
 				.addListener(ThreadPresetConfigEventHandler.INSTANCE)
 				.build();
 		
-		public static ConfigLinkedEntry quickEnableWorldGenerator = new ConfigLinkedEntry(Advanced.WorldGenerator.enableDistantGeneration);
+		public final ConfigLinkedEntry quickEnableWorldGenerator = new ConfigLinkedEntry(_Client.Advanced.WorldGenerator.enableDistantGeneration);
 		
-		public static ConfigLinkedEntry quickLodCloudRendering = new ConfigLinkedEntry(Advanced.Graphics.GenericRendering.enableCloudRendering);
+		public final ConfigLinkedEntry quickLodCloudRendering = new ConfigLinkedEntry(_Client.Advanced.Graphics.GenericRendering.enableCloudRendering);
 		
-		public static ConfigEntry<Boolean> optionsButton = new ConfigEntry.Builder<Boolean>()
+		public final ConfigEntry<Boolean> showOptionsButton = new ConfigEntry.Builder<Boolean>()
 				.set(true)
 				.setAppearance(EConfigEntryAppearance.ONLY_IN_FILE)
 				.comment("" +
 						"Should Distant Horizon's config button appear in the options screen next to fov slider?")
 				.build();
+		
+	}
+	
+	
+	public static class Graphics
+	{
+		public final Quality quality = new Quality();
+		
+		public static class Quality
+		{
+			public ConfigEntry<Integer> lodChunkRenderDistanceRadius = new ConfigEntry.Builder<Integer>()
+					.setServersideShortName("renderDistanceRadius")
+					.setMinDefaultMax(32, 128, 4096)
+					.comment("" +
+							"The radius of the mod's render distance. (measured in chunks)\n" +
+							"On server changes the distance players will receive real-time updates for, if enabled." +
+							"\n" +
+							"Note for servers:\n" +
+							"This setting does not prevent players from generating farther out.\n" +
+							"If you want to limit performance impact, change rate limits\n" +
+							"and thread count/runtime ratio settings instead.\n" +
+							"It also does not affect the visuals on clients.")
+					.setPerformance(EConfigEntryPerformance.HIGH)
+					.setSide(EConfigEntryRelevantSide.BOTH)
+					.build();
+			
+			public ConfigEntry<EDhApiMaxHorizontalResolution> maxHorizontalResolution = new ConfigEntry.Builder<EDhApiMaxHorizontalResolution>()
+					.set(EDhApiMaxHorizontalResolution.BLOCK)
+					.comment(""
+							+ "What is the maximum detail LODs should be drawn at? \n"
+							+ "Higher settings will increase memory and GPU usage. \n"
+							+ "\n"
+							+ EDhApiMaxHorizontalResolution.CHUNK + ": render 1 LOD for each Chunk. \n"
+							+ EDhApiMaxHorizontalResolution.HALF_CHUNK + ": render 4 LODs for each Chunk. \n"
+							+ EDhApiMaxHorizontalResolution.FOUR_BLOCKS + ": render 16 LODs for each Chunk. \n"
+							+ EDhApiMaxHorizontalResolution.TWO_BLOCKS + ": render 64 LODs for each Chunk. \n"
+							+ EDhApiMaxHorizontalResolution.BLOCK + ": render 256 LODs for each Chunk (width of one block). \n"
+							+ "\n"
+							+ "Lowest Quality: " + EDhApiMaxHorizontalResolution.CHUNK + "\n"
+							+ "Highest Quality: " + EDhApiMaxHorizontalResolution.BLOCK)
+					.setPerformance(EConfigEntryPerformance.MEDIUM)
+					.build();
+			
+			public ConfigEntry<EDhApiVerticalQuality> verticalQuality = new ConfigEntry.Builder<EDhApiVerticalQuality>()
+					.set(EDhApiVerticalQuality.MEDIUM)
+					.comment(""
+							+ "This indicates how well LODs will represent \n"
+							+ "overhangs, caves, floating islands, etc. \n"
+							+ "Higher options will make the world more accurate, but"
+							+ "will increase memory and GPU usage. \n"
+							+ "\n"
+							+ "Lowest Quality: " + EDhApiVerticalQuality.HEIGHT_MAP + "\n"
+							+ "Highest Quality: " + EDhApiVerticalQuality.EXTREME)
+					.setPerformance(EConfigEntryPerformance.VERY_HIGH)
+					.addListener(ReloadLodsConfigEventHandler.INSTANCE)
+					.build();
+			
+			public ConfigEntry<EDhApiHorizontalQuality> horizontalQuality = new ConfigEntry.Builder<EDhApiHorizontalQuality>()
+					.set(EDhApiHorizontalQuality.MEDIUM)
+					.comment(""
+							+ "This indicates how quickly LODs decrease in quality the further away they are. \n"
+							+ "Higher settings will render higher quality fake chunks farther away, \n"
+							+ "but will increase memory and GPU usage.")
+					.setPerformance(EConfigEntryPerformance.MEDIUM)
+					.build();
+			
+			public ConfigEntry<EDhApiTransparency> transparency = new ConfigEntry.Builder<EDhApiTransparency>()
+					.set(EDhApiTransparency.COMPLETE)
+					.comment(""
+							+ "How should LOD transparency be handled. \n"
+							+ "\n"
+							+ EDhApiTransparency.COMPLETE + ": LODs will render transparent. \n"
+							+ EDhApiTransparency.FAKE + ": LODs will be opaque, but shaded to match the blocks underneath. \n"
+							+ EDhApiTransparency.DISABLED + ": LODs will be opaque. \n"
+							+ "")
+					.setPerformance(EConfigEntryPerformance.MEDIUM)
+					.addListener(ReloadLodsConfigEventHandler.INSTANCE)
+					.build();
+			
+			
+			public ConfigEntry<EDhApiBlocksToAvoid> blocksToIgnore = new ConfigEntry.Builder<EDhApiBlocksToAvoid>()
+					.set(EDhApiBlocksToAvoid.NON_COLLIDING)
+					.comment(""
+							+ "What blocks shouldn't be rendered as LODs? \n"
+							+ "\n"
+							+ EDhApiBlocksToAvoid.NONE + ": Represent all blocks in the LODs \n"
+							+ EDhApiBlocksToAvoid.NON_COLLIDING + ": Only represent solid blocks in the LODs (tall grass, torches, etc. won't count for a LOD's height) \n"
+							+ "")
+					.setPerformance(EConfigEntryPerformance.NONE)
+					.addListener(ReloadLodsConfigEventHandler.INSTANCE)
+					.build();
+			
+			public ConfigEntry<Boolean> tintWithAvoidedBlocks = new ConfigEntry.Builder<Boolean>()
+					.set(true)
+					.comment(""
+							+ "Should the blocks underneath avoided blocks gain the color of the avoided block? \n"
+							+ "\n"
+							+ "True: a red flower will tint the grass below it red. \n"
+							+ "False: skipped blocks will not change color of surface below them. "
+							+ "")
+					.setPerformance(EConfigEntryPerformance.NONE)
+					.addListener(ReloadLodsConfigEventHandler.INSTANCE)
+					.build();
+			
+			// TODO fixme
+			//public static ConfigEntry<Integer> lodBiomeBlending = new ConfigEntry.Builder<Integer>()
+			//		.setMinDefaultMax(0,1,7)
+			//		.comment(""
+			//				+ "This is the same as vanilla Biome Blending settings for Lod area. \n"
+			//				+ "    Note that anything other than '0' will greatly effect Lod building time \n"
+			//				+ "     and increase triangle count. The cost on chunk generation speed is also \n"
+			//				+ "     quite large if set too high.\n"
+			//				+ "\n"
+			//				+ "    '0' equals to Vanilla Biome Blending of '1x1' or 'OFF', \n"
+			//				+ "    '1' equals to Vanilla Biome Blending of '3x3', \n"
+			//				+ "    '2' equals to Vanilla Biome Blending of '5x5'...")
+			//		.build();
+			
+		}
+		
+	}
+	
+	public final Debugging debugging = new Debugging();
+	
+	public static class Debugging
+	{
+		public ConfigEntry<EDhApiRendererMode> rendererMode = new ConfigEntry.Builder<EDhApiRendererMode>()
+				.set(EDhApiRendererMode.DEFAULT)
+				.comment(""
+						+ "What renderer is active? \n"
+						+ "\n"
+						+ EDhApiRendererMode.DEFAULT + ": Default lod renderer \n"
+						+ EDhApiRendererMode.DEBUG + ": Debug testing renderer \n"
+						+ EDhApiRendererMode.DISABLED + ": Disable rendering")
+				.build();
+		
+	}
+	
+	
+	public static class _Client
+	{
+		
 		
 		
 		
@@ -146,112 +321,6 @@ public class Config
 				
 				public static class Quality
 				{
-					public static ConfigEntry<EDhApiMaxHorizontalResolution> maxHorizontalResolution = new ConfigEntry.Builder<EDhApiMaxHorizontalResolution>()
-							.set(EDhApiMaxHorizontalResolution.BLOCK)
-							.comment(""
-									+ "What is the maximum detail LODs should be drawn at? \n"
-									+ "Higher settings will increase memory and GPU usage. \n"
-									+ "\n"
-									+ EDhApiMaxHorizontalResolution.CHUNK + ": render 1 LOD for each Chunk. \n"
-									+ EDhApiMaxHorizontalResolution.HALF_CHUNK + ": render 4 LODs for each Chunk. \n"
-									+ EDhApiMaxHorizontalResolution.FOUR_BLOCKS + ": render 16 LODs for each Chunk. \n"
-									+ EDhApiMaxHorizontalResolution.TWO_BLOCKS + ": render 64 LODs for each Chunk. \n"
-									+ EDhApiMaxHorizontalResolution.BLOCK + ": render 256 LODs for each Chunk (width of one block). \n"
-									+ "\n"
-									+ "Lowest Quality: " + EDhApiMaxHorizontalResolution.CHUNK + "\n"
-									+ "Highest Quality: " + EDhApiMaxHorizontalResolution.BLOCK)
-							.setPerformance(EConfigEntryPerformance.MEDIUM)
-							.build();
-					
-					public static ConfigEntry<Integer> lodChunkRenderDistanceRadius = new ConfigEntry.Builder<Integer>()
-							.setServersideShortName("renderDistanceRadius")
-							.setMinDefaultMax(32, 128, 4096)
-							.comment("" +
-									"The radius of the mod's render distance. (measured in chunks)\n" +
-									"On server changes the distance players will receive real-time updates for, if enabled." +
-									"\n" +
-									"Note for servers:\n" +
-									"This setting does not prevent players from generating farther out.\n" +
-									"If you want to limit performance impact, change rate limits\n" +
-									"and thread count/runtime ratio settings instead.\n" +
-									"It also does not affect the visuals on clients.")
-							.setPerformance(EConfigEntryPerformance.HIGH)
-							.setSide(EConfigEntryRelevantSide.BOTH)
-							.build();
-					
-					public static ConfigEntry<EDhApiVerticalQuality> verticalQuality = new ConfigEntry.Builder<EDhApiVerticalQuality>()
-							.set(EDhApiVerticalQuality.MEDIUM)
-							.comment(""
-									+ "This indicates how well LODs will represent \n"
-									+ "overhangs, caves, floating islands, etc. \n"
-									+ "Higher options will make the world more accurate, but"
-									+ "will increase memory and GPU usage. \n"
-									+ "\n"
-									+ "Lowest Quality: " + EDhApiVerticalQuality.HEIGHT_MAP + "\n"
-									+ "Highest Quality: " + EDhApiVerticalQuality.EXTREME)
-							.setPerformance(EConfigEntryPerformance.VERY_HIGH)
-							.addListener(ReloadLodsConfigEventHandler.INSTANCE)
-							.build();
-					
-					public static ConfigEntry<EDhApiHorizontalQuality> horizontalQuality = new ConfigEntry.Builder<EDhApiHorizontalQuality>()
-							.set(EDhApiHorizontalQuality.MEDIUM)
-							.comment(""
-									+ "This indicates how quickly LODs decrease in quality the further away they are. \n"
-									+ "Higher settings will render higher quality fake chunks farther away, \n"
-									+ "but will increase memory and GPU usage.")
-							.setPerformance(EConfigEntryPerformance.MEDIUM)
-							.build();
-					
-					public static ConfigEntry<EDhApiTransparency> transparency = new ConfigEntry.Builder<EDhApiTransparency>()
-							.set(EDhApiTransparency.COMPLETE)
-							.comment(""
-									+ "How should LOD transparency be handled. \n"
-									+ "\n"
-									+ EDhApiTransparency.COMPLETE + ": LODs will render transparent. \n"
-									+ EDhApiTransparency.FAKE + ": LODs will be opaque, but shaded to match the blocks underneath. \n"
-									+ EDhApiTransparency.DISABLED + ": LODs will be opaque. \n"
-									+ "")
-							.setPerformance(EConfigEntryPerformance.MEDIUM)
-							.addListener(ReloadLodsConfigEventHandler.INSTANCE)
-							.build();
-					
-					public static ConfigEntry<EDhApiBlocksToAvoid> blocksToIgnore = new ConfigEntry.Builder<EDhApiBlocksToAvoid>()
-							.set(EDhApiBlocksToAvoid.NON_COLLIDING)
-							.comment(""
-									+ "What blocks shouldn't be rendered as LODs? \n"
-									+ "\n"
-									+ EDhApiBlocksToAvoid.NONE + ": Represent all blocks in the LODs \n"
-									+ EDhApiBlocksToAvoid.NON_COLLIDING + ": Only represent solid blocks in the LODs (tall grass, torches, etc. won't count for a LOD's height) \n"
-									+ "")
-							.setPerformance(EConfigEntryPerformance.NONE)
-							.addListener(ReloadLodsConfigEventHandler.INSTANCE)
-							.build();
-					
-					public static ConfigEntry<Boolean> tintWithAvoidedBlocks = new ConfigEntry.Builder<Boolean>()
-							.set(true)
-							.comment(""
-									+ "Should the blocks underneath avoided blocks gain the color of the avoided block? \n"
-									+ "\n"
-									+ "True: a red flower will tint the grass below it red. \n"
-									+ "False: skipped blocks will not change color of surface below them. "
-									+ "")
-							.setPerformance(EConfigEntryPerformance.NONE)
-							.addListener(ReloadLodsConfigEventHandler.INSTANCE)
-							.build();
-					
-					// TODO fixme
-//					public static ConfigEntry<Integer> lodBiomeBlending = new ConfigEntry.Builder<Integer>()
-//							.setMinDefaultMax(0,1,7)
-//							.comment(""
-//									+ "This is the same as vanilla Biome Blending settings for Lod area. \n"
-//									+ "    Note that anything other than '0' will greatly effect Lod building time \n"
-//									+ "     and increase triangle count. The cost on chunk generation speed is also \n"
-//									+ "     quite large if set too high.\n"
-//									+ "\n"
-//									+ "    '0' equals to Vanilla Biome Blending of '1x1' or 'OFF', \n"
-//									+ "    '1' equals to Vanilla Biome Blending of '3x3', \n"
-//									+ "    '2' equals to Vanilla Biome Blending of '5x5'...")
-//							.build();
 				}
 				
 				public static class Fog

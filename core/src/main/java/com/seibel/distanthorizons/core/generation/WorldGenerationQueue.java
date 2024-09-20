@@ -523,8 +523,8 @@ public class WorldGenerationQueue implements IFullDataSourceRetrievalQueue, IDeb
 	// getters / setters //
 	//===================//
 	
-	public int getWaitingTaskCount() { return this.waitingTasks.size(); }
-	public int getInProgressTaskCount() { return this.inProgressGenTasksByLodPos.size(); }
+	@Override public int getWaitingTaskCount() { return this.waitingTasks.size(); }
+	@Override public int getInProgressTaskCount() { return this.inProgressGenTasksByLodPos.size(); }
 	
 	@Override
 	public byte lowestDataDetail() { return this.lowestDataDetail; }
@@ -536,7 +536,7 @@ public class WorldGenerationQueue implements IFullDataSourceRetrievalQueue, IDeb
 	@Override
 	public void setEstimatedTotalTaskCount(int newEstimate) { this.estimatedTotalTaskCount = newEstimate; }
 	
-	public void addDebugMenuStringsToList(List<String> messageList) { }
+	@Override public void addDebugMenuStringsToList(List<String> messageList) { }
 	
 	
 	
@@ -544,7 +544,7 @@ public class WorldGenerationQueue implements IFullDataSourceRetrievalQueue, IDeb
 	// shutdown //
 	//==========//
 	
-	public CompletableFuture<Void> startClosingAsync(boolean cancelCurrentGeneration, boolean alsoInterruptRunning)
+	@Override public CompletableFuture<Void> startClosingAsync(boolean cancelCurrentGeneration, boolean alsoInterruptRunning)
 	{
 		LOGGER.info("Closing world gen queue");
 		this.queueingThread.shutdownNow();
@@ -671,13 +671,17 @@ public class WorldGenerationQueue implements IFullDataSourceRetrievalQueue, IDeb
 		{
 			index = 4 * X * X - X - Y;
 			if (X < Y)
+			{
 				index = index - 2 * (X - Y);
+			}
 		}
 		else
 		{
 			index = 4 * Y * Y - X - Y;
 			if (X < Y)
+			{
 				index = index + 2 * (X - Y);
+			}
 		}
 		
 		return index;

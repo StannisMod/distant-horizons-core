@@ -191,14 +191,14 @@ public class LodQuadBuilder
 	public void addQuadDown(short x, short y, short z, short width, short wz, int color, byte irisBlockMaterialId, byte skylight, byte blocklight)
 	{
 		BufferQuad quad = new BufferQuad(x, y, z, width, wz, color, irisBlockMaterialId, skylight, blocklight, EDhDirection.DOWN);
-		ArrayList<BufferQuad> qs = (doTransparency && ColorUtil.getAlpha(color) < 255)
-				? transparentQuads[EDhDirection.DOWN.ordinal()] : opaqueQuads[EDhDirection.DOWN.ordinal()];
+		ArrayList<BufferQuad> qs = (this.doTransparency && ColorUtil.getAlpha(color) < 255)
+				? this.transparentQuads[EDhDirection.DOWN.ordinal()] : this.opaqueQuads[EDhDirection.DOWN.ordinal()];
 		if (!qs.isEmpty()
 				&& (qs.get(qs.size() - 1).tryMerge(quad, BufferMergeDirectionEnum.EastWest)
 						|| qs.get(qs.size() - 1).tryMerge(quad, BufferMergeDirectionEnum.NorthSouthOrUpDown))
 			)
 		{
-			premergeCount++;
+			this.premergeCount++;
 			return;
 		}
 		qs.add(quad);
@@ -251,7 +251,9 @@ public class LodQuadBuilder
 	private static long mergeQuadsInternal(ArrayList<BufferQuad>[] list, int directionIndex, BufferMergeDirectionEnum mergeDirection)
 	{
 		if (list[directionIndex].size() <= 1)
+		{
 			return 0;
+		}
 		
 		list[directionIndex].sort((objOne, objTwo) -> objOne.compare(objTwo, mergeDirection));
 		
@@ -423,9 +425,18 @@ public class LodQuadBuilder
 		// 0b01 = positive offset
 		// 0b11 = negative offset
 		// format is: 0b00zzyyxx
-		if (mx != 0) mirco |= mx > 0 ? 0b01 : 0b11;
-		if (my != 0) mirco |= my > 0 ? 0b0100 : 0b1100;
-		if (mz != 0) mirco |= mz > 0 ? 0b010000 : 0b110000;
+		if (mx != 0)
+		{
+			mirco |= mx > 0 ? 0b01 : 0b11;
+		}
+		if (my != 0)
+		{
+			mirco |= my > 0 ? 0b0100 : 0b1100;
+		}
+		if (mz != 0)
+		{
+			mirco |= mz > 0 ? 0b010000 : 0b110000;
+		}
 		meta |= mirco << 8;
 		
 		bb.putShort(meta);

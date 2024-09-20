@@ -102,7 +102,7 @@ public class RenderCacheConfigEventHandler
 		// create a new timer task
 		TimerTask timerTask = new TimerTask()
 		{
-			public void run()
+			@Override public void run()
 			{
 				DhApi.Delayed.renderProxy.clearRenderDataCache();
 			}

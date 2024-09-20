@@ -845,15 +845,23 @@ public class LodRenderer
 				}
 				
 				if (this.quadIBO != null)
+				{
 					this.quadIBO.destroyAsync();
+				}
 				
 				// Delete framebuffer, color texture, and depth texture
 				if (this.framebuffer != null && !this.usingMcFrameBuffer)
+				{
 					this.framebuffer.destroy();
+				}
 				if (this.nullableColorTexture != null)
+				{
 					this.nullableColorTexture.destroy();
+				}
 				if (this.depthTexture != null)
+				{
 					this.depthTexture.destroy();
+				}
 				
 				EVENT_LOGGER.info("Renderer Cleanup Complete");
 			});

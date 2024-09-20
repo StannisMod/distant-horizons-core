@@ -126,9 +126,9 @@ public class ClientLevelModule implements Closeable, AbstractDataSourceHandler.I
 		
 		boolean isBuffersDirty = false;
 		EDhApiDebugRendering newDebugRendering = Config.Client.Advanced.Debugging.debugRendering.get();
-		if (newDebugRendering != lastDebugRendering)
+		if (newDebugRendering != this.lastDebugRendering)
 		{
-			lastDebugRendering = newDebugRendering;
+			this.lastDebugRendering = newDebugRendering;
 			isBuffersDirty = true;
 		}
 		if (isBuffersDirty)
@@ -225,7 +225,7 @@ public class ClientLevelModule implements Closeable, AbstractDataSourceHandler.I
 		}
 	}
 	
-	public void close()
+	@Override public void close()
 	{
 		// shutdown the renderer
 		ClientRenderState ClientRenderState = this.ClientRenderStateRef.get();

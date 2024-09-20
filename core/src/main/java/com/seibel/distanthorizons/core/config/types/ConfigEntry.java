@@ -20,6 +20,10 @@
 package com.seibel.distanthorizons.core.config.types;
 
 
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBasedTable;
+import com.google.common.collect.HashBiMap;
+import com.google.common.collect.Table;
 import com.seibel.distanthorizons.core.config.NumberUtil;
 import com.seibel.distanthorizons.core.config.listeners.ConfigChangeListener;
 import com.seibel.distanthorizons.core.config.listeners.IConfigListener;
@@ -28,9 +32,11 @@ import com.seibel.distanthorizons.core.config.types.enums.EConfigEntryPerformanc
 import com.seibel.distanthorizons.core.config.types.enums.EConfigEntryRelevantSide;
 import com.seibel.distanthorizons.coreapi.interfaces.config.IConfigEntry;
 
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.*;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Use for making the config variables
@@ -135,9 +141,9 @@ public class ConfigEntry<T> extends AbstractConfigType<T, ConfigEntry<T>> implem
 	@Override
 	public T get()
 	{
-		if (allowApiOverride && apiValue != null)
+		if (this.allowApiOverride && this.apiValue != null)
 		{
-			return apiValue;
+			return this.apiValue;
 		}
 		
 		return super.get();
@@ -186,8 +192,14 @@ public class ConfigEntry<T> extends AbstractConfigType<T, ConfigEntry<T>> implem
 	public void clampWithinRange(T min, T max)
 	{
 		byte validness = this.isValid(min, max);
-		if (validness == -1) this.value = (T) NumberUtil.getMinimum(this.value.getClass());
-		if (validness == 1) this.value = (T) NumberUtil.getMaximum(this.value.getClass());
+		if (validness == -1)
+		{
+			this.value = (T) NumberUtil.getMinimum(this.value.getClass());
+		}
+		if (validness == 1)
+		{
+			this.value = (T) NumberUtil.getMaximum(this.value.getClass());
+		}
 	}
 	
 	// TODO is this for command line use?
@@ -204,7 +216,7 @@ public class ConfigEntry<T> extends AbstractConfigType<T, ConfigEntry<T>> implem
 	public EConfigEntryRelevantSide getRelevantSide() { return this.relevantSide; }
 	
 	/** Fired whenever the config value changes to a new value. */
-	public void addValueChangeListener(Consumer<T> onValueChangeFunc)
+	@Override public void addValueChangeListener(Consumer<T> onValueChangeFunc)
 	{
 		ConfigChangeListener<T> changeListener = new ConfigChangeListener<>(this, onValueChangeFunc);
 		this.addListener(changeListener);
@@ -235,7 +247,7 @@ public class ConfigEntry<T> extends AbstractConfigType<T, ConfigEntry<T>> implem
 	 * <p> -1 == number too low
 	 */
 	@Override
-	public byte isValid() { return isValid(this.value, this.min, this.max); }
+	public byte isValid() { return this.isValid(this.value, this.min, this.max); }
 	/**
 	 * Checks if a new value is valid
 	 *
@@ -307,88 +319,136 @@ public class ConfigEntry<T> extends AbstractConfigType<T, ConfigEntry<T>> implem
 	}
 	
 	/** This should normally not be called since set() automatically calls this */
-	public void save() { configBase.configFileINSTANCE.saveEntry(this); }
+	public void save() { this.configBase.configFileINSTANCE.saveEntry(this); }
 	/** This should normally not be called except for special circumstances */
-	public void load() { configBase.configFileINSTANCE.loadEntry(this); }
+	public void load() { this.configBase.configFileINSTANCE.loadEntry(this); }
 	
 	
 	@Override
-	public boolean equals(IConfigEntry<?> obj) { return obj.getClass() == ConfigEntry.class && equals((ConfigEntry<?>) obj); }
+	public boolean equals(IConfigEntry<?> obj) { return obj.getClass() == ConfigEntry.class && this.equals((ConfigEntry<?>) obj); }
 	/** Is the value of this equal to another */
 	public boolean equals(ConfigEntry<?> obj)
 	{
 		// Can all of this just be "return this.value.equals(obj.value)"?
 		
 		if (Number.class.isAssignableFrom(this.value.getClass()))
+		{
 			return this.value == obj.value;
+		}
 		else
+		{
 			return this.value.equals(obj.value);
+		}
 	}
 	
-	
-	public static class Builder<T> extends AbstractConfigType.Builder<T, Builder<T>>
+	public static class Builder<TValue> extends AbstractConfigType.Builder<TValue, Builder<TValue>>
 	{
 		private String tmpComment = null;
-		private T tmpMin = null;
-		private T tmpMax = null;
+		private TValue tmpMin = null;
+		private TValue tmpMax = null;
 		protected String tmpServersideShortName = null;
 		private boolean tmpUseApiOverwrite = true;
 		private EConfigEntryPerformance tmpPerformance = EConfigEntryPerformance.DONT_SHOW;
 		private EConfigEntryRelevantSide tmpRelevantSide = EConfigEntryRelevantSide.CLIENT;
 		protected ArrayList<IConfigListener> tmpIConfigListener = new ArrayList<>();
 		
-		public Builder<T> comment(String newComment)
+		private Supplier<TValue> computedValueGetter;
+		private Consumer<TValue> computedValueSetter;
+		private boolean preventAutoApplyUntilExit;
+		
+		public Builder<TValue> comment(String newComment)
 		{
 			this.tmpComment = newComment;
 			return this;
 		}
 		
+		public Builder<TValue> computed(Supplier<TValue> computedValueGetter, Consumer<TValue> computedValueSetter)
+		{
+			this.computedValueGetter = computedValueGetter;
+			this.computedValueSetter = computedValueSetter;
+			this.setAppearance(EConfigEntryAppearance.ONLY_IN_GUI);
+			return this;
+		}
+		
+		public Builder<TValue> linkedTo(DeferredAccessor<TValue> otherConfigAccessor)
+		{
+			return this.computed(
+					otherConfigAccessor::get,
+					otherConfigAccessor::set
+			);
+		}
+		
+		public Builder<TValue> preset(PresetBuilder<TValue> presetBuilder)
+		{
+			return this.computed(
+					() -> {
+						List<TValue> values = presetBuilder.presetValues.entrySet().stream()
+								.map(entry -> entry.getValue().inverse().get(entry.getKey().get()))
+								.distinct().limit(2)
+								.collect(Collectors.toList());
+						
+						if (values.size() != 1)
+						{
+							return presetBuilder.customStateValue;
+						}
+						
+						return values.get(0);
+					},
+					value -> {
+						for (Map.Entry<DeferredAccessor<Object>, BiMap<TValue, Object>> entry : presetBuilder.presetValues.entrySet())
+						{
+							entry.getKey().set(entry.getValue().get(value));
+						}
+					}
+			);
+		}
+		
 		/** Allows most values to be set by 1 setter */
-		public Builder<T> setMinDefaultMax(T newMin, T newDefault, T newMax)
+		public Builder<TValue> setMinDefaultMax(TValue newMin, TValue newDefault, TValue newMax)
 		{
 			this.set(newDefault);
 			this.setMinMax(newMin, newMax);
 			return this;
 		}
 		
-		public Builder<T> setMinMax(T newMin, T newMax)
+		public Builder<TValue> setMinMax(TValue newMin, TValue newMax)
 		{
 			this.tmpMin = newMin;
 			this.tmpMax = newMax;
 			return this;
 		}
 		
-		public Builder<T> setMin(T newMin)
+		public Builder<TValue> setMin(TValue newMin)
 		{
 			this.tmpMin = newMin;
 			return this;
 		}
 		
-		public Builder<T> setMax(T newMax)
+		public Builder<TValue> setMax(TValue newMax)
 		{
 			this.tmpMax = newMax;
 			return this;
 		}
 		
-		public Builder<T> setServersideShortName(String name)
+		public Builder<TValue> setServersideShortName(String name)
 		{
 			this.tmpServersideShortName = name;
 			return this;
 		}
 		
-		public Builder<T> setUseApiOverwrite(boolean newUseApiOverwrite)
+		public Builder<TValue> setUseApiOverwrite(boolean newUseApiOverwrite)
 		{
 			this.tmpUseApiOverwrite = newUseApiOverwrite;
 			return this;
 		}
 		
-		public Builder<T> setPerformance(EConfigEntryPerformance newPerformance)
+		public Builder<TValue> setPerformance(EConfigEntryPerformance newPerformance)
 		{
 			this.tmpPerformance = newPerformance;
 			return this;
 		}
 		
-		public Builder<T> setSide(EConfigEntryRelevantSide relevantSide)
+		public Builder<TValue> setSide(EConfigEntryRelevantSide relevantSide)
 		{
 			this.tmpRelevantSide = relevantSide;
 			return this;
@@ -396,25 +456,25 @@ public class ConfigEntry<T> extends AbstractConfigType<T, ConfigEntry<T>> implem
 		
 		
 		
-		public Builder<T> replaceListeners(ArrayList<IConfigListener> newConfigListener)
+		public Builder<TValue> replaceListeners(ArrayList<IConfigListener> newConfigListener)
 		{
 			this.tmpIConfigListener = newConfigListener;
 			return this;
 		}
 		
-		public Builder<T> addListeners(IConfigListener... newConfigListener)
+		public Builder<TValue> addListeners(IConfigListener... newConfigListener)
 		{
 			this.tmpIConfigListener.addAll(Arrays.asList(newConfigListener));
 			return this;
 		}
 		
-		public Builder<T> addListener(IConfigListener newConfigListener)
+		public Builder<TValue> addListener(IConfigListener newConfigListener)
 		{
 			this.tmpIConfigListener.add(newConfigListener);
 			return this;
 		}
 		
-		public Builder<T> clearListeners()
+		public Builder<TValue> clearListeners()
 		{
 			this.tmpIConfigListener.clear();
 			return this;
@@ -422,13 +482,55 @@ public class ConfigEntry<T> extends AbstractConfigType<T, ConfigEntry<T>> implem
 		
 		
 		
-		public ConfigEntry<T> build()
+		public ConfigEntry<TValue> build()
 		{
 			return new ConfigEntry<>(
 					this.tmpAppearance, 
 					this.tmpValue, this.tmpComment, this.tmpMin, this.tmpMax, 
 					this.tmpServersideShortName, this.tmpUseApiOverwrite, 
 					this.tmpPerformance, this.tmpRelevantSide, this.tmpIConfigListener);
+		}
+		
+	}
+	
+	/**
+	 * Wraps deferred accesses to a ConfigEntry. <br>
+	 * It replaces the direct uses of ConfigEntry in places where Java runtime should not attempt
+	 * to dereference path to said entry, until initialization is done.
+	 */
+	@FunctionalInterface
+	public interface DeferredAccessor<T>
+	{
+		ConfigEntry<T> getEntry();
+		
+		default T get() { return this.getEntry().get(); }
+		default void set(T value) { this.getEntry().set(value); }
+		
+	}
+	
+	public static class PresetBuilder<TValue>
+	{
+		public final TValue customStateValue;
+		public final Map<DeferredAccessor<Object>, BiMap<TValue, Object>> presetValues = new HashMap<>();
+		
+		public PresetBuilder(TValue customStateValue)
+		{
+			this.customStateValue = customStateValue;
+		}
+		
+		@SuppressWarnings("unchecked")
+		public <TControlledEntryValue> PresetBuilder<TValue> addConfigEntry(
+				DeferredAccessor<TControlledEntryValue> controlledEntrySupplier,
+				Consumer<Map<TValue, TControlledEntryValue>> presetValueInitializer
+		)
+		{
+			presetValueInitializer.accept(
+					(Map<TValue, TControlledEntryValue>) this.presetValues.computeIfAbsent(
+							(DeferredAccessor<Object>) controlledEntrySupplier,
+							ignored -> HashBiMap.create()
+					)
+			);
+			return this;
 		}
 		
 	}

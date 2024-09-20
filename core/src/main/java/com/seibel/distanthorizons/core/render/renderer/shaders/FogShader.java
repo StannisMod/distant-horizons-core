@@ -115,14 +115,32 @@ public class FogShader extends AbstractShaderRenderer
 		int lodDrawDistance = Config.Client.Advanced.Graphics.Quality.lodChunkRenderDistanceRadius.get() * LodUtil.CHUNK_WIDTH;
 		
 		// Fog
-		if (this.uFullFogMode != -1) this.shader.setUniform(this.uFullFogMode, MC_RENDER.isFogStateSpecial() ? 1 : 0);
-		if (this.uFogColor != -1) this.shader.setUniform(this.uFogColor, MC_RENDER.isFogStateSpecial() ? this.getSpecialFogColor(partialTicks) : this.getFogColor(partialTicks));
+		if (this.uFullFogMode != -1)
+		{
+			this.shader.setUniform(this.uFullFogMode, MC_RENDER.isFogStateSpecial() ? 1 : 0);
+		}
+		if (this.uFogColor != -1)
+		{
+			this.shader.setUniform(this.uFogColor, MC_RENDER.isFogStateSpecial() ? this.getSpecialFogColor(partialTicks) : this.getFogColor(partialTicks));
+		}
 		
 		float nearFogStart = (VERSION_CONSTANTS.isVanillaRenderedChunkSquare() ? (float) Math.sqrt(2.0) : 1.0f) / lodDrawDistance;
-		if (this.uNearFogStart != -1) this.shader.setUniform(this.uNearFogStart, nearFogStart);
-		if (this.uNearFogLength != -1) this.shader.setUniform(this.uNearFogLength, 0.0f);
-		if (this.uFogScale != -1) this.shader.setUniform(this.uFogScale, 1.f / lodDrawDistance);
-		if (this.uFogVerticalScale != -1) this.shader.setUniform(this.uFogVerticalScale, 1.f / MC.getWrappedClientLevel().getMaxHeight());
+		if (this.uNearFogStart != -1)
+		{
+			this.shader.setUniform(this.uNearFogStart, nearFogStart);
+		}
+		if (this.uNearFogLength != -1)
+		{
+			this.shader.setUniform(this.uNearFogLength, 0.0f);
+		}
+		if (this.uFogScale != -1)
+		{
+			this.shader.setUniform(this.uFogScale, 1.f / lodDrawDistance);
+		}
+		if (this.uFogVerticalScale != -1)
+		{
+			this.shader.setUniform(this.uFogVerticalScale, 1.f / MC.getWrappedClientLevel().getMaxHeight());
+		}
 	}
 	private Color getFogColor(float partialTicks)
 	{

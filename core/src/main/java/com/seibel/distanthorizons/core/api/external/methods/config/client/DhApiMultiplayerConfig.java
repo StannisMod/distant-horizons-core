@@ -33,10 +33,10 @@ public class DhApiMultiplayerConfig implements IDhApiMultiplayerConfig
 	
 	
 	
-	public IDhApiConfigValue<EDhApiServerFolderNameMode> folderSavingMode()
+	@Override public IDhApiConfigValue<EDhApiServerFolderNameMode> folderSavingMode()
 	{ return new DhApiConfigValue<EDhApiServerFolderNameMode, EDhApiServerFolderNameMode>(Config.Client.Advanced.Multiplayer.serverFolderNameMode); }
 	
-	public IDhApiConfigValue<Double> multiverseSimilarityRequirement()
+	@Override public IDhApiConfigValue<Double> multiverseSimilarityRequirement()
 	{ return new DhApiConfigValue<Double, Double>(Config.Client.Advanced.Multiplayer.multiverseSimilarityRequiredPercent); }
 	
 }

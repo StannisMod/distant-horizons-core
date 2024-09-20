@@ -130,8 +130,12 @@ public class DhTerrainShaderProgram extends ShaderProgram implements IDhApiShade
 			throw e;
 		}
 		
-		if (this.uEarthRadius != -1) this.setUniform(this.uEarthRadius,
+		if (this.uEarthRadius != -1)
+		{
+			this.setUniform(this.uEarthRadius,
 				/*6371KM*/ 6371000.0f / Config.Client.Advanced.Graphics.AdvancedGraphics.earthCurveRatio.get());
+		}
+
 		
 		
 		// Noise Uniforms
@@ -185,7 +189,10 @@ public class DhTerrainShaderProgram extends ShaderProgram implements IDhApiShade
 		// setUniform(skyLightUniform, skyLight);
 		this.setUniform(this.uLightMap, 0); // TODO this should probably be passed in
 		
-		if (this.uWorldYOffset != -1) this.setUniform(this.uWorldYOffset, (float) renderParameters.worldYOffset);
+		if (this.uWorldYOffset != -1)
+		{
+			this.setUniform(this.uWorldYOffset, (float) renderParameters.worldYOffset);
+		}
 		
 		// Debug
 		this.setUniform(this.uWhiteWorld, Config.Client.Advanced.Debugging.enableWhiteWorld.get());

@@ -67,9 +67,13 @@ public final class BufferQuad
 			EDhDirection direction)
 	{
 		if (widthEastWest == 0 || widthNorthSouthOrUpDown == 0)
+		{
 			throw new IllegalArgumentException("Size 0 quad!");
+		}
 		if (widthEastWest < 0 || widthNorthSouthOrUpDown < 0)
+		{
 			throw new IllegalArgumentException("Negative sized quad!");
+		}
 		
 		this.x = x;
 		this.y = y;
@@ -95,7 +99,9 @@ public final class BufferQuad
 	public int compare(BufferQuad quad, BufferMergeDirectionEnum compareDirection)
 	{
 		if (this.direction != quad.direction)
+		{
 			throw new IllegalArgumentException("The other quad is not in the same direction: " + quad.direction + " vs " + this.direction);
+		}
 		
 		if (compareDirection == BufferMergeDirectionEnum.EastWest)
 		{
@@ -150,11 +156,15 @@ public final class BufferQuad
 	public boolean tryMerge(BufferQuad quad, BufferMergeDirectionEnum mergeDirection)
 	{
 		if (quad.hasError || this.hasError)
+		{
 			return false;
+		}
 		
 		// only merge quads that are in the same direction
 		if (this.direction != quad.direction)
+		{
 			return false;
+		}
 		
 		// make sure these quads share the same perpendicular axis
 		if ((mergeDirection == BufferMergeDirectionEnum.EastWest && this.y != quad.y) ||
