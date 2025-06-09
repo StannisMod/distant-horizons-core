@@ -143,9 +143,9 @@ public abstract class AbstractDhServerLevel extends AbstractDhLevel implements I
 			
 			if (message.clientTimestamp == null)
 			{
-				if (distanceFromPlayer > Config.Server.maxGenerationRequestDistance.get())
+				if (distanceFromPlayer > Config.Client.Advanced.Graphics.Quality.lodChunkRenderDistanceRadius.get())
 				{
-					message.sendResponse(new RequestOutOfRangeException("Distance too large: " + distanceFromPlayer + " > " + Config.Server.maxGenerationRequestDistance.get()));
+					message.sendResponse(new RequestOutOfRangeException("Distance too large: " + distanceFromPlayer + " > " + Config.Client.Advanced.Graphics.Quality.lodChunkRenderDistanceRadius.get()));
 					return;
 				}
 				

@@ -171,9 +171,11 @@ public class Config
 				public static class Quality
 				{
 					public static ConfigEntry<Integer> lodChunkRenderDistanceRadius = new ConfigEntry.Builder<Integer>()
+							.setChatCommandName("generation.maxRequestDistance")
 							.setMinDefaultMax(32, 256, 4096)
 							.comment("" +
 									"The radius of the mod's render distance. (measured in chunks)\n" +
+									"On server defines the distance allowed to generate around the player; note that real-time updates and synd on load limits are defined separately. \n" +
 									"")
 							.setPerformance(EConfigEntryPerformance.HIGH)
 							.build();
@@ -1618,15 +1620,6 @@ public class Config
 						+ "How many LOD generation requests per second should a client send? \n"
 						+ "Also limits the number of client requests allowed to stay in the server's queue."
 						+ "")
-				.build();
-		
-		public static ConfigEntry<Integer> maxGenerationRequestDistance = new ConfigEntry.Builder<Integer>()
-				.setChatCommandName("generation.maxRequestDistance")
-				.setMinDefaultMax(256, 4096, 4096)
-				.comment("" +
-						"Defines the distance allowed to generate around the player." +
-						"")
-				.setPerformance(EConfigEntryPerformance.HIGH)
 				.build();
 		
 		public static ConfigEntry<Integer> generationBoundsX = new ConfigEntry.Builder<Integer>()
