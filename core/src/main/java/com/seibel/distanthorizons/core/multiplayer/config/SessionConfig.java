@@ -33,9 +33,9 @@ public class SessionConfig implements INetworkObject
 		
 		registerConfigEntry(Config.Common.WorldGenerator.enableDistantGeneration, Boolean::logicalAnd);
 		registerConfigEntry(Config.Server.maxGenerationRequestDistance, Math::min);
-		registerConfigEntry(Config.Server.generationBoundsX, (x, y) -> y);
-		registerConfigEntry(Config.Server.generationBoundsZ, (x, y) -> y);
-		registerConfigEntry(Config.Server.generationBoundsRadius, (x, y) -> y);
+		registerConfigEntry(Config.Server.generationBoundsX, (clientValue, serverValue) -> serverValue);
+		registerConfigEntry(Config.Server.generationBoundsZ, (clientValue, serverValue) -> serverValue);
+		registerConfigEntry(Config.Server.generationBoundsRadius, (clientValue, serverValue) -> serverValue);
 		registerConfigEntry(Config.Server.generationRequestRateLimit, Math::min);
 		
 		registerConfigEntry(Config.Server.enableRealTimeUpdates, Boolean::logicalAnd);
@@ -45,15 +45,16 @@ public class SessionConfig implements INetworkObject
 		registerConfigEntry(Config.Server.maxSyncOnLoadRequestDistance, Math::min);
 		registerConfigEntry(Config.Server.syncOnLoadRateLimit, Math::min);
 		
-		registerConfigEntry(Config.Server.maxDataTransferSpeed, (x, y) -> {
-			if (x == 0 && y == 0)
+		registerConfigEntry(Config.Server.allowLocalChunkUse, (clientValue, serverValue) -> serverValue);
+		registerConfigEntry(Config.Server.maxDataTransferSpeed, (clientValue, serverValue) -> {
+			if (clientValue == 0 && serverValue == 0)
 			{
 				return 0;
 			}
 			
 			return Math.min(
-					x > 0 ? x : Integer.MAX_VALUE,
-					y > 0 ? y : Integer.MAX_VALUE
+					clientValue > 0 ? clientValue : Integer.MAX_VALUE,
+					serverValue > 0 ? serverValue : Integer.MAX_VALUE
 			);
 		});
 	}
@@ -80,6 +81,7 @@ public class SessionConfig implements INetworkObject
 	public int getMaxSyncOnLoadDistance() { return this.getValue(Config.Server.maxSyncOnLoadRequestDistance); }
 	public int getSyncOnLoginRateLimit() { return this.getValue(Config.Server.syncOnLoadRateLimit); }
 	
+	public boolean isLocalChunkUseAllowed() { return this.getValue(Config.Server.allowLocalChunkUse); }
 	public int getMaxDataTransferSpeed() { return this.getValue(Config.Server.maxDataTransferSpeed); }
 	
 	

@@ -1705,6 +1705,15 @@ public class Config
 		
 		
 		// Common
+		public static ConfigEntry<Boolean> allowLocalChunkUse = new ConfigEntry.Builder<Boolean>()
+				.setChatCommandName("common.allowLocalChunkUse")
+				.setAppearance(EConfigEntryAppearance.ONLY_IN_FILE)
+				.set(true)
+				.comment(""
+						+ "If true, clients will be able to update LODs using chunks they load."
+						+ "")
+				.build();
+		
 		public static ConfigEntry<Integer> maxDataTransferSpeed = new ConfigEntry.Builder<Integer>()
 				.setChatCommandName("common.maxDataTransferSpeed")
 				.setMinDefaultMax(0, 500, 1000000 /* 1 GB/s */)
