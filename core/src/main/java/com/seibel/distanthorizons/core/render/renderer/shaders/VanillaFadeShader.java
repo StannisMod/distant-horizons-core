@@ -19,6 +19,7 @@
 
 package com.seibel.distanthorizons.core.render.renderer.shaders;
 
+import com.seibel.distanthorizons.core.api.internal.ClientApi;
 import com.seibel.distanthorizons.core.config.Config;
 import com.seibel.distanthorizons.core.dependencyInjection.SingletonInjector;
 import com.seibel.distanthorizons.core.render.glObject.shader.ShaderProgram;
@@ -114,7 +115,7 @@ public class VanillaFadeShader extends AbstractShaderRenderer
 		
 		float dhNearClipDistance = RenderUtil.getNearClipPlaneInBlocksForFading(partialTicks);
 		// this added value prevents the near clip plane and discard circle from touching, which looks bad
-		dhNearClipDistance += 16f;
+		//dhNearClipDistance += 16f;
 		
 		// measured in blocks
 		// these multipliers in James' tests should provide a fairly smooth transition

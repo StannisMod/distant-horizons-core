@@ -19,8 +19,10 @@
 
 package com.seibel.distanthorizons.core.util;
 
+import com.seibel.distanthorizons.core.api.internal.ClientApi;
 import com.seibel.distanthorizons.core.config.Config;
 import com.seibel.distanthorizons.core.dependencyInjection.SingletonInjector;
+import com.seibel.distanthorizons.core.render.renderer.DepthCalculator;
 import com.seibel.distanthorizons.core.wrapperInterfaces.minecraft.IMinecraftClientWrapper;
 import com.seibel.distanthorizons.core.wrapperInterfaces.minecraft.IMinecraftRenderWrapper;
 import com.seibel.distanthorizons.core.wrapperInterfaces.world.IClientLevelWrapper;
@@ -127,13 +129,16 @@ public class RenderUtil
 	}
 	public static float getNearClipPlaneInBlocksForFading(float partialTicks)
 	{
-		float overdraw = getAutoOverdrawPrevention();
-		return getNearClipPlaneDistanceInBlocks(partialTicks, overdraw);
+		//float overdraw = getAutoOverdrawPrevention();
+		//return getNearClipPlaneDistanceInBlocks(partialTicks, overdraw);
+		
+		return DepthCalculator.INSTANCE.actualMcBlockDistance;
 	}
 	private static float getNearClipPlaneDistanceInBlocks(float partialTicks, float overdrawPreventionPercent)
 	{
 		int chunkRenderDistance = MC_RENDER.getRenderDistance();
-		int vanillaBlockRenderedDistance = chunkRenderDistance * LodUtil.CHUNK_WIDTH;
+		//float chunkRenderDistance = ClientApi.actualMcBlockDistance / 16.0f;
+		float vanillaBlockRenderedDistance = chunkRenderDistance * LodUtil.CHUNK_WIDTH;
 		
 		float nearClipPlane;
 		if (Config.Client.Advanced.Debugging.lodOnlyMode.get())

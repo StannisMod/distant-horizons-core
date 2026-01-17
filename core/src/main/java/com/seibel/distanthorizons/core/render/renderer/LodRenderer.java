@@ -222,6 +222,8 @@ public class LodRenderer
 			profiler.popPush("LOD Opaque");
 			this.renderLodPass(lodShaderProgram, renderBufferHandler, renderParams, /*opaquePass*/ true);
 			
+			DepthCalculator.INSTANCE.trySetDhDepthTexture();
+			
 			// custom objects with SSAO
 			if (Config.Client.Advanced.Graphics.GenericRendering.enableGenericRendering.get())
 			{

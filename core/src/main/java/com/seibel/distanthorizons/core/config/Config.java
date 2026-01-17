@@ -118,6 +118,20 @@ public class Config
 		
 		
 		
+		public static ConfigEntry<Boolean> dynamicFadeUseOpaqueMcDepth = new ConfigEntry.Builder<Boolean>()
+			.set(true)
+			.comment(""
+				+ "")
+			.build();
+		
+		public static ConfigEntry<String> dynamicFadeExportPath = new ConfigEntry.Builder<String>()
+			.set("C:/Users/James_Seibel/Desktop/")
+			.comment(""
+				+ "")
+			.build();
+		
+		
+		
 		public static class Advanced
 		{
 			// common config links need to have their destination

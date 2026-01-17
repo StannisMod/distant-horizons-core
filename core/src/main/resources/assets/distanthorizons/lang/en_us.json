@@ -84,7 +84,13 @@
     "Show The Options Button",
   "distanthorizons.config.client.optionsButton.@tooltip":
     "Show the config button to the left of the fov button",
-    
+
+  "distanthorizons.config.client.dynamicFadeUseOpaqueMcDepth":
+    "Dynamic Fade Use MC Opaque Depth",
+  "distanthorizons.config.client.dynamicFadeExportPath":
+    "Dynamic Fade Export Path",
+  "distanthorizons.config.client.dynamicFadeExportPath.@tooltip":
+    "Press 'p' to export the depth textures for troubleshooting",
     
     
   "distanthorizons.config.client.advanced":
