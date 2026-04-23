@@ -29,6 +29,8 @@ import java.awt.*;
 public interface IClientLevelWrapper extends ILevelWrapper
 {
 	
+	void markRendered();
+	
 	@Nullable
 	IServerLevelWrapper tryGetServerSideWrapper();
 	

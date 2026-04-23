@@ -24,6 +24,6 @@ public interface IImmersivePortalsAccessor extends IModAccessor
 	
 	boolean isRenderingPortal();
 	
-	boolean hasPortalOnScreen();
+	boolean wasPortalRecentlyVisible();
 	
 }

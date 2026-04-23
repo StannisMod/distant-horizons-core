@@ -87,11 +87,12 @@ public class RenderParams extends DhApiRenderParam
 		this.dhClientWorld = SharedApi.tryGetDhClientWorld();
 		if (this.dhClientWorld != null)
 		{
-			this.dhClientLevel = (IDhClientLevel) this.dhClientWorld.getLevel(clientLevelWrapper);
+			this.dhClientLevel = this.dhClientWorld.getOrLoadClientLevel(clientLevelWrapper);
 			if (this.dhClientLevel != null)
 			{
 				this.renderBufferHandler = this.dhClientLevel.getRenderBufferHandler();
 				this.genericRenderer = this.dhClientLevel.getGenericRenderer();
+				clientLevelWrapper.markRendered();
 			}
 		}
 		
