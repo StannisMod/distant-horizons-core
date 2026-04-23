@@ -42,7 +42,7 @@ import com.seibel.distanthorizons.core.util.objects.RollingAverage;
 import com.seibel.distanthorizons.core.util.threading.ThreadPoolUtil;
 import com.seibel.distanthorizons.core.wrapperInterfaces.minecraft.IMinecraftRenderWrapper;
 import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.IImmersivePortalsAccessor;
-import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.ISodiumAccessor;
+import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.IModChecker;
 import com.seibel.distanthorizons.core.wrapperInterfaces.render.renderPass.IDhMetaRenderer;
 import com.seibel.distanthorizons.core.wrapperInterfaces.render.renderPass.IDhVanillaFadeRenderer;
 import com.seibel.distanthorizons.core.wrapperInterfaces.render.renderPass.IDhTestTriangleRenderer;
@@ -678,8 +678,8 @@ public class ClientApi
 		
 		// When immersive portals and sodium are combined the fade renders on top of the portal, so turn it off when a portal is on-screen.
 		IImmersivePortalsAccessor immersivePortals = ModAccessorInjector.INSTANCE.get(IImmersivePortalsAccessor.class);
-		ISodiumAccessor sodium = ModAccessorInjector.INSTANCE.get(ISodiumAccessor.class);
-		if (sodium != null && immersivePortals != null && immersivePortals.wasPortalRecentlyVisible()) {
+		boolean hasSodium = SingletonInjector.INSTANCE.get(IModChecker.class).isModLoaded("sodium") || SingletonInjector.INSTANCE.get(IModChecker.class).isModLoaded("rubidium") || SingletonInjector.INSTANCE.get(IModChecker.class).isModLoaded("embeddium");
+		if (hasSodium && immersivePortals != null && immersivePortals.wasPortalRecentlyVisible()) {
 			return false;
 		}
 		return true;
