@@ -24,6 +24,7 @@ import com.seibel.distanthorizons.api.enums.config.EDhApiMcRenderingFadeMode;
 import com.seibel.distanthorizons.api.enums.rendering.EDhApiRenderPass;
 import com.seibel.distanthorizons.api.methods.events.abstractEvents.*;
 import com.seibel.distanthorizons.core.api.internal.rendering.DhRenderState;
+import com.seibel.distanthorizons.core.dependencyInjection.ModAccessorInjector;
 import com.seibel.distanthorizons.core.enums.MinecraftTextFormat;
 import com.seibel.distanthorizons.core.file.structure.ClientOnlySaveStructure;
 import com.seibel.distanthorizons.core.logging.DhLoggerBuilder;
@@ -40,6 +41,8 @@ import com.seibel.distanthorizons.core.util.objects.Pair;
 import com.seibel.distanthorizons.core.util.objects.RollingAverage;
 import com.seibel.distanthorizons.core.util.threading.ThreadPoolUtil;
 import com.seibel.distanthorizons.core.wrapperInterfaces.minecraft.IMinecraftRenderWrapper;
+import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.IImmersivePortalsAccessor;
+import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.ISodiumAccessor;
 import com.seibel.distanthorizons.core.wrapperInterfaces.render.renderPass.IDhMetaRenderer;
 import com.seibel.distanthorizons.core.wrapperInterfaces.render.renderPass.IDhVanillaFadeRenderer;
 import com.seibel.distanthorizons.core.wrapperInterfaces.render.renderPass.IDhTestTriangleRenderer;
@@ -669,6 +672,19 @@ public class ClientApi
 	//================//
 	//region
 	
+	private static boolean shouldRenderFade() {
+		// don't fade when Iris shaders are active, otherwise the rendering can get weird
+		if (DhApiRenderProxy.INSTANCE.getDeferTransparentRendering()) return false;
+		
+		// When immersive portals and sodium are combined the fade renders on top of the portal, so turn it off when a portal is on-screen.
+		IImmersivePortalsAccessor immersivePortals = ModAccessorInjector.INSTANCE.get(IImmersivePortalsAccessor.class);
+		ISodiumAccessor sodium = ModAccessorInjector.INSTANCE.get(ISodiumAccessor.class);
+		if (sodium != null && immersivePortals != null && immersivePortals.hasPortalOnScreen()) {
+			return false;
+		}
+		return true;
+	}
+	
 	/** 
 	 * The first fade pass.
 	 * Called after MC finishes rendering the opaque passes. 
@@ -690,8 +706,7 @@ public class ClientApi
 				// or if LOD-only mode is enabled (fading is used to remove the MC render pass)
 				|| Config.Client.Advanced.Debugging.lodOnlyMode.get()
 			)
-			// don't fade when Iris shaders are active, otherwise the rendering can get weird
-			&& !DhApiRenderProxy.INSTANCE.getDeferTransparentRendering())
+			&& shouldRenderFade())
 		{
 			RenderParams renderParams = new RenderParams(EDhApiRenderPass.OPAQUE, RENDER_STATE);
 			fadeRenderer.render(renderParams);
@@ -720,8 +735,7 @@ public class ClientApi
 					// or if LOD-only mode is enabled (fading is used to remove the MC render pass)
 					|| Config.Client.Advanced.Debugging.lodOnlyMode.get()
 				)
-				// don't fade when Iris shaders are active, otherwise the rendering can get weird
-				&& !DhApiRenderProxy.INSTANCE.getDeferTransparentRendering();
+				&& shouldRenderFade();
 			if (renderFade)
 			{
 				RenderParams renderParams = new RenderParams(EDhApiRenderPass.TRANSPARENT, RENDER_STATE);
