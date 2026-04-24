@@ -29,6 +29,7 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.List;
 import java.util.function.Supplier;
 
@@ -110,6 +111,20 @@ public abstract class ImmersivePortalsAbstractAccessor implements IImmersivePort
 		}
 	}
 	
+	private static Class<?> getIPCGlobalClass() {
+		try {
+			return Class.forName("qouteall.imm_ptl.core.IPCGlobal");
+		} catch (ClassNotFoundException first) {
+			try {
+				return Class.forName("com.qouteall.immersive_portals.CGlobal"); // 1.16
+			} catch (ClassNotFoundException second) {
+				RuntimeException err = new RuntimeException(first);
+				err.addSuppressed(second);
+				throw err;
+			}
+		}
+	}
+	
 	private static boolean shouldSkipRenderingPortal(Object portal, Supplier<?> frustumSupplier) {
 		try {
 			if (shouldSkipRenderingPortal == null) {
@@ -118,7 +133,13 @@ public abstract class ImmersivePortalsAbstractAccessor implements IImmersivePort
 				);
 				shouldSkipRenderingPortal.setAccessible(true);
 			}
-			return (boolean) shouldSkipRenderingPortal.invoke(null, portal, frustumSupplier);
+			if (Modifier.isStatic(shouldSkipRenderingPortal.getModifiers())) {
+				return (boolean) shouldSkipRenderingPortal.invoke(null, portal, frustumSupplier);
+			} else {
+				return (boolean) shouldSkipRenderingPortal.invoke(
+					getIPCGlobalClass().getField("renderer").get(null), portal, frustumSupplier
+				);
+			}
 		} catch (Throwable e) {
 			throw new RuntimeException(e);
 		}
@@ -204,7 +225,7 @@ public abstract class ImmersivePortalsAbstractAccessor implements IImmersivePort
 		}
 		// Simply checking portal visibility right now is not sufficient, that will still render the fading on top of the portal.
 		// Instead, we check if a portal was rendered during the last second or so.
-		return portalVisible;
+		return false;
 	}
 	
 	@Override
