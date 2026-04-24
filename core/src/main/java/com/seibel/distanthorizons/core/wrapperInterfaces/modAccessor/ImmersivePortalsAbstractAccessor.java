@@ -225,7 +225,7 @@ public abstract class ImmersivePortalsAbstractAccessor implements IImmersivePort
 		}
 		// Simply checking portal visibility right now is not sufficient, that will still render the fading on top of the portal.
 		// Instead, we check if a portal was rendered during the last second or so.
-		return false;
+		return portalVisible;
 	}
 	
 	@Override

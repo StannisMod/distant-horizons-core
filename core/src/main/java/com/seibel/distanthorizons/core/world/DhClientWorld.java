@@ -19,6 +19,8 @@
 
 package com.seibel.distanthorizons.core.world;
 
+import com.seibel.distanthorizons.api.methods.events.abstractEvents.DhApiLevelLoadEvent;
+import com.seibel.distanthorizons.api.methods.events.abstractEvents.DhApiLevelUnloadEvent;
 import com.seibel.distanthorizons.core.api.internal.ClientApi;
 import com.seibel.distanthorizons.core.enums.MinecraftTextFormat;
 import com.seibel.distanthorizons.core.file.structure.ClientOnlySaveStructure;
@@ -28,6 +30,7 @@ import com.seibel.distanthorizons.core.multiplayer.client.ClientNetworkState;
 import com.seibel.distanthorizons.core.util.TimerUtil;
 import com.seibel.distanthorizons.core.wrapperInterfaces.world.IClientLevelWrapper;
 import com.seibel.distanthorizons.core.wrapperInterfaces.world.ILevelWrapper;
+import com.seibel.distanthorizons.coreapi.DependencyInjection.ApiEventInjector;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -89,7 +92,9 @@ public class DhClientWorld extends AbstractDhWorld implements IDhClientWorld
 			{
 				try
 				{
-					return new DhClientLevel(this.saveStructure, clientLevelWrapper, this.networkState);
+					DhClientLevel level = new DhClientLevel(this.saveStructure, clientLevelWrapper, this.networkState);
+					ApiEventInjector.INSTANCE.fireAllEvents(DhApiLevelLoadEvent.class, new DhApiLevelLoadEvent.EventParam(wrapper));
+					return level;
 				}
 				catch (Exception e)
 				{
@@ -133,6 +138,7 @@ public class DhClientWorld extends AbstractDhWorld implements IDhClientWorld
 			LOGGER.info("Unloading level " + this.levels.get(wrapper));
 			wrapper.onUnload();
 			this.levels.remove(wrapper).close();
+			ApiEventInjector.INSTANCE.fireAllEvents(DhApiLevelUnloadEvent.class, new DhApiLevelUnloadEvent.EventParam(wrapper));
 		}
 	}
 	

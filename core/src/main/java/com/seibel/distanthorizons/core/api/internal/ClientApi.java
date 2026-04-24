@@ -119,7 +119,7 @@ public class ClientApi
 	
 	public boolean rendererDisabledBecauseOfExceptions = false;
 	
-	private final ClientPluginChannelApi pluginChannelApi = new ClientPluginChannelApi(this::clientLevelLoadEvent, this::clientLevelUnloadEvent);
+	private final ClientPluginChannelApi pluginChannelApi = new ClientPluginChannelApi();
 	
 	/** Delay loading the first level to give the server some time to respond with level to actually load */
 	private Timer firstLevelLoadTimer;
@@ -204,14 +204,6 @@ public class ClientApi
 			
 			this.pluginChannelApi.onJoinServer(world.networkState.getSession());
 			world.networkState.sendConfigMessage();
-			
-			LOGGER.info("Loading [" + this.waitingClientLevels.size() + "] waiting client level wrappers.");
-			for (IClientLevelWrapper level : this.waitingClientLevels)
-			{
-				this.clientLevelLoadEvent(level);
-			}
-			
-			this.waitingClientLevels.clear();
 		}
 	}
 	
@@ -238,7 +230,6 @@ public class ClientApi
 		
 		// remove any waiting items
 		this.waitingChunkByClientLevelAndPos.clear();
-		this.waitingClientLevels.clear();
 	}
 	
 	//endregion
@@ -250,95 +241,7 @@ public class ClientApi
 	//==============//
 	//region
 	
-	public void clientLevelUnloadEvent(IClientLevelWrapper level)
-	{
-		try
-		{
-			LOGGER.info("Unloading client level [" + level.getClass().getSimpleName() + "]-[" + level.getDhIdentifier() + "].");
-			
-			if (level instanceof IServerKeyedClientLevel)
-			{
-				this.pluginChannelApi.onClientLevelUnload();
-			}
-			
-			AbstractDhWorld world = SharedApi.getAbstractDhWorld();
-			if (world != null)
-			{
-				world.unloadLevel(level);
-				ApiEventInjector.INSTANCE.fireAllEvents(DhApiLevelUnloadEvent.class, new DhApiLevelUnloadEvent.EventParam(level));
-			}
-			else
-			{
-				this.waitingClientLevels.remove(level);
-			}
-		}
-		catch (Exception e)
-		{
-			// handle errors here to prevent blowing up a mixin or API up stream
-			LOGGER.error("Unexpected error in ClientApi.clientLevelUnloadEvent(), error: "+e.getMessage(), e);
-		}
-	}
-	
-	public void clientLevelLoadEvent(@Nullable IClientLevelWrapper levelWrapper)
-	{
-		// can happen if there was an issue during level load
-		if (levelWrapper == null)
-		{
-			return;
-		}
-		
-		
-		// wait a moment before loading the level to give the server a chance to handle the client's login request
-		if (MC_CLIENT.clientConnectedToDedicatedServer())
-		{
-			if (this.firstLevelLoadTimer == null)
-			{
-				this.firstLevelLoadTimer = TimerUtil.CreateTimer("FirstLevelLoadTimer");
-				this.firstLevelLoadTimer.schedule(new TimerTask()
-				{
-					@Override
-					public void run() { ClientApi.this.clientLevelLoadEvent(levelWrapper); }
-				}, FIRST_LEVEL_LOAD_DELAY_IN_MS);
-				return;
-			}
-			this.firstLevelLoadTimer.cancel();
-		}
-		
-		
-		try
-		{
-			LOGGER.info("Loading client level [" + levelWrapper + "]-[" + levelWrapper.getDhIdentifier() + "].");
-			
-			AbstractDhWorld world = SharedApi.getAbstractDhWorld();
-			if (world != null)
-			{
-				if (!this.pluginChannelApi.allowLevelLoading(levelWrapper))
-				{
-					LOGGER.info("Levels in this connection are managed by the server, skipping auto-load.");
-					
-					// Instead of attempting to load themselves, send the config and wait for a server provided level key.
-					((DhClientWorld) world).networkState.sendConfigMessage();
-					return;
-				}
-				
-				
-				world.getOrLoadLevel(levelWrapper);
-				ApiEventInjector.INSTANCE.fireAllEvents(DhApiLevelLoadEvent.class, new DhApiLevelLoadEvent.EventParam(levelWrapper));
-				
-				this.loadWaitingChunksForLevel(levelWrapper);
-			}
-			else
-			{
-				this.waitingClientLevels.add(levelWrapper);
-			}
-		}
-		catch (Exception e)
-		{
-			// handle errors here to prevent blowing up a mixin or API up stream
-			LOGGER.error("Unexpected error in ClientApi.clientLevelLoadEvent(), error: "+e.getMessage(), e);
-		}
-	}
-	private void loadWaitingChunksForLevel(IClientLevelWrapper level)
+	public void loadWaitingChunksForLevel(IClientLevelWrapper level)
 	{
 		HashSet<Pair<IClientLevelWrapper, DhChunkPos>> keysToRemove = new HashSet<>();
 		for (Pair<IClientLevelWrapper, DhChunkPos> levelChunkPair : this.waitingChunkByClientLevelAndPos.keySet())
