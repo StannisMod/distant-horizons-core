@@ -167,6 +167,7 @@ public class DhClientServerWorld extends AbstractDhServerWorld<DhClientServerLev
 				if (serverLevelWrapper != null)
 				{
 					serverLevelWrapper.onUnload();
+					ApiEventInjector.INSTANCE.fireAllEvents(DhApiLevelUnloadEvent.class, new DhApiLevelUnloadEvent.EventParam(serverLevelWrapper));
 				}
 				
 				// close levels asynchronously to speed up

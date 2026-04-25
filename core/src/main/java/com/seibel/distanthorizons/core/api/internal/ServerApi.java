@@ -77,7 +77,30 @@ public class ServerApi
 	}
 	
 	
+	//==============//
+	// level events //
+	//==============//
 	
+	public void serverLevelLoadEvent(IServerLevelWrapper levelWrapper)
+	{
+		LOGGER.debug("Server Level " + levelWrapper + " loading");
+		
+		AbstractDhWorld serverWorld = SharedApi.getAbstractDhWorld();
+		if (serverWorld != null)
+		{
+			serverWorld.getOrLoadLevel(levelWrapper);
+		}
+	}
+	public void serverLevelUnloadEvent(IServerLevelWrapper level)
+	{
+		LOGGER.debug("Server Level " + level + " unloading");
+		
+		AbstractDhWorld serverWorld = SharedApi.getAbstractDhWorld();
+		if (serverWorld != null)
+		{
+			serverWorld.unloadLevel(level);
+		}
+	}
 	
 	
 	//=======================//

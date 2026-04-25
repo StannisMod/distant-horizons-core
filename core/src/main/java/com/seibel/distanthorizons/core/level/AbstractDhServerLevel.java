@@ -202,7 +202,7 @@ public abstract class AbstractDhServerLevel extends AbstractDhLevel implements I
 		
 		// Check if the player is in this dimension,
 		// since handling multiple dimensions isn't allowed
-		if (message.getSession().serverPlayer.getLevel() != this.getLevelWrapper())
+		/*if (message.getSession().serverPlayer.getLevel() != this.getLevelWrapper())
 		{
 			// If the message can be replied to - reply with an error, otherwise just ignore
 			if (message instanceof AbstractTrackableMessage)
@@ -218,7 +218,7 @@ public abstract class AbstractDhServerLevel extends AbstractDhLevel implements I
 			}
 			
 			return false;
-		}
+		}*/
 		
 		return true;
 	}

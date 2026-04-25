@@ -68,6 +68,7 @@ import org.lwjgl.glfw.GLFW;
 
 import java.io.File;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -128,7 +129,7 @@ public class ClientApi
 	/** Holds any levels that were loaded before the {@link ClientApi#onClientOnlyConnected} was fired. */
 	public final HashSet<IClientLevelWrapper> waitingClientLevels = new HashSet<>();
 	/** Holds any chunks that were loaded before the {@link ClientApi#clientLevelLoadEvent(IClientLevelWrapper)} was fired. */
-	public final HashMap<Pair<IClientLevelWrapper, DhChunkPos>, IChunkWrapper> waitingChunkByClientLevelAndPos = new HashMap<>();
+	public final Map<Pair<IClientLevelWrapper, DhChunkPos>, IChunkWrapper> waitingChunkByClientLevelAndPos = new ConcurrentHashMap<>();
 	
 	/** publicly available so {@link F3Screen} can display the error */
 	@Nullable
@@ -234,6 +235,34 @@ public class ClientApi
 	
 	//endregion
 	
+	
+	public boolean canLoadAlready(IClientLevelWrapper wrapper) {
+		// wait a moment before loading the level to give the server a chance to handle the client's login request
+		if (MC_CLIENT.clientConnectedToDedicatedServer())
+		{
+			if (this.firstLevelLoadTimer == null)
+			{
+				this.firstLevelLoadTimer = TimerUtil.CreateTimer("FirstLevelLoadTimer");
+				this.firstLevelLoadTimer.schedule(new TimerTask()
+				{
+					@Override
+					public void run() { canLoadAlready(wrapper); }
+				}, FIRST_LEVEL_LOAD_DELAY_IN_MS);
+				return false;
+			}
+			this.firstLevelLoadTimer.cancel();
+		}
+		if (!this.pluginChannelApi.allowLevelLoading(wrapper))
+		{
+			LOGGER.debug("Levels in this connection are managed by the server, skipping auto-load of " + wrapper);
+			AbstractDhWorld world = SharedApi.getAbstractDhWorld();
+			if (world == null) return false;
+			// Instead of attempting to load themselves, send the config and wait for a server provided level key.
+			((DhClientWorld) world).networkState.sendLevelInitRequest(wrapper.getDimensionName());
+			return false;
+		}
+		return true;
+	}
 	
 	
 	//==============//
