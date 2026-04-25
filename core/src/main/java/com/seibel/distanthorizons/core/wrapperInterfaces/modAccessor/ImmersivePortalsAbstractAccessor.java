@@ -196,6 +196,7 @@ public abstract class ImmersivePortalsAbstractAccessor implements IImmersivePort
 	 */
 	private boolean isPortalVisibleRightNow() {
 		Supplier<?> frustumSupplier = getFrustumSupplier();
+		if (frustumSupplier == null) return false;
 		for (Object portal : getGlobalPortals(getClientLevel())) {
 			if (!shouldSkipRenderingPortal(portal, frustumSupplier)) {
 				return true;
