@@ -610,8 +610,7 @@ public class ClientApi
 		
 		// When immersive portals and sodium are combined the fade renders on top of the portal, so turn it off when a portal is on-screen.
 		IImmersivePortalsAccessor immersivePortals = ModAccessorInjector.INSTANCE.get(IImmersivePortalsAccessor.class);
-		boolean hasSodium = SingletonInjector.INSTANCE.get(IModChecker.class).isModLoaded("sodium") || SingletonInjector.INSTANCE.get(IModChecker.class).isModLoaded("rubidium") || SingletonInjector.INSTANCE.get(IModChecker.class).isModLoaded("embeddium");
-		if (hasSodium && immersivePortals != null && immersivePortals.wasPortalRecentlyVisible()) {
+		if (immersivePortals != null && immersivePortals.wasPortalRecentlyVisible()) {
 			return false;
 		}
 		return true;
