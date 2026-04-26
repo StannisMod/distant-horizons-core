@@ -237,14 +237,16 @@ public class DhClientLevel extends AbstractDhLevel implements IDhClientLevel
 	{
 		ClientNetworkState networkState = this.networkState;
 		
-		boolean isClientUsable = false;
+		boolean isClientUsable = false, isAllowedDimension = false;
 		if (networkState != null)
 		{
 			isClientUsable = networkState.isReady();
+			isAllowedDimension = MC_CLIENT.getWrappedClientLevel() == this.levelWrapper;
 		}
 		
 		return isClientUsable
 				&& networkState.sessionConfig.isDistantGenerationEnabled()
+				&& isAllowedDimension
 				&& this.clientside.isRendering();
 	}
 	
