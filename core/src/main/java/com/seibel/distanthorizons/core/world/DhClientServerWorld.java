@@ -96,6 +96,10 @@ public class DhClientServerWorld extends AbstractDhServerWorld<DhClientServerLev
 		}
 		else
 		{
+			if (wrapper instanceof IClientLevelWrapper)
+			{
+				((IClientLevelWrapper) wrapper).markAccessed();
+			}
 			return this.dhLevelByLevelWrapper.computeIfAbsent(wrapper, (levelWrapper) ->
 			{
 				IClientLevelWrapper clientLevelWrapper = (IClientLevelWrapper) levelWrapper;

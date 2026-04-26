@@ -86,7 +86,7 @@ public class DhClientWorld extends AbstractDhWorld implements IDhClientWorld
 		{
 			return null;
 		}
-		
+		((IClientLevelWrapper) wrapper).markAccessed();
 		return this.levels.computeIfAbsent((IClientLevelWrapper) wrapper,
 			(clientLevelWrapper) ->
 			{
