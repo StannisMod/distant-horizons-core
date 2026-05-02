@@ -98,7 +98,8 @@ public class ClientPluginChannelApi
 				LOGGER.info("Loading level with key: [" + msg.levelKey + "].");
 				IServerKeyedClientLevel keyedLevel = KEYED_CLIENT_LEVEL_MANAGER.setServerKeyedLevel(clientLevel, msg.serverKey, msg.levelKey);
 				AbstractDhWorld world = SharedApi.getAbstractDhWorld();
-				if (world != null) {
+				if (world != null)
+				{
 					world.getOrLoadLevel(keyedLevel);
 				}
 			}

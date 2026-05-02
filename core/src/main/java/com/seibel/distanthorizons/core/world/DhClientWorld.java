@@ -92,9 +92,11 @@ public class DhClientWorld extends AbstractDhWorld implements IDhClientWorld
 			{
 				try
 				{
-					if (!ClientApi.INSTANCE.canLoadAlready(clientLevelWrapper)) {
+					if (!ClientApi.INSTANCE.canLoadClientLevel(clientLevelWrapper)) 
+					{
 						return null;
 					}
+					
 					DhClientLevel level = new DhClientLevel(this.saveStructure, clientLevelWrapper, this.networkState);
 					ApiEventInjector.INSTANCE.fireAllEvents(DhApiLevelLoadEvent.class, new DhApiLevelLoadEvent.EventParam(wrapper));
 					ClientApi.INSTANCE.loadWaitingChunksForLevel(clientLevelWrapper);

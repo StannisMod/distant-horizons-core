@@ -94,7 +94,6 @@ public class DhServerWorld extends AbstractDhServerWorld<DhServerLevel>
 		
 		if (this.dhLevelByLevelWrapper.containsKey(wrapper))
 		{
-			DhServerLevel level = this.dhLevelByLevelWrapper.get(wrapper);
 			wrapper.onUnload();
 			this.dhLevelByLevelWrapper.remove(wrapper).close();
 			ApiEventInjector.INSTANCE.fireAllEvents(DhApiLevelUnloadEvent.class, new DhApiLevelUnloadEvent.EventParam(wrapper));

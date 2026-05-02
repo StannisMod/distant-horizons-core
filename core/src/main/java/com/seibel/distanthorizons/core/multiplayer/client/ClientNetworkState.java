@@ -165,9 +165,8 @@ public class ClientNetworkState implements Closeable
 	// send message //
 	//==============//
 	
-	public void sendLevelInitRequest(String clientLevelKey) {
-		this.getSession().sendMessage(new RequestLevelInitMessage(clientLevelKey));
-	}
+	public void sendLevelInitRequest(String clientLevelKey) 
+	{ this.getSession().sendMessage(new RequestLevelInitMessage(clientLevelKey)); }
 	
 	public void sendConfigMessage() { this.sendConfigMessage(true); }
 	public void sendConfigMessage(boolean blocking)

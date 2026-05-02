@@ -128,7 +128,7 @@ public class ClientApi
 	
 	/** Holds any levels that were loaded before the {@link ClientApi#onClientOnlyConnected} was fired. */
 	public final HashSet<IClientLevelWrapper> waitingClientLevels = new HashSet<>();
-	/** Holds any chunks that were loaded before the {@link ClientApi#clientLevelLoadEvent(IClientLevelWrapper)} was fired. */
+	/** Holds any chunks that were found before the client levels are loaded. */
 	public final Map<Pair<IClientLevelWrapper, DhChunkPos>, IChunkWrapper> waitingChunkByClientLevelAndPos = new ConcurrentHashMap<>();
 	
 	/** publicly available so {@link F3Screen} can display the error */
@@ -168,7 +168,7 @@ public class ClientApi
 	
 	/**
 	 * May be fired slightly before or after the associated
-	 * {@link ClientApi#clientLevelLoadEvent(IClientLevelWrapper)} event
+	 * level is loaded
 	 * depending on how the host mod loader functions. <br><br>
 	 * 
 	 * Synchronized shouldn't be necessary, but is present to match {@see onClientOnlyDisconnected} and prevent any unforeseen issues. 

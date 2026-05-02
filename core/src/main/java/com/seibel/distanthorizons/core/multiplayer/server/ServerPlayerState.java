@@ -27,6 +27,8 @@ import java.util.function.Supplier;
 
 public class ServerPlayerState implements Closeable
 {
+	private final IMinecraftSharedWrapper MC_SHARED = SingletonInjector.INSTANCE.get(IMinecraftSharedWrapper.class);
+	
 	private final ConfigChangeListener<String> levelKeyPrefixChangeListener
 			= new ConfigChangeListener<>(Config.Server.levelKeyPrefix, this::onLevelKeyPrefixConfigChanged);
 	private final SessionConfig.AnyChangeListener configAnyChangeListener = new SessionConfig.AnyChangeListener(this::sendConfigMessage);
@@ -96,6 +98,20 @@ public class ServerPlayerState implements Closeable
 	
 	private void onLevelKeyPrefixConfigChanged(String newLevelKey) { this.sendLevelKey(); }
 	
+	private void sendLevelKey(String clientLevelKey)
+	{
+		sendLevelKey(() -> 
+			MC_SHARED
+			.getWrappedServerLevel(clientLevelKey)
+			.getKeyedLevelDimensionName());
+	}
+	private void sendLevelKey()
+	{
+		sendLevelKey(() -> 
+			this.getServerPlayer()
+				.getLevel()
+				.getKeyedLevelDimensionName());
+	}
 	private void sendLevelKey(Supplier<String> levelKeySupplier)
 	{
 		if (Config.Server.sendLevelKeys.get())
@@ -108,17 +124,6 @@ public class ServerPlayerState implements Closeable
 				this.networkSession.sendMessage(new LevelInitMessage(this.serverKey, levelKey));
 			}
 		}
-	}
-	
-	private void sendLevelKey(String clientLevelKey)
-	{
-		sendLevelKey(() -> SingletonInjector.INSTANCE.get(IMinecraftSharedWrapper.class)
-			.getWrappedServerLevel(clientLevelKey).getKeyedLevelDimensionName());
-	}
-	
-	private void sendLevelKey()
-	{
-		sendLevelKey(() -> this.getServerPlayer().getLevel().getKeyedLevelDimensionName());
 	}
 	
 	private void sendConfigMessage()
