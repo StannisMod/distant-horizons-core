@@ -42,7 +42,6 @@ import com.seibel.distanthorizons.core.util.objects.RollingAverage;
 import com.seibel.distanthorizons.core.util.threading.ThreadPoolUtil;
 import com.seibel.distanthorizons.core.wrapperInterfaces.minecraft.IMinecraftRenderWrapper;
 import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.IImmersivePortalsAccessor;
-import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.IModChecker;
 import com.seibel.distanthorizons.core.wrapperInterfaces.render.renderPass.IDhMetaRenderer;
 import com.seibel.distanthorizons.core.wrapperInterfaces.render.renderPass.IDhVanillaFadeRenderer;
 import com.seibel.distanthorizons.core.wrapperInterfaces.render.renderPass.IDhTestTriangleRenderer;
@@ -54,7 +53,6 @@ import com.seibel.distanthorizons.coreapi.ModInfo;
 import com.seibel.distanthorizons.api.enums.rendering.EDhApiDebugRendering;
 import com.seibel.distanthorizons.api.enums.rendering.EDhApiRendererMode;
 import com.seibel.distanthorizons.core.dependencyInjection.SingletonInjector;
-import com.seibel.distanthorizons.core.level.IServerKeyedClientLevel;
 import com.seibel.distanthorizons.core.world.AbstractDhWorld;
 import com.seibel.distanthorizons.core.world.DhClientWorld;
 import com.seibel.distanthorizons.core.wrapperInterfaces.chunk.IChunkWrapper;
@@ -87,6 +85,8 @@ public class ClientApi
 	
 	private static final IMinecraftClientWrapper MC_CLIENT = SingletonInjector.INSTANCE.get(IMinecraftClientWrapper.class);
 	private static final IMinecraftRenderWrapper MC_RENDER = SingletonInjector.INSTANCE.get(IMinecraftRenderWrapper.class);
+	
+	private static final IImmersivePortalsAccessor IMMERSIVE_PORTALS = ModAccessorInjector.INSTANCE.get(IImmersivePortalsAccessor.class);
 	
 	/** this includes the is dev build message and low allocated memory warning */
 	private static final int MS_BETWEEN_STATIC_STARTUP_MESSAGES = 4_000;
@@ -145,9 +145,18 @@ public class ClientApi
 	 * tracked should also be to keep the ratio roughly the same.
 	 * @see ClientApi#MIN_MS_BETWEEN_SPEED_CHECKS
 	 */
-	public RollingAverage cameraSpeedRollingAverage = new RollingAverage(40);
+	private RollingAverage cameraSpeedRollingAverage = new RollingAverage(40);
 	private Vec3d lastCameraPosForSpeedCheck = new Vec3d();
 	private long msSinceLastSpeedCheck = 0L;
+	public double getAvgCameraSpeed()
+	{
+		if (IMMERSIVE_PORTALS != null)
+		{
+			return 0.0;
+		}
+		
+		return cameraSpeedRollingAverage.getAverage();
+	}
 	
 	public static long firstRenderTimeMs = 0;
 	
@@ -164,7 +173,7 @@ public class ClientApi
 	//==============//
 	// world events //
 	//==============//
-	//region
+	//region world events
 	
 	/**
 	 * May be fired slightly before or after the associated
@@ -236,7 +245,18 @@ public class ClientApi
 	//endregion
 	
 	
-	public boolean canLoadAlready(IClientLevelWrapper wrapper) {
+	
+	//==============//
+	// level events //
+	//==============//
+	//region level events
+	
+	/** 
+	 * used in conjunction with the server networking to
+	 * handle level load requests. 
+	 */
+	public boolean canLoadClientLevel(IClientLevelWrapper wrapper) 
+	{
 		// wait a moment before loading the level to give the server a chance to handle the client's login request
 		if (MC_CLIENT.clientConnectedToDedicatedServer())
 		{
@@ -246,23 +266,33 @@ public class ClientApi
 				this.firstLevelLoadTimer.schedule(new TimerTask()
 				{
 					@Override
-					public void run() { canLoadAlready(wrapper); }
+					public void run() { canLoadClientLevel(wrapper); }
 				}, FIRST_LEVEL_LOAD_DELAY_IN_MS);
 				return false;
 			}
+			
 			this.firstLevelLoadTimer.cancel();
 		}
+		
 		if (!this.pluginChannelApi.allowLevelLoading(wrapper))
 		{
-			LOGGER.debug("Levels in this connection are managed by the server, skipping auto-load of " + wrapper);
+			LOGGER.debug("Client levels in this connection are managed by the server, skipping auto-load of: ["+wrapper+"]");
 			AbstractDhWorld world = SharedApi.getAbstractDhWorld();
-			if (world == null) return false;
+			if (world == null)
+			{
+				return false;
+			}
+			
 			// Instead of attempting to load themselves, send the config and wait for a server provided level key.
 			((DhClientWorld) world).networkState.sendLevelInitRequest(wrapper.getDimensionName());
 			return false;
 		}
+		
 		return true;
 	}
+	
+	//endregion
+	
 	
 	
 	//==============//
@@ -299,7 +329,7 @@ public class ClientApi
 	//============//
 	// networking //
 	//============//
-	//region
+	//region networking
 	
 	/**
 	 * Forwards a decoded message into the registered handlers.
@@ -339,7 +369,7 @@ public class ClientApi
 	//===============//
 	// LOD rendering //
 	//===============//
-	//region
+	//region lod rendering
 	
 	/** Should be called before {@link ClientApi#renderDeferredLodsForShaders} */
 	public void renderLods() { this.renderLodLayer(false); }
@@ -363,12 +393,16 @@ public class ClientApi
 			//===========//
 			//region
 			
-			//DhApiTerrainDataRepo.asyncDebugMethod(
-			//	RENDER_STATE.clientLevelWrapper,
-			//	MC_CLIENT.getPlayerBlockPos().getX(),
-			//	MC_CLIENT.getPlayerBlockPos().getY(),
-			//	MC_CLIENT.getPlayerBlockPos().getZ()
-			//);
+			// only run these tasks once per frame
+			if (!renderingDeferredLayer)
+			{
+				//DhApiTerrainDataRepo.asyncDebugMethod(
+				//	RENDER_STATE.clientLevelWrapper,
+				//	MC_CLIENT.getPlayerBlockPos().getX(),
+				//	MC_CLIENT.getPlayerBlockPos().getY(),
+				//	MC_CLIENT.getPlayerBlockPos().getZ()
+				//);
+			}
 			
 			//endregion
 			
@@ -602,19 +636,7 @@ public class ClientApi
 	//================//
 	// fade rendering //
 	//================//
-	//region
-	
-	private static boolean shouldRenderFade() {
-		// don't fade when Iris shaders are active, otherwise the rendering can get weird
-		if (DhApiRenderProxy.INSTANCE.getDeferTransparentRendering()) return false;
-		
-		// When immersive portals and sodium are combined the fade renders on top of the portal, so turn it off when a portal is on-screen.
-		IImmersivePortalsAccessor immersivePortals = ModAccessorInjector.INSTANCE.get(IImmersivePortalsAccessor.class);
-		if (immersivePortals != null && immersivePortals.wasPortalRecentlyVisible()) {
-			return false;
-		}
-		return true;
-	}
+	//region fade rendering
 	
 	/** 
 	 * The first fade pass.
@@ -675,6 +697,25 @@ public class ClientApi
 		}
 	}
 	
+	private static boolean shouldRenderFade()
+	{
+		// don't fade when Iris shaders are active, otherwise the rendering can get weird
+		if (DhApiRenderProxy.INSTANCE.getDeferTransparentRendering())
+		{
+			return false;
+		}
+		
+		// When immersive portals and sodium are combined the fade renders on top of the portal, so turn it off when a portal is on-screen.
+		IImmersivePortalsAccessor immersivePortals = ModAccessorInjector.INSTANCE.get(IImmersivePortalsAccessor.class);
+		if (immersivePortals != null 
+			&& immersivePortals.wasPortalRecentlyVisible())
+		{
+			return false;
+		}
+		
+		return true;
+	}
+	
 	//endregion
 	
 	
@@ -682,7 +723,7 @@ public class ClientApi
 	//==========//
 	// keyboard //
 	//==========//
-	//region
+	//region keyboard
 	
 	/** Trigger once on key press, with CLIENT PLAYER. */
 	public void keyPressedEvent(int glfwKey)
@@ -718,7 +759,7 @@ public class ClientApi
 	//======//
 	// chat //
 	//======//
-	//region
+	//region chat
 	
 	private void sendQueuedChatMessages()
 	{
