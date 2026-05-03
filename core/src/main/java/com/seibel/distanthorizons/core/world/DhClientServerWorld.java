@@ -144,6 +144,7 @@ public class DhClientServerWorld extends AbstractDhServerWorld<DhClientServerLev
 				// but note that the server side still has the level loaded. So, we don't want to unload the level,
 				// we just want to stop rendering it.
 				this.dhLevelByLevelWrapper.remove(wrapper).stopRenderer(); // Ignore resource warning. The level obj is referenced elsewhere.
+				wrapper.onUnload(); // We still want to unload the wrapper though.
 			}
 			ApiEventInjector.INSTANCE.fireAllEvents(DhApiLevelUnloadEvent.class, new DhApiLevelUnloadEvent.EventParam(wrapper));
 		}
@@ -172,6 +173,13 @@ public class DhClientServerWorld extends AbstractDhServerWorld<DhClientServerLev
 				{
 					serverLevelWrapper.onUnload();
 					ApiEventInjector.INSTANCE.fireAllEvents(DhApiLevelUnloadEvent.class, new DhApiLevelUnloadEvent.EventParam(serverLevelWrapper));
+				}
+				
+				IClientLevelWrapper clientLevelWrapper = level.getClientLevelWrapper();
+				if (clientLevelWrapper != null)
+				{
+					clientLevelWrapper.onUnload();
+					ApiEventInjector.INSTANCE.fireAllEvents(DhApiLevelUnloadEvent.class, new DhApiLevelUnloadEvent.EventParam(clientLevelWrapper));
 				}
 				
 				// close levels asynchronously to speed up
