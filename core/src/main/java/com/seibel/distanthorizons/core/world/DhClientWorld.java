@@ -33,16 +33,14 @@ import com.seibel.distanthorizons.core.wrapperInterfaces.world.ILevelWrapper;
 import com.seibel.distanthorizons.coreapi.DependencyInjection.ApiEventInjector;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class DhClientWorld extends AbstractDhWorld implements IDhClientWorld
 {
-	private final ConcurrentHashMap<IClientLevelWrapper, DhClientLevel> levels;
+	private final ConcurrentHashMap<String, DhClientLevel> levels;
+	private final Map<String, Set<IClientLevelWrapper>> levelWrappers = new ConcurrentHashMap<>();
 	public final ClientOnlySaveStructure saveStructure;
 	public final ClientNetworkState networkState = new ClientNetworkState();
 	
@@ -79,6 +77,32 @@ public class DhClientWorld extends AbstractDhWorld implements IDhClientWorld
 	// methods //
 	//=========//
 	
+	private DhClientLevel createClientLevel(@NotNull IClientLevelWrapper clientLevelWrapper) {
+		try
+		{
+			if (!ClientApi.INSTANCE.canLoadClientLevel(clientLevelWrapper))
+			{
+				return null;
+			}
+			
+			DhClientLevel level = new DhClientLevel(this.saveStructure, clientLevelWrapper, this.networkState);
+			levelWrappers.computeIfAbsent(clientLevelWrapper.getDhIdentifier(), k -> Collections.synchronizedSet(new HashSet<>())).add(clientLevelWrapper);
+			ApiEventInjector.INSTANCE.fireAllEvents(DhApiLevelLoadEvent.class, new DhApiLevelLoadEvent.EventParam(clientLevelWrapper));
+			ClientApi.INSTANCE.loadWaitingChunksForLevel(clientLevelWrapper);
+			return level;
+		}
+		catch (Exception e)
+		{
+			LOGGER.fatal("Failed to load client level, error: ["+e.getMessage()+"].", e);
+			
+			ClientApi.INSTANCE.showChatMessageNextFrame(
+				MinecraftTextFormat.RED + "Distant Horizons: Client level loading failed." + MinecraftTextFormat.CLEAR_FORMATTING + "\n" +
+					"Unable to load level ["+clientLevelWrapper.getDhIdentifier()+"], LODs may not appear. See log for more information.");
+			
+			return null;
+		}
+	}
+	
 	@Override
 	public DhClientLevel getOrLoadLevel(@NotNull ILevelWrapper wrapper)
 	{
@@ -86,33 +110,20 @@ public class DhClientWorld extends AbstractDhWorld implements IDhClientWorld
 		{
 			return null;
 		}
-		((IClientLevelWrapper) wrapper).markAccessed();
-		return this.levels.computeIfAbsent((IClientLevelWrapper) wrapper,
-			(clientLevelWrapper) ->
+		IClientLevelWrapper clientLevelWrapper = (IClientLevelWrapper) wrapper;
+		clientLevelWrapper.markAccessed();
+		DhClientLevel storedLevel = this.levels.computeIfAbsent(wrapper.getDhIdentifier(),
+			(key) -> createClientLevel(clientLevelWrapper)
+		);
+		if (storedLevel != null && storedLevel.getClientLevelWrapper() != wrapper) {
+			unloadLevel(storedLevel.getLevelWrapper());
+			storedLevel = createClientLevel(clientLevelWrapper);
+			if (storedLevel != null)
 			{
-				try
-				{
-					if (!ClientApi.INSTANCE.canLoadClientLevel(clientLevelWrapper)) 
-					{
-						return null;
-					}
-					
-					DhClientLevel level = new DhClientLevel(this.saveStructure, clientLevelWrapper, this.networkState);
-					ApiEventInjector.INSTANCE.fireAllEvents(DhApiLevelLoadEvent.class, new DhApiLevelLoadEvent.EventParam(wrapper));
-					ClientApi.INSTANCE.loadWaitingChunksForLevel(clientLevelWrapper);
-					return level;
-				}
-				catch (Exception e)
-				{
-					LOGGER.fatal("Failed to load client level, error: ["+e.getMessage()+"].", e);
-					
-					ClientApi.INSTANCE.showChatMessageNextFrame(
-						MinecraftTextFormat.RED + "Distant Horizons: Client level loading failed." + MinecraftTextFormat.CLEAR_FORMATTING + "\n" +
-						"Unable to load level ["+clientLevelWrapper.getDhIdentifier()+"], LODs may not appear. See log for more information.");
-					
-					return null;
-				}
-			});
+				this.levels.put(wrapper.getDhIdentifier(), storedLevel);
+			}
+		}
+		return storedLevel;
 	}
 	
 	@Override
@@ -123,7 +134,7 @@ public class DhClientWorld extends AbstractDhWorld implements IDhClientWorld
 			return null;
 		}
 		
-		return this.levels.get(wrapper);
+		return this.levels.get(wrapper.getDhIdentifier());
 	}
 	
 	@Override
@@ -139,11 +150,15 @@ public class DhClientWorld extends AbstractDhWorld implements IDhClientWorld
 			return false;
 		}
 		
-		if (this.levels.containsKey(wrapper))
+		if (this.levels.containsKey(wrapper.getDhIdentifier()))
 		{
-			LOGGER.info("Unloading level " + this.levels.get(wrapper));
+			LOGGER.info("Unloading level " + this.levels.get(wrapper.getDhIdentifier()));
 			wrapper.onUnload();
-			this.levels.remove(wrapper).close();
+			Set<IClientLevelWrapper> wrappers = this.levelWrappers.get(wrapper.getDhIdentifier());
+			wrappers.remove(wrapper);
+			if (wrappers.isEmpty()) {
+				this.levels.remove(wrapper.getDhIdentifier()).close();
+			}
 			ApiEventInjector.INSTANCE.fireAllEvents(DhApiLevelUnloadEvent.class, new DhApiLevelUnloadEvent.EventParam(wrapper));
 			return true;
 		}
@@ -193,6 +208,7 @@ public class DhClientWorld extends AbstractDhWorld implements IDhClientWorld
 		}
 		
 		this.levels.clear();
+		this.levelWrappers.clear();
 		this.clientTickTimer.cancel();
 		LOGGER.info("Closed DhWorld of type [" + this.environment + "].");
 	}
