@@ -85,11 +85,11 @@ public class DhServerWorld extends AbstractDhServerWorld<DhServerLevel>
 	}
 	
 	@Override
-	public void unloadLevel(@NotNull ILevelWrapper wrapper)
+	public boolean unloadLevel(@NotNull ILevelWrapper wrapper)
 	{
 		if (!(wrapper instanceof IServerLevelWrapper))
 		{
-			return;
+			return false;
 		}
 		
 		if (this.dhLevelByLevelWrapper.containsKey(wrapper))
@@ -97,7 +97,9 @@ public class DhServerWorld extends AbstractDhServerWorld<DhServerLevel>
 			wrapper.onUnload();
 			this.dhLevelByLevelWrapper.remove(wrapper).close();
 			ApiEventInjector.INSTANCE.fireAllEvents(DhApiLevelUnloadEvent.class, new DhApiLevelUnloadEvent.EventParam(wrapper));
+			return true;
 		}
+		return false;
 	}
 	
 	@Override

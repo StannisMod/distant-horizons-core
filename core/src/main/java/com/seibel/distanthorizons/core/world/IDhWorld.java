@@ -49,6 +49,6 @@ public interface IDhWorld extends Closeable
 	Iterable<? extends IDhLevel> getAllLoadedLevels();
 	int getLoadedLevelCount();
 	
-	void unloadLevel(@NotNull ILevelWrapper levelWrapper);
+	boolean unloadLevel(@NotNull ILevelWrapper levelWrapper);
 	
 }

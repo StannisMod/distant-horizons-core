@@ -132,11 +132,11 @@ public class DhClientWorld extends AbstractDhWorld implements IDhClientWorld
 	public int getLoadedLevelCount() { return this.levels.size(); }
 	
 	@Override
-	public void unloadLevel(@NotNull ILevelWrapper wrapper)
+	public boolean unloadLevel(@NotNull ILevelWrapper wrapper)
 	{
 		if (!(wrapper instanceof IClientLevelWrapper))
 		{
-			return;
+			return false;
 		}
 		
 		if (this.levels.containsKey(wrapper))
@@ -145,7 +145,9 @@ public class DhClientWorld extends AbstractDhWorld implements IDhClientWorld
 			wrapper.onUnload();
 			this.levels.remove(wrapper).close();
 			ApiEventInjector.INSTANCE.fireAllEvents(DhApiLevelUnloadEvent.class, new DhApiLevelUnloadEvent.EventParam(wrapper));
+			return true;
 		}
+		return false;
 	}
 	
 	@Override
