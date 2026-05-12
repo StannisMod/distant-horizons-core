@@ -86,7 +86,10 @@ public class ClientApi
 	private static final IMinecraftClientWrapper MC_CLIENT = SingletonInjector.INSTANCE.get(IMinecraftClientWrapper.class);
 	private static final IMinecraftRenderWrapper MC_RENDER = SingletonInjector.INSTANCE.get(IMinecraftRenderWrapper.class);
 	
-	private static final IImmersivePortalsAccessor IMMERSIVE_PORTALS = ModAccessorInjector.INSTANCE.get(IImmersivePortalsAccessor.class);
+	// Need to classload this field later because otherwise it will be null even when Immersive Portals is present.
+	public static class Late {
+		private static final IImmersivePortalsAccessor IMMERSIVE_PORTALS = ModAccessorInjector.INSTANCE.get(IImmersivePortalsAccessor.class);
+	}
 	
 	/** this includes the is dev build message and low allocated memory warning */
 	private static final int MS_BETWEEN_STATIC_STARTUP_MESSAGES = 4_000;
@@ -150,11 +153,6 @@ public class ClientApi
 	private long msSinceLastSpeedCheck = 0L;
 	public double getAvgCameraSpeed()
 	{
-		if (IMMERSIVE_PORTALS != null)
-		{
-			return 0.0;
-		}
-		
 		return cameraSpeedRollingAverage.getAverage();
 	}
 	
@@ -451,7 +449,7 @@ public class ClientApi
 					//region
 					
 					long nowMs = System.currentTimeMillis();
-					if (this.msSinceLastSpeedCheck + MIN_MS_BETWEEN_SPEED_CHECKS < nowMs)
+					if (this.msSinceLastSpeedCheck + MIN_MS_BETWEEN_SPEED_CHECKS < nowMs && (Late.IMMERSIVE_PORTALS == null || !Late.IMMERSIVE_PORTALS.isRenderingPortal()))
 					{
 						// calc time since last check
 						double secSinceLastCheck = (nowMs - this.msSinceLastSpeedCheck) / 1_000.0;
