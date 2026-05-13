@@ -19,11 +19,25 @@
 
 package com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor;
 
+import com.seibel.distanthorizons.core.pos.DhChunkPos;
+import com.seibel.distanthorizons.core.pos.blockPos.DhBlockPos;
+import com.seibel.distanthorizons.core.wrapperInterfaces.world.IClientLevelWrapper;
+import org.jetbrains.annotations.Nullable;
+
 public interface IImmersivePortalsAccessor extends IModAccessor
 {
 	
 	boolean isRenderingPortal();
 	
 	boolean wasPortalRecentlyVisible();
+	
+	@Nullable
+	DhBlockPos getOriginalPlayerBlockPos();
+	
+	@Nullable
+	DhChunkPos getOriginalPlayerChunkPos();
+	
+	@Nullable
+	IClientLevelWrapper getOriginalClientLevelWrapper();
 	
 }
