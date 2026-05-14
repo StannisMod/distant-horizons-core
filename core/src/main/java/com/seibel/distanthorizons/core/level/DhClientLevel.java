@@ -221,6 +221,7 @@ public class DhClientLevel extends AbstractDhLevel implements IDhClientLevel
 	{
 		try
 		{
+			if (MC_CLIENT.getWrappedClientLevel() == null || MC_CLIENT.getWrappedClientLevel().getDhLevel() != this) return;
 			this.clientside.clientTick();
 			
 			if (this.syncOnLoadRequestQueue != null)

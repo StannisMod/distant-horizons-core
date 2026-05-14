@@ -71,7 +71,11 @@ public class DhClientServerLevel extends AbstractDhServerLevel implements IDhCli
 	//region
 	
 	@Override
-	public void clientTick() { this.clientside.clientTick(); }
+	public void clientTick()
+	{
+		if (MC_CLIENT.getWrappedClientLevel() == null || MC_CLIENT.getWrappedClientLevel().getDhLevel() != this) return;
+		this.clientside.clientTick();
+	}
 	
 	//endregion
 	
