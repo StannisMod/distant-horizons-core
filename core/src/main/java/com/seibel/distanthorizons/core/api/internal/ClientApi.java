@@ -42,6 +42,7 @@ import com.seibel.distanthorizons.core.util.objects.RollingAverage;
 import com.seibel.distanthorizons.core.util.threading.ThreadPoolUtil;
 import com.seibel.distanthorizons.core.wrapperInterfaces.minecraft.IMinecraftRenderWrapper;
 import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.IImmersivePortalsAccessor;
+import com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor.IIrisAccessor;
 import com.seibel.distanthorizons.core.wrapperInterfaces.render.renderPass.IDhMetaRenderer;
 import com.seibel.distanthorizons.core.wrapperInterfaces.render.renderPass.IDhVanillaFadeRenderer;
 import com.seibel.distanthorizons.core.wrapperInterfaces.render.renderPass.IDhTestTriangleRenderer;
@@ -64,6 +65,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 
+import java.awt.*;
 import java.io.File;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -157,6 +159,15 @@ public class ClientApi
 	}
 	
 	public static long firstRenderTimeMs = 0;
+	
+	/** 
+	 * keeping track of this is necessary to fix
+	 * out-of-date LODs from rendering when the shading
+	 * is changed by Iris, causing LODs to often
+	 * lack the side shading, which looks pretty bad
+	 * when shaders are disabled.
+	 */
+	private boolean irisShadersEnabledLastFrame = false;
 	
 	
 	
@@ -463,6 +474,27 @@ public class ClientApi
 						// record new values for next check
 						this.cameraSpeedRollingAverage.add(speed);
 						this.lastCameraPosForSpeedCheck = camPos;
+					}
+					
+					//endregion
+					
+					
+					
+					//====================//
+					// Iris data re-build //
+					//====================//
+					//region
+					
+					// delayed getter since ClientApi is created before this accessor is bound
+					IIrisAccessor irisAccessor = ModAccessorInjector.INSTANCE.get(IIrisAccessor.class);
+					if (irisAccessor != null)
+					{
+						boolean shadersActive = irisAccessor.isShaderPackInUse();
+						if (this.irisShadersEnabledLastFrame != shadersActive)
+						{
+							this.irisShadersEnabledLastFrame = shadersActive;
+							DhApi.Delayed.renderProxy.clearRenderDataCache();
+						}
 					}
 					
 					//endregion

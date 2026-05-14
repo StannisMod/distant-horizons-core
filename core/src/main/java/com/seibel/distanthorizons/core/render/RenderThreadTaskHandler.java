@@ -10,6 +10,7 @@ import com.seibel.distanthorizons.core.util.TimerUtil;
 import com.seibel.distanthorizons.core.util.objects.RollingAverage;
 import com.seibel.distanthorizons.core.wrapperInterfaces.minecraft.IMinecraftClientWrapper;
 import com.seibel.distanthorizons.core.wrapperInterfaces.minecraft.IMinecraftRenderWrapper;
+import com.seibel.distanthorizons.core.wrapperInterfaces.minecraft.IMinecraftSharedWrapper;
 import com.seibel.distanthorizons.coreapi.ModInfo;
 import org.jetbrains.annotations.Nullable;
 
@@ -49,6 +50,14 @@ public class RenderThreadTaskHandler
 	
 	
 	private long nanoSinceTasksRun = System.nanoTime();
+	private final boolean running; 
+	
+	private Thread renderThread;
+	/** 
+	 * the currently running {@link QueuedRunnable}
+	 * will be null if nothing is running.
+	 */
+	private volatile @Nullable QueuedRunnable currentQueuedRunnable;
 	
 	
 	
@@ -57,7 +66,22 @@ public class RenderThreadTaskHandler
 	//=============//
 	//region
 	
-	private RenderThreadTaskHandler() { TIMER.scheduleAtFixedRate(TimerUtil.createTimerTask(this::manualCleanupTick), MS_BETWEEN_CLEANUP_TICKS, MS_BETWEEN_CLEANUP_TICKS); }
+	private RenderThreadTaskHandler() 
+	{
+		// we only want to run this when the client is available
+		IMinecraftSharedWrapper mcShared = SingletonInjector.INSTANCE.get(IMinecraftSharedWrapper.class);
+		if (!mcShared.isDedicatedServer())
+		{
+			LOGGER.debug("Starting ["+RenderThreadTaskHandler.class.getSimpleName()+"]...");
+			this.running = true;
+			TIMER.scheduleAtFixedRate(TimerUtil.createTimerTask(this::manualCleanupTick), MS_BETWEEN_CLEANUP_TICKS, MS_BETWEEN_CLEANUP_TICKS);
+		}
+		else
+		{
+			this.running = false;
+			LOGGER.debug("Skipping ["+RenderThreadTaskHandler.class.getSimpleName()+"] startup due to running on a dedicated server.");
+		}
+	}
 	
 	//endregion
 	
@@ -70,6 +94,13 @@ public class RenderThreadTaskHandler
 	
 	public void queueRunningOnRenderThread(String name, Runnable renderCall)
 	{
+		// don't queuing tasks if they'll never be run
+		if (!this.running)
+		{
+			return;
+		}
+		
+		
 		// don't get the stacktrace on release to reduce GC pressure
 		StackTraceElement[] stackTrace = null;
 		if (ModInfo.IS_DEV_BUILD)
@@ -116,12 +147,21 @@ public class RenderThreadTaskHandler
 		long loopStartTimeNano = System.nanoTime();
 		this.nanoSinceTasksRun = loopStartTimeNano;
 		
+		
+		if (this.renderThread == null)
+		{
+			this.renderThread = Thread.currentThread();
+		}
+		
+		
 		QueuedRunnable runnable = RENDER_THREAD_RUNNABLE_QUEUE.poll();
 		while(runnable != null)
 		{
 			long taskStartNano = System.nanoTime();
 			
+			this.currentQueuedRunnable = runnable;
 			runnable.run();
+			this.currentQueuedRunnable = null;
 			
 			// only try running for a limited amount of time to prevent lag spikes
 			long taskNano = System.nanoTime() - taskStartNano;
@@ -179,8 +219,19 @@ public class RenderThreadTaskHandler
 		// this means we could have GL jobs building up.
 		// Run the queued tasks on MC's executor (hopefully this should always run,
 		// even if DH's render code isn't being hit).
-		IMinecraftClientWrapper MC = SingletonInjector.INSTANCE.get(IMinecraftClientWrapper.class);
-		MC.executeOnRenderThread(() -> this.runRenderThreadTasks(500 * 1_000_000L));
+		IMinecraftClientWrapper mcClient = SingletonInjector.INSTANCE.get(IMinecraftClientWrapper.class);
+		if (mcClient != null)
+		{
+			mcClient.executeOnRenderThread(() -> this.runRenderThreadTasks(500 * 1_000_000L));
+		}
+		else
+		{
+			// shouldn't happen, but just in case
+			
+			// somehow the timer started when there wasn't a client wrapper
+			// this probably means the timer was started on a dedicated server
+			RATE_LIMITED_LOGGER.warn("["+RenderThreadTaskHandler.class.getSimpleName()+"] timer started when ["+IMinecraftClientWrapper.class.getSimpleName()+"] is null. This shouldn't happen but can likely be ignored.");
+		}
 	}
 	
 	//endregion
@@ -190,7 +241,7 @@ public class RenderThreadTaskHandler
 	//===========//
 	// debugging //
 	//===========//
-	///region
+	//region
 	
 	/** 
 	 * if tasks are currently queued the debug
@@ -246,7 +297,28 @@ public class RenderThreadTaskHandler
 		});
 	}
 	
-	///endregion
+	
+	/** Returns true if the currently running thread is being run by this handler */
+	public boolean isCurrentThread() 
+	{
+		if (this.renderThread != null)
+		{
+			return Thread.currentThread() == this.renderThread;
+		}
+		
+		// shouldn't normally be needed, but can be used if this
+		// handler hasn't been run yet
+		return Thread.currentThread().getName().equals("Render thread");
+	}
+	
+	/** 
+	 * Only recommended to be used by the task that's currently being run.
+	 * Use {@link RenderThreadTaskHandler#isCurrentThread()} to check. <br>
+	 * Can be used to get stack traces for render thread tasks while they're being run. 
+	 */
+	public @Nullable QueuedRunnable getCurrentlyRunningTask() { return this.currentQueuedRunnable; }
+	
+	//endregion
 	
 	
 	
@@ -255,7 +327,7 @@ public class RenderThreadTaskHandler
 	//================//
 	//region
 	
-	private static class QueuedRunnable implements Runnable
+	public static class QueuedRunnable implements Runnable
 	{
 		/** used to easily track what's being done on the render thread */
 		public final String name;

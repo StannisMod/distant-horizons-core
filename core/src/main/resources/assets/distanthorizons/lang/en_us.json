@@ -188,11 +188,11 @@
     "If true non terrain objects will be rendered in DH's terrain. \nThis includes beacon beams and clouds.",
   "distanthorizons.config.client.advanced.graphics.genericRendering.enableBeaconRendering":
     "Enable Beacon Rendering",
-  "distanthorizons.config.client.advanced.graphics.genericRendering.beaconRenderHeight": 
+  "distanthorizons.config.client.advanced.graphics.genericRendering.beaconRenderHeight":
     "Beacon render height",
   "distanthorizons.config.client.advanced.graphics.genericRendering.beaconRenderHeight.@tooltip":
     "Sets the maximum height at which beacons will render. \nThis will only affect new beacons coming into LOD render distance. \nBeacons currently visible in LOD chunks will not be affected.",
-  "distanthorizons.config.client.advanced.graphics.genericRendering.expandDistantBeacons": 
+  "distanthorizons.config.client.advanced.graphics.genericRendering.expandDistantBeacons":
     "Expand Distant Beacons",
   "distanthorizons.config.client.advanced.graphics.genericRendering.expandDistantBeacons.@tooltip":
     "If true LOD beacon beams will be rendered wider at extreme distances, \nmaking them easier to see. \nIf false all LOD beacon beams will only ever be 1 block wide.",
@@ -531,6 +531,26 @@
   "distanthorizons.config.client.advanced.debugging.columnBuilderDebugging.columnBuilderDebugColumnIndex":
     "Column Builder Limit - Col Index",
 
+
+
+  "distanthorizons.config.client.advanced.debugging.positionFinderDebugging":
+    "Position Finder",
+
+  "distanthorizons.config.client.advanced.debugging.positionFinderDebugging.positionFinderEnable":
+    "Enable Position Finder",
+  "distanthorizons.config.client.advanced.debugging.positionFinderDebugging.positionFinderDetailLevel":
+    "Absolute Detail Level",
+  "distanthorizons.config.client.advanced.debugging.positionFinderDebugging.positionFinderXPos":
+    "Pos X",
+  "distanthorizons.config.client.advanced.debugging.positionFinderDebugging.positionFinderZPos":
+    "Pos Z",
+  "distanthorizons.config.client.advanced.debugging.positionFinderDebugging.positionFinderMinBlockY":
+    "Min Block Y",
+  "distanthorizons.config.client.advanced.debugging.positionFinderDebugging.positionFinderMaxBlockY":
+    "Max Block Y",
+  "distanthorizons.config.client.advanced.debugging.positionFinderDebugging.positionFinderMarginPercent":
+    "Margin %",
+    
 
 
   "distanthorizons.config.client.advanced.debugging.f3Screen":
