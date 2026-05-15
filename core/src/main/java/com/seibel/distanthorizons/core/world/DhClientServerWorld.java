@@ -146,8 +146,8 @@ public class DhClientServerWorld extends AbstractDhServerWorld<DhClientServerLev
 				// we just want to stop rendering it.
 				DhClientServerLevel level = this.dhLevelByLevelWrapper.remove(wrapper); // Ignore resource warning. The level obj is referenced elsewhere.
 				Set<ILevelWrapper> wrappers = dhLevels.get(level);
-				wrappers.remove(wrapper);
-				if (wrappers.isEmpty()) {
+				if (wrappers != null) wrappers.remove(wrapper);
+				if ((wrappers == null || wrappers.isEmpty()) && level.isRendering()) {
 					level.stopRenderer();
 				}
 				wrapper.onUnload(); // We still want to unload the wrapper though.
