@@ -21,6 +21,7 @@ package com.seibel.distanthorizons.core.wrapperInterfaces.modAccessor;
 
 import com.seibel.distanthorizons.core.pos.DhChunkPos;
 import com.seibel.distanthorizons.core.pos.blockPos.DhBlockPos;
+import com.seibel.distanthorizons.core.util.math.Vec3d;
 import com.seibel.distanthorizons.core.wrapperInterfaces.world.IClientLevelWrapper;
 import org.jetbrains.annotations.Nullable;
 
@@ -39,5 +40,8 @@ public interface IImmersivePortalsAccessor extends IModAccessor
 	
 	@Nullable
 	IClientLevelWrapper getOriginalClientLevelWrapper();
+	
+	@Nullable
+	Vec3d getOriginalCameraPos();
 	
 }

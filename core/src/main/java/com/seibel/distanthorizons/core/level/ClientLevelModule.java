@@ -112,23 +112,9 @@ public class ClientLevelModule implements Closeable, IDataSourceUpdateListenerFu
 			this.ClientRenderStateRef.set(clientRenderState);
 		}
 		
-		DhBlockPos2D cameraBlockPos;
-		IImmersivePortalsAccessor immersivePortalsAccessor = ModAccessorInjector.INSTANCE.get(IImmersivePortalsAccessor.class); 
-		if (immersivePortalsAccessor != null)
-		{
-			// since Immersive portals could be rendering multiple levels at once
-			// the camera position may not be relative to this level,
-			// but the player position will be (usually)
-			DhBlockPos playerBlockPos = MC_CLIENT.getPlayerBlockPos();
-			cameraBlockPos = new DhBlockPos2D(playerBlockPos);
-		}
-		else
-		{
-			// use camera position instead of player pos so free cam mods work better
-			Vec3d cameraDoublePos = MC_RENDER.getCameraExactPosition();
-			cameraBlockPos = new DhBlockPos2D((int)cameraDoublePos.x, (int)cameraDoublePos.z);
-		}
-		
+		// use camera position instead of player pos so free cam mods work better
+		Vec3d cameraDoublePos = MC_RENDER.getCameraExactPosition();
+		DhBlockPos2D cameraBlockPos = new DhBlockPos2D((int)cameraDoublePos.x, (int)cameraDoublePos.z);
 		clientRenderState.quadtree.tryTick(cameraBlockPos);
 	}
 	
