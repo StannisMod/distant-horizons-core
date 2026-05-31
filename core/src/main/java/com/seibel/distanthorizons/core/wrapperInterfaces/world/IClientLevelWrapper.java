@@ -43,6 +43,6 @@ public interface IClientLevelWrapper extends ILevelWrapper
 	
 	Color getCloudColor(float tickDelta);
 	
-	float getShade(EDhDirection direction);
+	float getShade(EDhDirection lodDirection);
 	
 }

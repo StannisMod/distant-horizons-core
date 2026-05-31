@@ -24,6 +24,7 @@ import com.seibel.distanthorizons.core.dependencyInjection.SingletonInjector;
 import com.seibel.distanthorizons.core.enums.EDhDirection;
 import com.seibel.distanthorizons.core.level.IDhClientLevel;
 import com.seibel.distanthorizons.core.util.objects.pooling.PhantomArrayListCheckout;
+import com.seibel.distanthorizons.core.wrapperInterfaces.world.IClientLevelWrapper;
 import com.seibel.distanthorizons.coreapi.util.ColorUtil;
 import com.seibel.distanthorizons.core.util.LodUtil;
 import com.seibel.distanthorizons.core.util.RenderDataPointUtil;
@@ -59,6 +60,12 @@ public class ColumnBox
 		//================//
 		// variable setup //
 		//================//
+		
+		IClientLevelWrapper clientLevelWrapper = clientLevel.getClientLevelWrapper();
+		if (clientLevelWrapper == null)
+		{
+			LodUtil.assertNotReach("addBoxQuadsToBuilder getClientLevelWrapper should always succeed");
+		}
 		
 		short maxX = (short) (minX + width);
 		short maxY = (short) (minY + yHeight);
@@ -122,7 +129,7 @@ public class ColumnBox
 					&& !isTopTransparent;
 			if (!skipTop)
 			{
-				builder.addQuadUp(minX, maxY, minZ, width, ColorUtil.applyShade(color, MC_RENDER.getShade(EDhDirection.UP)), irisBlockMaterialId, skyLightTop, blockLight);
+				builder.addQuadUp(minX, maxY, minZ, width, ColorUtil.applyShade(color, clientLevelWrapper.getShade(EDhDirection.UP)), irisBlockMaterialId, skyLightTop, blockLight);
 			}
 		}
 		
@@ -133,7 +140,7 @@ public class ColumnBox
 					&& !isBottomTransparent;
 			if (!skipBottom)
 			{
-				builder.addQuadDown(minX, minY, minZ, width, ColorUtil.applyShade(color, MC_RENDER.getShade(EDhDirection.DOWN)), irisBlockMaterialId, skyLightBot, blockLight);
+				builder.addQuadDown(minX, minY, minZ, width, ColorUtil.applyShade(color, clientLevelWrapper.getShade(EDhDirection.DOWN)), irisBlockMaterialId, skyLightBot, blockLight);
 			}
 		}
 		
@@ -163,7 +170,7 @@ public class ColumnBox
 			else
 			{
 				makeAdjVerticalQuad(
-						builder, phantomArrayCheckout, 
+						builder, phantomArrayCheckout, clientLevelWrapper,
 						adjCol, adjSameDetailLevel, caveCullingMaxY, EDhDirection.NORTH, 
 						minX, minY, minZ, width, yHeight,
 						color, irisBlockMaterialId, blockLight);
@@ -188,7 +195,7 @@ public class ColumnBox
 			else
 			{
 				makeAdjVerticalQuad(
-						builder, phantomArrayCheckout,
+						builder, phantomArrayCheckout, clientLevelWrapper,
 						adjCol, adjSameDetailLevel, caveCullingMaxY, EDhDirection.SOUTH,
 						minX, minY, maxZ, width, yHeight,
 						color, irisBlockMaterialId, blockLight);
@@ -213,7 +220,7 @@ public class ColumnBox
 			else
 			{
 				makeAdjVerticalQuad(
-						builder, phantomArrayCheckout,
+						builder, phantomArrayCheckout, clientLevelWrapper,
 						adjCol, adjSameDetailLevel, caveCullingMaxY, EDhDirection.WEST, 
 						minX, minY, minZ, width, yHeight,
 						color, irisBlockMaterialId, blockLight);
@@ -238,7 +245,7 @@ public class ColumnBox
 			else
 			{
 				makeAdjVerticalQuad(
-						builder, phantomArrayCheckout,
+						builder, phantomArrayCheckout, clientLevelWrapper,
 						adjCol, adjSameDetailLevel, caveCullingMaxY, EDhDirection.EAST, 
 						maxX, minY, minZ, width, yHeight,
 						color, irisBlockMaterialId, blockLight);
@@ -247,7 +254,7 @@ public class ColumnBox
 	}
 	
 	private static void makeAdjVerticalQuad(
-		LodQuadBuilder builder, PhantomArrayListCheckout phantomArrayCheckout,
+		LodQuadBuilder builder, PhantomArrayListCheckout phantomArrayCheckout, IClientLevelWrapper clientLevelWrapper,
 		@NotNull ColumnRenderView adjColumnView, boolean adjacentIsSameDetailLevel, int caveCullingMaxY, EDhDirection direction,
 		short x, short yMin, short z, short horizontalWidth, short ySize,
 		int color, byte irisBlockMaterialId, byte blockLight)
@@ -263,7 +270,7 @@ public class ColumnBox
 		// no adjacent data //
 		//==================//
 		
-		color = ColorUtil.applyShade(color, MC_RENDER.getShade(direction));
+		color = ColorUtil.applyShade(color, clientLevelWrapper.getShade(direction));
 		
 		if (adjColumnView.size == 0
 			|| RenderDataPointUtil.hasZeroHeight(adjColumnView.get(0)))
