@@ -20,6 +20,7 @@
 package com.seibel.distanthorizons.core.wrapperInterfaces.world;
 
 import com.seibel.distanthorizons.core.dataObjects.fullData.sources.FullDataSourceV2;
+import com.seibel.distanthorizons.core.enums.EDhDirection;
 import com.seibel.distanthorizons.core.pos.blockPos.DhBlockPos;
 import com.seibel.distanthorizons.core.wrapperInterfaces.block.IBlockStateWrapper;
 import org.jetbrains.annotations.Nullable;
@@ -41,5 +42,7 @@ public interface IClientLevelWrapper extends ILevelWrapper
 	void clearBlockColorCache();
 	
 	Color getCloudColor(float tickDelta);
+	
+	float getShade(EDhDirection direction);
 	
 }
