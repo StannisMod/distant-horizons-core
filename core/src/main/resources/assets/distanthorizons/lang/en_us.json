@@ -428,6 +428,7 @@
 
 
 
+
   "distanthorizons.config.client.advanced.debugging":
     "Debug",
 
@@ -775,6 +776,16 @@
     "Enable Real-time Updates",
   "distanthorizons.config.server.enableRealTimeUpdates.@tooltip":
     "If true, clients will receive real-time LOD updates for chunks outside the client's render distance.",
+
+  "distanthorizons.config.server.enableInitialChunkAreaRealTimeUpdates":
+    "Enable Initial Chunk Area Real-time Updates",
+  "distanthorizons.config.server.enableInitialChunkAreaRealTimeUpdates.@tooltip":
+    "If true, clients will receive a one-time batch of existing LOD data around the player\nwhen real-time updates are enabled and sync-on-load is disabled.",
+
+  "distanthorizons.config.server.enableLocalChunkUpdates":
+    "Use Local Chunks",
+  "distanthorizons.config.server.enableLocalChunkUpdates.@tooltip":
+    "If true, local vanilla chunks loaded by the client can update LOD data once per chunk,\neven when the server sends real-time LOD updates.\n\nIf false, server real-time updates fully replace local chunk updates.",
 
   "distanthorizons.config.server.realTimeUpdateDistanceRadiusInChunks":
     "Real-time Update Radius in Chunks",

@@ -17,11 +17,13 @@ import com.seibel.distanthorizons.core.network.messages.fullData.FullDataPartial
 import com.seibel.distanthorizons.core.multiplayer.fullData.FullDataPayload;
 import com.seibel.distanthorizons.core.network.messages.fullData.FullDataSourceRequestMessage;
 import com.seibel.distanthorizons.core.network.messages.requests.CancelMessage;
+import com.seibel.distanthorizons.core.pos.DhChunkPos;
 import com.seibel.distanthorizons.core.pos.DhSectionPos;
 import com.seibel.distanthorizons.core.pos.blockPos.DhBlockPos2D;
 import com.seibel.distanthorizons.core.util.LodUtil;
 import com.seibel.distanthorizons.core.util.WorldGenUtil;
 import com.seibel.distanthorizons.core.util.math.DhVec3d;
+import com.seibel.distanthorizons.core.util.threading.ThreadPoolUtil;
 import com.seibel.distanthorizons.core.wrapperInterfaces.misc.IServerPlayerWrapper;
 import com.seibel.distanthorizons.core.wrapperInterfaces.world.ILevelWrapper;
 import com.seibel.distanthorizons.core.wrapperInterfaces.world.IServerLevelWrapper;
@@ -31,6 +33,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.*;
 
@@ -127,13 +130,15 @@ public abstract class AbstractDhServerLevel extends AbstractDhLevel implements I
 	
 	public void registerNetworkHandlers(ServerPlayerState serverPlayerState)
 	{
+		serverPlayerState.addSessionConfigAppliedListener(() -> this.queueInitialChunkAreaRealTimeUpdatesForPlayer(serverPlayerState));
+		
 		serverPlayerState.networkSession.registerHandler(FullDataSourceRequestMessage.class, (message) ->
 		{
 			if (!this.validatePlayerInCurrentLevel(message))
 			{
 				return;
 			}
-			
+
 			DhVec3d playerPosition = serverPlayerState.getServerPlayer().getPosition();
 			int distanceFromPlayer = DhSectionPos.getChebyshevSignedBlockDistance(message.sectionPos, new DhBlockPos2D((int) playerPosition.x, (int) playerPosition.z)) / 16;
 			
@@ -222,8 +227,26 @@ public abstract class AbstractDhServerLevel extends AbstractDhLevel implements I
 	// player handling //
 	//=================//
 	
-	public void addPlayer(IServerPlayerWrapper serverPlayer) { this.worldGenPlayerCenteringQueue.add(serverPlayer); }
-	public void removePlayer(IServerPlayerWrapper serverPlayer) { this.worldGenPlayerCenteringQueue.remove(serverPlayer); }
+	public void addPlayer(IServerPlayerWrapper serverPlayer)
+	{
+		this.worldGenPlayerCenteringQueue.add(serverPlayer);
+		
+		ServerPlayerState serverPlayerState = this.serverPlayerStateManager.getConnectedPlayer(serverPlayer);
+		if (serverPlayerState != null)
+		{
+			this.queueInitialChunkAreaRealTimeUpdatesForPlayer(serverPlayerState);
+		}
+	}
+	public void removePlayer(IServerPlayerWrapper serverPlayer)
+	{
+		this.worldGenPlayerCenteringQueue.remove(serverPlayer);
+		
+		ServerPlayerState serverPlayerState = this.serverPlayerStateManager.getConnectedPlayer(serverPlayer);
+		if (serverPlayerState != null)
+		{
+			serverPlayerState.clearInitialChunkAreaRealTimeUpdatesQueued(this);
+		}
+	}
 	
 	@Override
 	public CompletableFuture<Void> updateDataSourcesAsync(FullDataSourceV2 data)
@@ -255,13 +278,113 @@ public abstract class AbstractDhServerLevel extends AbstractDhLevel implements I
 					int distanceFromPlayer = DhSectionPos.getChebyshevSignedBlockDistance(data.getPos(), new DhBlockPos2D((int) playerPosition.x, (int) playerPosition.z)) / 16;
 					if (distanceFromPlayer <= serverPlayerState.sessionConfig.getMaxUpdateDistanceRadius())
 					{
-						serverPlayerState.fullDataPayloadSender.sendInChunks(payload, () ->
-						{
-							serverPlayerState.networkSession.sendMessage(new FullDataPartialUpdateMessage(this.serverLevelWrapper, payload));
-						});
+						this.sendPartialUpdate(serverPlayerState, payload);
 					}
 				}
 			});
+	}
+
+	private void queueInitialChunkAreaRealTimeUpdatesForPlayer(ServerPlayerState serverPlayerState)
+	{
+		AbstractExecutorService fileHandlerExecutor = ThreadPoolUtil.getFileHandlerExecutor();
+		if (fileHandlerExecutor == null)
+		{
+			LOGGER.warn("Unable to queue initial chunk-area real-time LOD updates - getFileHandlerExecutor() is null");
+			return;
+		}
+
+		if (!this.canSendInitialChunkAreaRealTimeUpdatesToPlayer(serverPlayerState)
+			|| !serverPlayerState.markInitialChunkAreaRealTimeUpdatesQueued(this))
+		{
+			return;
+		}
+
+		DhChunkPos playerChunkPos = new DhChunkPos(serverPlayerState.getServerPlayer().getPosition());
+		//noinspection MathClampMigration
+		int updateRadiusInChunks = Math.min(
+			Math.max(
+				0,
+				serverPlayerState.sessionConfig.getMaxUpdateDistanceRadius()
+			),
+			serverPlayerState.getServerPlayer().getVanillaRenderDistance()
+		);
+
+		CompletableFuture.runAsync(() ->
+		{
+			for (long pos : this.getInitialChunkAreaRealTimeUpdatePositions(playerChunkPos, updateRadiusInChunks))
+			{
+				try (FullDataSourceV2 fullDataSource = this.getFullDataProvider().get(pos))
+				{
+					if (fullDataSource == null)
+					{
+						continue;
+					}
+
+					if (!this.canSendInitialChunkAreaRealTimeUpdatesToPlayer(serverPlayerState))
+					{
+						continue;
+					}
+
+					LodUtil.assertTrue(this.beaconBeamRepo != null, "beaconBeamRepo should not be null");
+					FullDataPayload payload = new FullDataPayload(fullDataSource, this.beaconBeamRepo.getAllBeamsForPos(pos));
+					this.sendPartialUpdate(serverPlayerState, payload);
+				}
+			}
+		}, fileHandlerExecutor);
+	}
+
+	private Collection<Long> getInitialChunkAreaRealTimeUpdatePositions(DhChunkPos playerChunkPos, int updateRadiusInChunks)
+	{
+		final int paddingInSections = 1;
+		
+		long minPos = DhSectionPos.encodeContaining(
+			DhSectionPos.SECTION_MINIMUM_DETAIL_LEVEL,
+			new DhChunkPos(playerChunkPos.getX() - updateRadiusInChunks, playerChunkPos.getZ() - updateRadiusInChunks)
+		);
+		long maxPos = DhSectionPos.encodeContaining(
+			DhSectionPos.SECTION_MINIMUM_DETAIL_LEVEL,
+			new DhChunkPos(playerChunkPos.getX() + updateRadiusInChunks, playerChunkPos.getZ() + updateRadiusInChunks)
+		);
+
+		int startPosX = Math.min(DhSectionPos.getX(minPos), DhSectionPos.getX(maxPos)) - paddingInSections;
+		int startPosZ = Math.min(DhSectionPos.getZ(minPos), DhSectionPos.getZ(maxPos)) - paddingInSections;
+		int endPosX = Math.max(DhSectionPos.getX(minPos), DhSectionPos.getX(maxPos)) + 1 + paddingInSections;
+		int endPosZ = Math.max(DhSectionPos.getZ(minPos), DhSectionPos.getZ(maxPos)) + 1 + paddingInSections;
+
+		return this.getFullDataProvider().repo.getTimestampsForRange(
+			DhSectionPos.SECTION_MINIMUM_DETAIL_LEVEL,
+			startPosX, startPosZ,
+			endPosX, endPosZ
+		).keySet();
+	}
+
+	private boolean canSendRealTimeUpdatesToPlayer(ServerPlayerState serverPlayerState)
+	{
+		if (!Config.Server.enableRealTimeUpdates.get()
+			|| !serverPlayerState.isReady()
+			|| !serverPlayerState.sessionConfig.isRealTimeUpdatesEnabled()
+			|| serverPlayerState.networkSession.isClosed())
+		{
+			return false;
+		}
+
+		return serverPlayerState.getServerPlayer().getLevel() == this.serverLevelWrapper;
+	}
+
+	@SuppressWarnings("BooleanMethodIsAlwaysInverted")
+	private boolean canSendInitialChunkAreaRealTimeUpdatesToPlayer(ServerPlayerState serverPlayerState)
+	{
+		return Config.Server.enableInitialChunkAreaRealTimeUpdates.get()
+			&& this.canSendRealTimeUpdatesToPlayer(serverPlayerState)
+			&& !serverPlayerState.sessionConfig.getSynchronizeOnLoad();
+	}
+
+	private void sendPartialUpdate(ServerPlayerState serverPlayerState, FullDataPayload payload)
+	{
+		serverPlayerState.fullDataPayloadSender.sendInChunks(payload, () ->
+		{
+			serverPlayerState.networkSession.sendMessage(new FullDataPartialUpdateMessage(this.serverLevelWrapper, payload));
+		});
 	}
 	
 	

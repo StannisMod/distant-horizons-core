@@ -31,4 +31,6 @@ public interface IServerPlayerWrapper extends IDhApiUnsafeWrapper
 	
 	DhVec3d getPosition();
 	
+	/** Returns the server's vanilla view/render distance for this player, in chunks. */
+	int getVanillaRenderDistance();
 }

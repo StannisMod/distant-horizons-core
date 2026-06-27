@@ -330,7 +330,8 @@ public class DhClientLevel extends AbstractDhLevel implements IDhClientLevel
 			return true;
 		}
 		
-		return !this.networkState.sessionConfig.isRealTimeUpdatesEnabled() || this.loadedOnceChunks.add(chunkPos);
+		return !this.networkState.sessionConfig.isRealTimeUpdatesEnabled()
+			|| (Config.Server.enableLocalChunkUpdates.get() && this.loadedOnceChunks.add(chunkPos));
 	}
 	
 	//endregion

@@ -1826,6 +1826,24 @@ public class Config
 				+ "")
 			.build();
 		
+		public static ConfigEntry<Boolean> enableInitialChunkAreaRealTimeUpdates = new ConfigEntry.Builder<Boolean>()
+			.setChatCommandName("realTimeUpdates.initialChunkAreaUpdates")
+			.set(true)
+			.comment(""
+				+ "If true, clients will receive a one-time batch of existing LOD data around the player \n"
+				+ "when real-time updates are enabled and sync-on-load is disabled. \n"
+				+ "")
+			.build();
+		
+		public static ConfigEntry<Boolean> enableLocalChunkUpdates = new ConfigEntry.Builder<Boolean>()
+			.set(false)
+			.comment(""
+				+ "If true, local vanilla chunks loaded by the client can be used to update LOD data once per chunk, \n"
+				+ "even when the connected server is sending real-time LOD updates. \n"
+				+ "If false, server real-time updates fully replace local chunk updates. \n"
+				+ "")
+			.build();
+		
 		public static ConfigEntry<Integer> realTimeUpdateDistanceRadiusInChunks = new ConfigEntry.Builder<Integer>()
 			.setChatCommandName("realTimeUpdates.playerDistance")
 			.setMinDefaultMax(32, 256, 4096)

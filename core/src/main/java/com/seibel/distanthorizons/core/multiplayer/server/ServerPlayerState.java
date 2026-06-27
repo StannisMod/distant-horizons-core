@@ -22,6 +22,7 @@ import com.seibel.distanthorizons.core.wrapperInterfaces.world.IServerLevelWrapp
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Closeable;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ServerPlayerState implements Closeable
@@ -42,12 +43,15 @@ public class ServerPlayerState implements Closeable
 	@NotNull
 	public final SessionConfig sessionConfig = new SessionConfig();
 	public boolean isReady() { return this.sessionConfig.constrainingConfig != null; }
+	private final Set<Runnable> sessionConfigAppliedListeners = ConcurrentHashMap.newKeySet();
 	
 	public final FullDataPayloadSender fullDataPayloadSender;
 	
 	private final ConcurrentHashMap<AbstractDhServerLevel, RateLimiterSet> rateLimiterSets = new ConcurrentHashMap<>();
 	public RateLimiterSet getRateLimiterSet(AbstractDhServerLevel level) { return this.rateLimiterSets.computeIfAbsent(level, ignored -> new RateLimiterSet()); }
 	public void clearRateLimiterSets() { this.rateLimiterSets.clear(); }
+
+	private final Set<AbstractDhServerLevel> levelsWithQueuedInitialChunkAreaRealTimeUpdates = ConcurrentHashMap.newKeySet();
 	
 	
 	//==============//
@@ -59,11 +63,7 @@ public class ServerPlayerState implements Closeable
 		this.networkSession = new NetworkSession(serverPlayer);
 		this.fullDataPayloadSender = new FullDataPayloadSender(this.networkSession, this.sessionConfig::getPlayerBandwidthLimit, sharedBandwidthLimit);
 		
-		this.networkSession.registerHandler(SessionConfigMessage.class, (sessionConfigMessage) ->
-		{
-			this.sessionConfig.constrainingConfig = sessionConfigMessage.config;
-			this.sendConfigMessage();
-		});
+		this.networkSession.registerHandler(SessionConfigMessage.class, this::handleSessionConfigMessage);
 		
 		this.networkSession.registerHandler(RequestLevelInitMessage.class, msg ->
 		{
@@ -97,9 +97,25 @@ public class ServerPlayerState implements Closeable
 	
 	
 	
-	//=================//
-	// client updating //
-	//=================//
+	//================//
+	// session config //
+	//================//
+	
+	public void addSessionConfigAppliedListener(Runnable listener)
+	{
+		this.sessionConfigAppliedListeners.add(listener);
+		if (this.isReady())
+		{
+			listener.run();
+		}
+	}
+	
+	private void handleSessionConfigMessage(SessionConfigMessage message)
+	{
+		this.sessionConfig.constrainingConfig = message.config;
+		this.sendConfigMessage();
+		this.sessionConfigAppliedListeners.forEach(Runnable::run);
+	}
 	
 	private void sendConfigMessage()
 	{
@@ -109,6 +125,14 @@ public class ServerPlayerState implements Closeable
 		
 		this.networkSession.sendMessage(new SessionConfigMessage(this.sessionConfig));
 	}
+	
+	
+	//===================//
+	// real-time updates //
+	//===================//
+	
+	public boolean markInitialChunkAreaRealTimeUpdatesQueued(AbstractDhServerLevel level) { return this.levelsWithQueuedInitialChunkAreaRealTimeUpdates.add(level); }
+	public void clearInitialChunkAreaRealTimeUpdatesQueued(AbstractDhServerLevel level) { this.levelsWithQueuedInitialChunkAreaRealTimeUpdates.remove(level); }
 	
 	
 	
@@ -122,6 +146,8 @@ public class ServerPlayerState implements Closeable
 		this.fullDataPayloadSender.close();
 		this.configAnyChangeListener.close();
 		this.networkSession.close();
+		this.levelsWithQueuedInitialChunkAreaRealTimeUpdates.clear();
+		this.sessionConfigAppliedListeners.clear();
 	}
 	
 	
