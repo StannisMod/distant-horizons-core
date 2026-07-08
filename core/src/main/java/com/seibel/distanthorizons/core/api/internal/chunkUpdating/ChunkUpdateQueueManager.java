@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 
 /**
@@ -46,6 +47,10 @@ public class ChunkUpdateQueueManager
 	/** how many milliseconds must pass before an overloaded message can be sent in chat or the log */
 	public static final int MIN_MS_BETWEEN_OVERLOADED_LOG_MESSAGE = 30_000;
 	
+	private final AtomicBoolean isProcessing = new AtomicBoolean(false);
+	
+	/** @return true if this call started a new processing chain */
+	public boolean tryStartProcessing() { return this.isProcessing.compareAndSet(false, true); }
 	
 	
 	private final Set<DhChunkPos> ignoredChunkPosSet = Collections.newSetFromMap(new ConcurrentHashMap<>());
@@ -58,7 +63,7 @@ public class ChunkUpdateQueueManager
 	public final ChunkPosQueue preUpdateQueue;
 	
 	public final ConcurrentMap<DhChunkPos, IChunkWrapper> queuedChunkWrapperByChunkPos = CacheBuilder.newBuilder()
-		.expireAfterWrite(20, TimeUnit.SECONDS)
+		.expireAfterAccess(20, TimeUnit.SECONDS) // maybe 20s is too much ??
 		.<DhChunkPos, IChunkWrapper>build()
 		.asMap();
 	
@@ -136,7 +141,7 @@ public class ChunkUpdateQueueManager
 		}
 		
 		queue.addItem(pos,updateData);
-		this.queuedChunkWrapperByChunkPos.putIfAbsent(pos, updateData.chunkWrapper);
+		this.queuedChunkWrapperByChunkPos.put(pos, updateData.chunkWrapper);
 		
 		remainingSlots = this.maxSize - this.getQueuedCount();
 		if (remainingSlots <= 0)
@@ -253,12 +258,14 @@ public class ChunkUpdateQueueManager
 			try
 			{
 				executor.execute(this::processQueue);
+				return; // still going, isProcessing stays true
 			}
 			catch (RejectedExecutionException ignore)
 			{
 				// the executor was shut down, it should be back up shortly and able to accept new jobs
 			}
 		}
+		this.isProcessing.set(false); // nothing left (or executor gone)
 		
 	}
 	
@@ -330,9 +337,10 @@ public class ChunkUpdateQueueManager
 		{
 			LOGGER.error("Unexpected error when updating chunk at pos: [" + chunkWrapper.getChunkPos() + "]", e);
 		}
-		
-		this.queuedChunkWrapperByChunkPos.remove(updateData.chunkWrapper.getChunkPos());
+		// Do not remove the chunk from queue so it can be used for neighbor. It will be removed after 20s
+		//this.queuedChunkWrapperByChunkPos.remove(updateData.chunkWrapper.getChunkPos());
 	}
+	
 	private ArrayList<IChunkWrapper> tryGetNeighborChunkListForChunk(IChunkWrapper chunkWrapper)
 	{
 		// get the neighboring chunk list
@@ -359,6 +367,11 @@ public class ChunkUpdateQueueManager
 			}
 		}
 		return neighborChunkList;
+	}
+	
+	public void releaseProcessing()
+	{
+		isProcessing.set(false);
 	}
 	
 	//endregion

@@ -97,7 +97,7 @@ public interface IChunkWrapper extends IBindable
 	
 	/** Note: don't modify this array, it will only be generated once and then shared between uses */
 	ArrayList<DhBlockPos> getWorldBlockLightPosList();
-	
+	int getBlockLight(int relX, int relY, int relZ);
 	
 	default boolean blockPosInsideChunk(DhBlockPos blockPos) { return this.blockPosInsideChunk(blockPos.getX(), blockPos.getY(), blockPos.getZ()); }
 	default boolean blockPosInsideChunk(int x, int y, int z)
@@ -235,6 +235,7 @@ public interface IChunkWrapper extends IBindable
 		int primeBlockMultiplier = 227;
 		int primeBiomeMultiplier = 701;
 		int primeHeightMultiplier = 137;
+		int primeLightMultiplier = 409;
 		
 		int minBuildHeight = this.getMinNonEmptyHeight();
 		int maxBuildHeight = this.getMaxNonEmptyHeight();
@@ -270,6 +271,7 @@ public interface IChunkWrapper extends IBindable
 				hash = (hash * primeBlockMultiplier) + previousBlockState.hashCode();
 				hash = (hash * primeBiomeMultiplier) + this.getBiome(x, lightBlockingY, z).hashCode();
 				hash = (hash * primeHeightMultiplier) + lightBlockingY;
+				hash = (hash * primeLightMultiplier) + this.getBlockLight(x, lightBlockingY + 1, z);
 				
 				int solidY = this.getSolidHeightMapValue(x, z);
 				if (solidY != lightBlockingY)
