@@ -97,7 +97,7 @@ public interface IChunkWrapper extends IBindable
 	
 	/** Note: don't modify this array, it will only be generated once and then shared between uses */
 	ArrayList<DhBlockPos> getWorldBlockLightPosList();
-	int getBlockLight(int relX, int relY, int relZ);
+	int getBlockLight(int relX, int y, int relZ);
 	
 	default boolean blockPosInsideChunk(DhBlockPos blockPos) { return this.blockPosInsideChunk(blockPos.getX(), blockPos.getY(), blockPos.getZ()); }
 	default boolean blockPosInsideChunk(int x, int y, int z)

@@ -10,7 +10,7 @@ public class ChunkUpdateData
 {
 	public IChunkWrapper chunkWrapper;
 	public IDhLevel dhLevel;
-	
+	public final long firstQueuedAtNanos = System.nanoTime();
 	
 	
 	public ChunkUpdateData(IChunkWrapper chunkWrapper, IDhLevel dhLevel)

@@ -47,14 +47,10 @@ public class ChunkUpdateQueueManager
 	/** how many milliseconds must pass before an overloaded message can be sent in chat or the log */
 	public static final int MIN_MS_BETWEEN_OVERLOADED_LOG_MESSAGE = 30_000;
 	
-	private final AtomicBoolean isProcessing = new AtomicBoolean(false);
-	
-	/** @return true if this call started a new processing chain */
-	public boolean tryStartProcessing() { return this.isProcessing.compareAndSet(false, true); }
-	
-	
 	private final Set<DhChunkPos> ignoredChunkPosSet = Collections.newSetFromMap(new ConcurrentHashMap<>());
 	private static long lastOverloadedLogMessageMsTime = 0;
+	
+	public static final long UPDATE_DEBOUNCE_NANOS = TimeUnit.MILLISECONDS.toNanos(250);
 	
 	
 	
@@ -258,14 +254,12 @@ public class ChunkUpdateQueueManager
 			try
 			{
 				executor.execute(this::processQueue);
-				return; // still going, isProcessing stays true
 			}
 			catch (RejectedExecutionException ignore)
 			{
 				// the executor was shut down, it should be back up shortly and able to accept new jobs
 			}
 		}
-		this.isProcessing.set(false); // nothing left (or executor gone)
 		
 	}
 	
@@ -311,6 +305,14 @@ public class ChunkUpdateQueueManager
 		ChunkUpdateData updateData = this.updateQueue.popClosest();
 		if (updateData == null)
 		{
+			return;
+		}
+		
+		// debounce the chunk so we are sure neighbors are queued
+		long waitedNanos = System.nanoTime() - updateData.firstQueuedAtNanos;
+		if (waitedNanos < UPDATE_DEBOUNCE_NANOS)
+		{
+			this.updateQueue.addItem(updateData.chunkWrapper.getChunkPos(), updateData);
 			return;
 		}
 		
@@ -367,11 +369,6 @@ public class ChunkUpdateQueueManager
 			}
 		}
 		return neighborChunkList;
-	}
-	
-	public void releaseProcessing()
-	{
-		isProcessing.set(false);
 	}
 	
 	//endregion
