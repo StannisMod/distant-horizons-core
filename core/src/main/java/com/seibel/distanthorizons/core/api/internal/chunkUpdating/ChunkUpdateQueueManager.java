@@ -12,6 +12,7 @@ import com.seibel.distanthorizons.core.logging.DhLoggerBuilder;
 import com.seibel.distanthorizons.core.logging.f3.F3Screen;
 import com.seibel.distanthorizons.core.pos.DhChunkPos;
 import com.seibel.distanthorizons.core.util.LodUtil;
+import com.seibel.distanthorizons.core.util.ThreadUtil;
 import com.seibel.distanthorizons.core.util.threading.ThreadPoolUtil;
 import com.seibel.distanthorizons.core.world.EWorldEnvironment;
 import com.seibel.distanthorizons.core.logging.DhLogger;
@@ -25,13 +26,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 
 /**
  * @see WorldChunkUpdateManager
  */
-public class ChunkUpdateQueueManager
+public class ChunkUpdateQueueManager implements AutoCloseable
 {
 	private static final DhLogger LOGGER = new DhLoggerBuilder().build();
 	
@@ -52,7 +52,9 @@ public class ChunkUpdateQueueManager
 	
 	public static final long UPDATE_DEBOUNCE_NANOS = TimeUnit.MILLISECONDS.toNanos(250);
 	
+	private static final int PROCESS_QUEUE_DELAY_MS = 50;
 	
+	private final ExecutorService queueingThread = ThreadUtil.makeSingleThreadPool("Chunk Update Queueing");
 	
 	
 	public final ChunkPosQueue updateQueue;
@@ -80,6 +82,8 @@ public class ChunkUpdateQueueManager
 	{
 		this.updateQueue = new ChunkPosQueue();
 		this.preUpdateQueue = new ChunkPosQueue();
+		
+		this.queueingThread.execute(this::runQueueingLoop);
 	}
 	
 	//endregion
@@ -217,6 +221,29 @@ public class ChunkUpdateQueueManager
 	//===================//
 	//region
 	
+	private void runQueueingLoop()
+	{
+		while (!Thread.interrupted())
+		{
+			try
+			{
+				this.processQueue();
+				if (this.updateQueue.isEmpty() && this.preUpdateQueue.isEmpty())
+				{
+					Thread.sleep(PROCESS_QUEUE_DELAY_MS);
+				}
+			}
+			catch (InterruptedException ignored)
+			{
+				Thread.currentThread().interrupt();
+			}
+			catch (Exception e)
+			{
+				LOGGER.error("Unexpected error in chunk update queueing thread.", e);
+			}
+		}
+	}
+	
 	public void processQueue()
 	{
 		// update the center & max size of the queue manager
@@ -245,22 +272,7 @@ public class ChunkUpdateQueueManager
 		//===============================//
 		
 		this.processQueuedChunkPreUpdate();
-		this.processQueuedChunkUpdate();
-		
-		// queue the next position if there are still positions to process
-		AbstractExecutorService executor = ThreadPoolUtil.getChunkToLodBuilderExecutor();
-		if (executor != null && !this.updateQueuesEmpty())
-		{
-			try
-			{
-				executor.execute(this::processQueue);
-			}
-			catch (RejectedExecutionException ignore)
-			{
-				// the executor was shut down, it should be back up shortly and able to accept new jobs
-			}
-		}
-		
+		this.tryDispatchReadyChunkUpdate();
 	}
 	
 	private void processQueuedChunkPreUpdate()
@@ -300,7 +312,7 @@ public class ChunkUpdateQueueManager
 		}
 	}
 	
-	private void processQueuedChunkUpdate()
+	private void tryDispatchReadyChunkUpdate()
 	{
 		ChunkUpdateData updateData = this.updateQueue.popClosest();
 		if (updateData == null)
@@ -316,14 +328,30 @@ public class ChunkUpdateQueueManager
 			return;
 		}
 		
+		AbstractExecutorService executor = ThreadPoolUtil.getChunkToLodBuilderExecutor();
+		if (executor == null)
+		{
+			this.updateQueue.addItem(updateData.chunkWrapper.getChunkPos(), updateData);
+			return;
+		}
+		
+		try
+		{
+			executor.execute(() -> this.processChunkUpdate(updateData));
+		}
+		catch (RejectedExecutionException ignore)
+		{
+			this.updateQueue.addItem(updateData.chunkWrapper.getChunkPos(), updateData);
+		}
+	}
+	
+	private void processChunkUpdate(ChunkUpdateData updateData)
+	{
 		IChunkWrapper chunkWrapper = updateData.chunkWrapper;
 		IDhLevel dhLevel = updateData.dhLevel;
 		ILevelWrapper levelWrapper = dhLevel.getLevelWrapper();
 		
-		// having a list of the nearby chunks is needed for lighting and beacon generation
-		ArrayList<IChunkWrapper> nearbyChunkList  = this.tryGetNeighborChunkListForChunk(chunkWrapper);
-		
-		
+		ArrayList<IChunkWrapper> nearbyChunkList = this.tryGetNeighborChunkListForChunk(chunkWrapper);
 		
 		try
 		{
@@ -339,8 +367,6 @@ public class ChunkUpdateQueueManager
 		{
 			LOGGER.error("Unexpected error when updating chunk at pos: [" + chunkWrapper.getChunkPos() + "]", e);
 		}
-		// Do not remove the chunk from queue so it can be used for neighbor. It will be removed after 20s
-		//this.queuedChunkWrapperByChunkPos.remove(updateData.chunkWrapper.getChunkPos());
 	}
 	
 	private ArrayList<IChunkWrapper> tryGetNeighborChunkListForChunk(IChunkWrapper chunkWrapper)
@@ -413,6 +439,17 @@ public class ChunkUpdateQueueManager
 	
 	//endregion
 	
+	//===========//
+	// overrides //
+	//===========//
+	//region
 	
+	@Override
+	public void close()
+	{
+		this.queueingThread.shutdownNow();
+	}
+	
+	//endregion
 	
 }

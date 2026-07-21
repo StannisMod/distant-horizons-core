@@ -136,7 +136,10 @@ public class WorldChunkUpdateManager
 		return queueCountRef.get();
 	}
 	
-	public void clear() { this.updateQueueByLevelWrapper.clear(); }
+	public void clear() {
+		this.updateQueueByLevelWrapper.forEach((levelWrapper, updateManager) -> updateManager.close());
+		this.updateQueueByLevelWrapper.clear();
+	}
 	
 	//endregion
 	

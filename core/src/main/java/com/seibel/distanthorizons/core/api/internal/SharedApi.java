@@ -285,21 +285,6 @@ public class SharedApi
 		// add chunk update data to preUpdate queue
 		ChunkUpdateData updateData = new ChunkUpdateData(chunkWrapper, dhLevel);
 		chunkManager.addItemToPreUpdateQueue(chunkWrapper.getChunkPos(), updateData);
-		
-		
-		// queue the next position if there are still positions to process
-		AbstractExecutorService executor = ThreadPoolUtil.getChunkToLodBuilderExecutor();
-		if (executor != null)
-		{
-			try
-			{
-				executor.execute(WORLD_CHUNK_UPDATE_MANAGER::processEachQueue);
-			}
-			catch (RejectedExecutionException ignore)
-			{
-				// the executor was shut down, it should be back up shortly and able to accept new jobs
-			}
-		}
 	}
 	
 	//endregion
