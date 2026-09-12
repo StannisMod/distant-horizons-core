@@ -136,6 +136,12 @@ void main()
         // means the LOD will use it's base color.
         vec3 clampedColor = clamp(fragColor.rgb * (tile.rgb * 2.0), 0.0, 1.0);
         fragColor.rgb = mix(fragColor.rgb, clampedColor, tile.a);
+        
+		// the texture is invisible here, don't draw
+        if (tile.a == 0.0f)
+        {
+            discard;
+        }
     }
     
     float viewDist = length(vertexWorldPos);

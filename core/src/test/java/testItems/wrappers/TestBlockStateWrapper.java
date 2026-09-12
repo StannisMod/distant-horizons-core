@@ -19,6 +19,7 @@ public class TestBlockStateWrapper implements IBlockStateWrapper
 	@Override public boolean isLiquid() { return false; }
 	@Override public String getSerialString() { return this.name; }
 	@Override public int getOpacity() { return 15; }
+	@Override public int getRenderOpacity() { return 15; }
 	@Override public int getLightEmission() { return 0; }
 	@Override public byte getMaterialId() { return 0; }
 	@Override public boolean isBeaconBlock() { return false; }

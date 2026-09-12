@@ -43,6 +43,7 @@ public interface IBlockStateWrapper extends IDhApiBlockStateWrapper
 	 * @see LodUtil#BLOCK_FULLY_TRANSPARENT
 	 */
 	int getOpacity();
+	int getRenderOpacity();
 	
 	int getLightEmission();
 	

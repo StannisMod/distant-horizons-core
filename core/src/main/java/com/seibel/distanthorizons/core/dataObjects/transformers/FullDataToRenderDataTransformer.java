@@ -454,7 +454,7 @@ public class FullDataToRenderDataTransformer
 				// caves also ignore transparent/non-solid blocks (IE grass and plants) without each being defined
 				|| !block.isSolid()
 				|| block.isLiquid()
-				|| block.getOpacity() < LodUtil.BLOCK_FULLY_OPAQUE)
+				|| block.getRenderOpacity() < LodUtil.BLOCK_FULLY_OPAQUE)
 			{
 				if (caveCullingEnabled
 					// assume this data point is underground if it has no sky-light
@@ -521,7 +521,7 @@ public class FullDataToRenderDataTransformer
 				ignoreNonCollidingBlocks
 				&& !block.isSolid()
 				&& !block.isLiquid()
-				&& block.getOpacity() != LodUtil.BLOCK_FULLY_OPAQUE;
+				&& block.getRenderOpacity() != LodUtil.BLOCK_FULLY_OPAQUE;
 			
 			// handle height reduction
 			boolean isSnowLayer = snowLayerBlockStates.contains(block);
@@ -614,6 +614,14 @@ public class FullDataToRenderDataTransformer
 			{
 				// use this block's color
 				color = levelWrapper.getBlockColor(mutableBlockPos, biome, fullDataSource, block);
+				if (block.getRenderOpacity() != LodUtil.BLOCK_FULLY_OPAQUE)
+				{
+					// make the block sudo-transparent
+					// since this block has transparent pixels, we want
+					// the vertical quality reducer to handle it as transparent
+					// to prevent holes in the world
+					color = ColorUtil.setAlpha(color, 200);
+				}
 				
 				// use the skylight override if present
 				if (skylightToApplyToNextBlock != -1)
