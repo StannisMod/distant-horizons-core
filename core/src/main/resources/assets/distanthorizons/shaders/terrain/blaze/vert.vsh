@@ -93,6 +93,11 @@ void main()
     //vertexWorldPos.y += my;
     vertexWorldPos.z += mz;
     
+    if (irisMaterial == 12u)
+        {
+            vertexWorldPos.y -= 1/9;
+        }
+    
     // apply the earth curvature if needed
     if (uEarthRadius < -1.0f || uEarthRadius > 1.0f)
     {

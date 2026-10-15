@@ -152,8 +152,8 @@ void main()
         // if not included 1 in 16 pixels would never fade away
         worldNoise += 0.001;
         
-        float fadeStep = smoothstep(uClipDistance, uClipDistance * 1.5, viewDist);
-        if (fadeStep <= worldNoise)
+        float fadeStep = smoothstep(uClipDistance * 1.5, uClipDistance * 1.9, viewDist);
+        if (fadeStep < worldNoise)
         {
             discard;
         }

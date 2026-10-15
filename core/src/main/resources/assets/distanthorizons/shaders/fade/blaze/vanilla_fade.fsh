@@ -53,6 +53,25 @@ vec3 calcViewPosition(float fragmentDepth, mat4 invMvmProj)
     return eyeCoord.xyz / eyeCoord.w;
 }
 
+float bayerMatrix4x4(vec2 st) 
+{
+    int x = int(mod(st.x, 4.0));
+    int y = int(mod(st.y, 4.0));
+
+    // Flattened 4x4 Bayer matrix
+    float bayer4x4[16] = float[16](
+        0.0,  8.0,  2.0, 10.0,
+        12.0,  4.0, 14.0,  6.0,
+        3.0, 11.0,  1.0,  9.0,
+        15.0,  7.0, 13.0,  5.0
+    );
+
+    // Calculate the 1D index from the 2D coordinates
+    int index = y * 4 + x;
+
+    // Return the Bayer value normalized between 0.0 and 1.0
+    return bayer4x4[index] / 16.0;
+}
 
 /**
  * Used to fade out vanilla chunks so the transition
@@ -112,7 +131,15 @@ void main()
         // Smoothly transition between combinedMcDhColor and uDhColorTexture
         // as the depth increases from the camera
         float fadeStep = smoothstep(uStartFadeBlockDistance, uEndFadeBlockDistance, mcFragmentDistance);
-        fragColor = mix(combinedMcDhColor, dhColor, fadeStep);
+		float worldNoise = bayerMatrix4x4(gl_FragCoord.xy);
+        if (fadeStep > worldNoise)
+            {
+                fragColor = dhColor;
+            }
+            else
+            {
+                fragColor = combinedMcDhColor;
+            }
         fragColor.a = 1.0;
     }
     else
