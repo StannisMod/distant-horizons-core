@@ -93,9 +93,9 @@ void main()
     //vertexWorldPos.y += my;
     vertexWorldPos.z += mz;
     
-    if (irisMaterial == 12u)
+    if (irisMaterial == 12u && vColor.a < 1u)
         {
-            vertexWorldPos.y -= 1/9;
+            vertexWorldPos.y -= 0.1111111;
         }
     
     // apply the earth curvature if needed
