@@ -308,10 +308,26 @@ public class FullDataToRenderDataTransformer
 		if (snowLayerBlockStates == null)
 		{
 			snowLayerBlockStates = new HashSet<>();
+			
+			// 1.13+ uses "minecraft:snow" for the layer block,
+			// 1.12.2 and older use "minecraft:snow_layer" ("minecraft:snow" is only the full block).
+			String[] blockNames = { "minecraft:snow", "minecraft:snow_layer" };
+			
 			// ignore snow layers 1-3, everything above should be considered a full block
-			snowLayerBlockStates.add(WRAPPER_FACTORY.deserializeBlockStateWrapperOrGetDefault("minecraft:snow_STATE_{layers:1}", levelWrapper));
-			snowLayerBlockStates.add(WRAPPER_FACTORY.deserializeBlockStateWrapperOrGetDefault("minecraft:snow_STATE_{layers:2}", levelWrapper));
-			snowLayerBlockStates.add(WRAPPER_FACTORY.deserializeBlockStateWrapperOrGetDefault("minecraft:snow_STATE_{layers:3}", levelWrapper));
+			for (String blockName : blockNames)
+			{
+				for (int layers = 1; layers <= 3; layers++)
+				{
+					IBlockStateWrapper wrapper = WRAPPER_FACTORY.deserializeBlockStateWrapperOrGetDefault(blockName + "_STATE_{layers:" + layers + "}", levelWrapper);
+					
+					// a failed lookup returns a default state with no "layers" property
+					// (the full snow block on 1.12.2), which must not be treated as a layer
+					if (wrapper.getSerialString().contains("layers"))
+					{
+						snowLayerBlockStates.add(wrapper);
+					}
+				}
+			}
 		}
 		
 		int caveCullingMaxY = Config.Client.Advanced.Graphics.Culling.caveCullingHeight.get() - levelWrapper.getMinHeight();
