@@ -130,9 +130,9 @@ void main()
         
         // Smoothly transition between combinedMcDhColor and uDhColorTexture
         // as the depth increases from the camera
-        float fadeStep = smoothstep(uStartFadeBlockDistance, uEndFadeBlockDistance, mcFragmentDistance);
+        float fadeStep = smoothstep(uStartFadeBlockDistance * 0.9, uEndFadeBlockDistance * 0.9, mcFragmentDistance);
 		float worldNoise = bayerMatrix4x4(gl_FragCoord.xy);
-        if (fadeStep > worldNoise)
+        if (fadeStep > worldNoise + 0.001)
             {
                 fragColor = dhColor;
             }
