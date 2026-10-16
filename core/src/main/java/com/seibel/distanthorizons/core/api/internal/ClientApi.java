@@ -37,7 +37,6 @@ import com.seibel.distanthorizons.core.render.DhApiRenderProxy;
 import com.seibel.distanthorizons.core.render.RenderParam;
 import com.seibel.distanthorizons.core.render.RenderThreadTaskHandler;
 import com.seibel.distanthorizons.core.render.renderer.*;
-import com.seibel.distanthorizons.core.util.KeyCodesUtil;
 import com.seibel.distanthorizons.core.util.math.DhVec3d;
 import com.seibel.distanthorizons.core.util.objects.Pair;
 import com.seibel.distanthorizons.core.util.objects.RollingAverage;
@@ -55,7 +54,6 @@ import com.seibel.distanthorizons.core.config.Config;
 import com.seibel.distanthorizons.core.network.messages.AbstractNetworkMessage;
 import com.seibel.distanthorizons.core.network.session.NetworkSession;
 import com.seibel.distanthorizons.coreapi.ModInfo;
-import com.seibel.distanthorizons.api.enums.rendering.EDhApiDebugRendering;
 import com.seibel.distanthorizons.api.enums.rendering.EDhApiRendererMode;
 import com.seibel.distanthorizons.core.dependencyInjection.SingletonInjector;
 import com.seibel.distanthorizons.core.world.AbstractDhWorld;
@@ -762,42 +760,6 @@ public class ClientApi
 		}
 		
 		return true;
-	}
-	
-	//endregion
-	
-	
-	
-	//==========//
-	// keyboard //
-	//==========//
-	//region keyboard
-	
-	/** Trigger once on key press, with CLIENT PLAYER. */
-	public void keyPressedEvent(int glfwKey)
-	{
-		if (!Config.Client.Advanced.Debugging.enableDebugKeybindings.get())
-		{
-			// keybindings are disabled
-			return;
-		}
-		
-		
-		if (glfwKey == KeyCodesUtil.F6)
-		{
-			Config.Client.Advanced.Debugging.rendererMode.set(EDhApiRendererMode.next(Config.Client.Advanced.Debugging.rendererMode.get()));
-			MC_CLIENT.sendChatMessage("F6: Set rendering to " + Config.Client.Advanced.Debugging.rendererMode.get());
-		}
-		else if (glfwKey == KeyCodesUtil.F7)
-		{
-			Config.Client.Advanced.Debugging.lodOnlyMode.set(!Config.Client.Advanced.Debugging.lodOnlyMode.get());
-			MC_CLIENT.sendChatMessage("F7: Set LOD only mode to " + Config.Client.Advanced.Debugging.lodOnlyMode.get());
-		}
-		else if (glfwKey == KeyCodesUtil.F8)
-		{
-			Config.Client.Advanced.Debugging.debugRenderingColors.set(EDhApiDebugRendering.next(Config.Client.Advanced.Debugging.debugRenderingColors.get()));
-			MC_CLIENT.sendChatMessage("F8: Set debug mode to " + Config.Client.Advanced.Debugging.debugRenderingColors.get());
-		}
 	}
 	
 	//endregion
