@@ -242,6 +242,20 @@ public class LodRenderer
 					genericRenderer.render(renderParams, genericRegister, false);
 				}
 				
+				// Anti-Aliasing
+				if (Config.Client.Advanced.Graphics.enableAntiAliasing.get()
+					&&
+					(
+						// AA should be handled by the shader
+						IRIS_ACCESSOR == null
+							|| !IRIS_ACCESSOR.isShaderPackInUse()
+					)
+				)
+				{
+					profiler.popPush("Anti-Aliasing");
+					antiAliasRenderer.render(renderParams);
+				}
+				
 				// combined pass transparent rendering
 				if (!deferTransparentRendering
 					&& Config.Client.Advanced.Graphics.Quality.transparency.get() == EDhApiTransparency.COMPLETE)
@@ -269,20 +283,6 @@ public class LodRenderer
 					
 					profiler.popPush("Fade Far Clip Fade");
 					farFadeRenderer.render(renderParams);
-				}
-				
-				// Anti-Aliasing
-				if (Config.Client.Advanced.Graphics.enableAntiAliasing.get()
-					&&
-					(
-						// AA should be handled by the shader
-						IRIS_ACCESSOR == null
-						|| !IRIS_ACCESSOR.isShaderPackInUse()
-					)
-				)
-				{
-					profiler.popPush("Anti-Aliasing");
-					antiAliasRenderer.render(renderParams);
 				}
 				
 				
