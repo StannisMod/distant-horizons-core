@@ -664,16 +664,20 @@ public class FullDataToRenderDataTransformer
 				if (skylightToApplyToNextBlock != -1)
 				{
 					skyLight = skylightToApplyToNextBlock;
+					// remove the override so we don't accidentally override the next datapoint
+					skylightToApplyToNextBlock = -1;
 				}
 				
 				if (blocklightToApplyToNextBlock != -1)
 				{
 					blockLight = blocklightToApplyToNextBlock;
+					blocklightToApplyToNextBlock = -1;
 				}
 				
 				if (blockToApplyToNextBlock != null)
 				{
 					block = blockToApplyToNextBlock;
+					blockToApplyToNextBlock = null;
 				}
 			}
 			
