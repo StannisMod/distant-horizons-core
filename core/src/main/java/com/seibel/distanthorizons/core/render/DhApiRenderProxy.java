@@ -57,7 +57,7 @@ public class DhApiRenderProxy implements IDhApiRenderProxy
 	private static final IMinecraftRenderWrapper MC_RENDER = SingletonInjector.INSTANCE.get(IMinecraftRenderWrapper.class);
 	private static final IDependencySetup DEPENDENCY_SETUP = SingletonInjector.INSTANCE.get(IDependencySetup.class);
 	
-	private boolean deferTransparentRendering = false;
+	private boolean deferTransparentRendering = true;
 	@Nullable
 	public EDhApiRenderingEngine currentRenderingEngine = null;
 	

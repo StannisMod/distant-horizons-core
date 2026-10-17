@@ -145,15 +145,7 @@ void main()
         // minor fudge factor to make sure all pixels fade out
         // if not included 1 in 16 pixels would never fade away
         worldNoise += 0.001;
-
-        if (fragColor.a < 0.999) // cause apparently 1 < 1 is undefined
-        {
-            fadeStep = smoothstep(uClipDistance * 1.5 * 0.9, uClipDistance * 1.9 * 0.9, viewDist);
-        }
-        else
-        {
-            fadeStep = smoothstep(uClipDistance * 1 * 0.9, uClipDistance * 1.5 * 0.9, viewDist);
-        }
+        fadeStep = smoothstep(uClipDistance * 1 * 0.9, uClipDistance * 1.5 * 0.9, viewDist);
         if (fadeStep < worldNoise)
         {
             discard;
