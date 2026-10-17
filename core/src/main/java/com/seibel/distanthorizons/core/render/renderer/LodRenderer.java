@@ -279,6 +279,7 @@ public class LodRenderer
 						IRIS_ACCESSOR == null
 							|| !IRIS_ACCESSOR.isShaderPackInUse()
 					)
+					&& !DhApiRenderProxy.INSTANCE.getDeferTransparentRendering()
 				)
 				{
 					profiler.popPush("Anti-Aliasing");
@@ -349,6 +350,20 @@ public class LodRenderer
 						
 						fogRenderer.render(renderParams, fogRenderEventParam.getFogRenderParam());
 					}
+				}
+				// Anti-Aliasing
+				if (Config.Client.Advanced.Graphics.enableAntiAliasing.get()
+					&&
+					(
+						// AA should be handled by the shader
+						IRIS_ACCESSOR == null
+							|| !IRIS_ACCESSOR.isShaderPackInUse()
+					)
+					&& DhApiRenderProxy.INSTANCE.getDeferTransparentRendering()
+				)
+				{
+					profiler.popPush("Anti-Aliasing");
+					antiAliasRenderer.render(renderParams);
 				}
 			}
 			
