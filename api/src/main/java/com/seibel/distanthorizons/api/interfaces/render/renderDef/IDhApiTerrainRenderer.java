@@ -36,7 +36,7 @@ import java.util.List;
 public interface IDhApiTerrainRenderer
 {
 	/**
-	 * @param bufferContainers should be rendered in order (i.e. index 0 first).
+	 * @param bufferContainers sorted in near-to-far order.
 	 *                      When you receive this list it will already have been culled
 	 *                      as defined by the frustum culler.
 	 */

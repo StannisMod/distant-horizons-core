@@ -423,7 +423,7 @@ public class ColumnRenderBufferBuilder
 			quadBuilder, phantomArrayCheckout, clientLevelWrapper,
 			blockWidth, blockMaxY,
 			blockMinX, blockMinY, blockMinZ,
-			color,
+			color, RenderDataPointUtil.getColor(renderData), // the raw datapoint colors is used for culling purposes and is handled separately to prevent culling issues when the color is modified
 			blockMaterialId,
 			RenderDataPointUtil.getLightSky(renderData),
 			fullBright ? LodUtil.MAX_MC_LIGHT : RenderDataPointUtil.getLightBlock(renderData),

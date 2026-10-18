@@ -59,7 +59,8 @@ public class ColumnBox
 		LodQuadBuilder builder, PhantomArrayListCheckout phantomArrayCheckout, IClientLevelWrapper clientLevelWrapper,
 		short blockWidth, short yHeight,
 		short minX, short minY, short minZ,
-		int color, byte irisBlockMaterialId, byte skyLight, byte blockLight,
+		// the raw datapoint color is used for culling purposes and is handled separately to prevent culling issues when the color is modified
+		int color, int rawDataPointColor, byte irisBlockMaterialId, byte skyLight, byte blockLight,
 		long topData, long bottomData, 
 		ColumnRenderView[] adjData, boolean[] isAdjDataSameDetailLevel,
 		short @Nullable [] faceTileIdsByDirectionOrdinal)
@@ -115,7 +116,7 @@ public class ColumnBox
 		{
 			boolean skipTop = RenderDataPointUtil.doesDataPointExist(topData)
 					&& (RenderDataPointUtil.getYMin(topData) == maxY)
-					&& !isTopTransparent;
+					&& (!isTopTransparent || (isTransparent && isSameTransparentBlock(topData, rawDataPointColor, irisBlockMaterialId)));
 			
 			if (!skipTop)
 			{
@@ -132,7 +133,7 @@ public class ColumnBox
 		{
 			boolean skipBottom = RenderDataPointUtil.doesDataPointExist(bottomData)
 					&& (RenderDataPointUtil.getYMax(bottomData) == minY)
-					&& !isBottomTransparent;
+					&& (!isBottomTransparent || (isTransparent && isSameTransparentBlock(bottomData, rawDataPointColor, irisBlockMaterialId)));
 			if (!skipBottom)
 			{
 				builder.addQuadDown(
@@ -175,7 +176,7 @@ public class ColumnBox
 					adjCol, faceTileIdsByDirectionOrdinal,
 					adjSameDetailLevel, caveCullingMaxY, EDhDirection.NORTH, 
 					minX, minY, minZ, blockWidth, yHeight,
-					color, irisBlockMaterialId, blockLight);
+					color, rawDataPointColor, irisBlockMaterialId, blockLight);
 			}
 		}
 		
@@ -202,7 +203,7 @@ public class ColumnBox
 					adjCol, faceTileIdsByDirectionOrdinal,
 					adjSameDetailLevel, caveCullingMaxY, EDhDirection.SOUTH,
 					minX, minY, maxZ, blockWidth, yHeight,
-					color, irisBlockMaterialId, blockLight);
+					color, rawDataPointColor, irisBlockMaterialId, blockLight);
 			}
 		}
 		
@@ -229,7 +230,7 @@ public class ColumnBox
 					adjCol, faceTileIdsByDirectionOrdinal,
 					adjSameDetailLevel, caveCullingMaxY, EDhDirection.WEST, 
 					minX, minY, minZ, blockWidth, yHeight,
-					color, irisBlockMaterialId, blockLight);
+					color, rawDataPointColor, irisBlockMaterialId, blockLight);
 			}
 		}
 		
@@ -256,7 +257,7 @@ public class ColumnBox
 					adjCol, faceTileIdsByDirectionOrdinal,
 					adjSameDetailLevel, caveCullingMaxY, EDhDirection.EAST, 
 					maxX, minY, minZ, blockWidth, yHeight,
-					color, irisBlockMaterialId, blockLight);
+					color, rawDataPointColor, irisBlockMaterialId, blockLight);
 			}
 		}
 	}
@@ -266,7 +267,7 @@ public class ColumnBox
 		@NotNull ColumnRenderView adjColumnView, short @Nullable [] faceTileIdsByDirectionOrdinal,
 		boolean adjacentIsSameDetailLevel, int caveCullingMaxY, EDhDirection direction,
 		short x, short yMin, short z, short horizontalBlockWidth, short ySize,
-		int color, byte irisBlockMaterialId, byte blockLight)
+		int color, int dataPointColor, byte irisBlockMaterialId, byte blockLight)
 	{
 		// pooled arrays
 		LongArrayList segments = phantomArrayCheckout.getLongArray(0, 0);
@@ -359,6 +360,8 @@ public class ColumnBox
 			
 			byte adjSkyLight = RenderDataPointUtil.getLightSky(adjPoint);
 			byte lightToApply;
+			// whether the adjacent data point hides transparent faces
+			boolean adjCoversRange = true;
 			
 			if (!adjTransparent)
 			{
@@ -392,15 +395,26 @@ public class ColumnBox
 				
 				lightToApply = useAdjLighting ? adjSkyLight : SKYLIGHT_COVERED;
 			}
+			else if (inputTransparent
+				&& isSameTransparentBlock(adjPoint, dataPointColor, irisBlockMaterialId))
+			{
+				// Both are the same transparent block (glass next to glass, water next to water),
+				// hide the shared face.
+				// The below light can't be used for this since it is full sky light
+				// whenever the transparent block doesn't block light (IE glass).
+				lightToApply = SKYLIGHT_COVERED;
+			}
 			else
 			{
-				// Adjacent is transparent, use below light
+				// Adjacent is a different transparent block (IE water next to glass),
+				// the face is visible through it, use below light
 				lightToApply = RenderDataPointUtil.getLightSky(adjBelowPoint);
+				adjCoversRange = false;
 			}
 			
 			
 			// Apply light to the range [adjMinY, adjMaxY)
-			applyLightToRangeAndPopulateNewSgements(segments, newSegments, adjMinY, adjMaxY, lightToApply, true);
+			applyLightToRangeAndPopulateNewSgements(segments, newSegments, adjMinY, adjMaxY, lightToApply, adjCoversRange);
 			{
 				// swap references so we can use the newly populated segments
 				LongArrayList temp = segments;
@@ -553,6 +567,23 @@ public class ColumnBox
 		}
 		
 		return faceTileIdsByDirectionOrdinal[direction.faceIndex];
+	}
+	
+	/**
+	 * Returns true if the adjacent data point is the same transparent block,
+	 * in which case the face between them shouldn't be rendered. <br><br>
+	 *
+	 * The material alone isn't enough since most transparent blocks
+	 * share the same material (IE all stained glass colors are UNKNOWN),
+	 * so the color is compared as well. <br>
+	 * Water is the exception, its biome tint can differ between neighbors
+	 * and comparing the color would create walls inside oceans.
+	 */
+	private static boolean isSameTransparentBlock(long adjData, int dataPointColor, byte irisBlockMaterialId)
+	{
+		return RenderDataPointUtil.getBlockMaterialId(adjData) == irisBlockMaterialId
+			&& (irisBlockMaterialId == EDhApiBlockMaterial.WATER.index
+				|| RenderDataPointUtil.getColor(adjData) == dataPointColor);
 	}
 	
 	//endregion

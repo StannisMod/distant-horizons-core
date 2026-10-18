@@ -30,7 +30,6 @@ import com.seibel.distanthorizons.core.logging.DhLogger;
 import com.seibel.distanthorizons.core.logging.DhLoggerBuilder;
 import com.seibel.distanthorizons.core.logging.f3.F3Screen;
 import com.seibel.distanthorizons.core.pos.DhSectionPos;
-import com.seibel.distanthorizons.core.pos.blockPos.DhBlockPos2D;
 import com.seibel.distanthorizons.core.render.QuadTree.LodQuadTree;
 import com.seibel.distanthorizons.core.render.QuadTree.LodRenderSection;
 import com.seibel.distanthorizons.core.render.renderer.LodRenderer;
@@ -69,6 +68,9 @@ public class RenderBufferHandler implements AutoCloseable
 	public final LodQuadTree lodQuadTree;
 	
 	private final SortedArraySet<LodBufferContainer> loadedNearToFarBuffers;
+	/** camera position the buffers are sorted relative to, updated in {@link #buildRenderList} */
+	private double sortCameraBlockX;
+	private double sortCameraBlockZ;
 	/** temp array to prevent threading issues and prevent re-allocating the same array each frame */
 	private final ArrayList<LodRenderSection> tempProcessNodeList = new ArrayList<>();
 	
@@ -104,15 +106,20 @@ public class RenderBufferHandler implements AutoCloseable
 		this.loadedNearToFarBuffers = new SortedArraySet<>(this::sortBufferContainersNearToFar);
 	}
 	private int sortBufferContainersNearToFar(LodBufferContainer loadedBufferA, LodBufferContainer loadedBufferB)
+	{ return Double.compare(this.distanceSquaredToCamera(loadedBufferA.pos), this.distanceSquaredToCamera(loadedBufferB.pos)); }
+	/**
+	 * horizontal distance from the camera to the center of the section. <br>
+	 * The center is used instead of the closest point since the section sizes
+	 * are also chosen by the distance to their center, the closest point would
+	 * sort larger sections in front of the smaller sections next to them.
+	 */
+	private double distanceSquaredToCamera(long pos)
 	{
-		DhBlockPos2D aPos = DhSectionPos.getCenterBlockPos(loadedBufferA.pos);
-		DhBlockPos2D bPos = DhSectionPos.getCenterBlockPos(loadedBufferB.pos);
+		double halfWidth = DhSectionPos.getBlockWidth(pos) / 2.0;
 		
-		DhBlockPos2D centerPos = this.lodQuadTree.getCenterBlockPos();
-		
-		int aManhattanDistance = aPos.manhattanDist(centerPos);
-		int bManhattanDistance = bPos.manhattanDist(centerPos);
-		return aManhattanDistance - bManhattanDistance;
+		double x = (DhSectionPos.getMinCornerBlockX(pos) + halfWidth) - this.sortCameraBlockX;
+		double z = (DhSectionPos.getMinCornerBlockZ(pos) + halfWidth) - this.sortCameraBlockZ;
+		return (x * x) + (z * z);
 	}
 	
 	//endregion
@@ -260,6 +267,10 @@ public class RenderBufferHandler implements AutoCloseable
 			}
 		}
 		
+		// near to far sorting is needed for transparent rendering (drawn far to near)
+		this.sortCameraBlockX = renderParams.exactCameraPosition.x;
+		this.sortCameraBlockZ = renderParams.exactCameraPosition.z;
+		this.loadedNearToFarBuffers.sort();
 		if (isShadowPass)
 		{
 			this.shadowVisibleBufferCount = this.loadedNearToFarBuffers.size();
