@@ -164,7 +164,7 @@ public class FullDataToRenderDataTransformer
 		FullDataSourceV2 fullDataSource, int blockX, int blockZ, 
 		ColumnRenderView columnArrayView, 
 		LongArrayList fullDataColumn,
-		// only needed if the render source stores texture ids, see applyTextureSetIds
+		// only needed for texture ids and fluid amounts, see applyTopBlockData
 		@Nullable ColumnRenderSource columnSource, int sourceRelX, int sourceRelZ,
 		// pooled references
 		PhantomArrayListCheckout phantomCheckout, ColumnRenderView tempExpandingColumnView, 
@@ -197,15 +197,14 @@ public class FullDataToRenderDataTransformer
 			columnArrayView.changeVerticalSizeFrom(tempExpandingColumnView, reducingList);
 		}
 		
-		if (columnSource != null 
-			&& columnSource.hasTextureSetIds())
+		if (columnSource != null)
 		{
-			applyTextureSetIds(fullDataSource, columnArrayView, fullDataColumn, columnSource, sourceRelX, sourceRelZ);
+			applyTopBlockData(levelWrapper, fullDataSource, columnArrayView, fullDataColumn, columnSource, sourceRelX, sourceRelZ);
 		}
 	}
 	
 	/**
-	 * Determines the texture for each finished render data point
+	 * Determines the texture and fluid amount for each finished render data point
 	 * by finding the full data block at the data point's top. <br>
 	 * The top block is used since merged data points keep their top block's color,
 	 * keeping the texture consistent with the color it multiplies. <br><br>
@@ -213,7 +212,8 @@ public class FullDataToRenderDataTransformer
 	 * This runs after any vertical size reduction so it doesn't matter
 	 * how the data points were merged along the way.
 	 */
-	private static void applyTextureSetIds(
+	private static void applyTopBlockData(
+			IClientLevelWrapper levelWrapper,
 			FullDataSourceV2 fullDataSource, ColumnRenderView renderColumnData, LongArrayList fullDataColumn,
 			ColumnRenderSource columnSource, int sourceRelX, int sourceRelZ)
 	{
@@ -232,6 +232,7 @@ public class FullDataToRenderDataTransformer
 			// find the full data point containing the render data point's top block,
 			// the full data column is sorted top down
 			short textureId = 0;
+			int fluidAmount = ColumnRenderSource.FULL_FLUID_AMOUNT;
 			for (int fullIndex = 0; fullIndex < fullDataColumn.size(); fullIndex++)
 			{
 				long fullData = fullDataColumn.getLong(fullIndex);
@@ -268,7 +269,28 @@ public class FullDataToRenderDataTransformer
 							}
 						}
 						
-						textureId = BlockTextureRegistry.INSTANCE.getOrRegisterBlockStateSetId(block);
+						// blocks that are replaced with water (like surface seagrass) should look like water,
+						// this is the same check setRenderColumnView uses to replace them
+						if (isReplacedWithWater(levelWrapper, fullDataSource, fullDataColumn, fullIndex))
+						{
+							block = WRAPPER_FACTORY.getWaterBlockStateWrapper(levelWrapper);
+						}
+						
+						// This now also runs for fluid changes, so we gotta check if textures are on
+						if (columnSource.hasTextureSetIds())
+						{
+							textureId = BlockTextureRegistry.INSTANCE.getOrRegisterBlockStateSetId(block);
+						}
+						
+						// Blocks that are replaced with water (like lily pads) don't have fluid, those stay full
+						if (block.getFluidAmount() != 0)
+						{
+							fluidAmount = block.getFluidAmount();
+						}
+						else if (block.isLiquid())
+						{
+							fluidAmount = ColumnRenderSource.WATERLOGGED_FLUID_AMOUNT;
+						}
 					}
 					catch (IndexOutOfBoundsException ignore)
 					{
@@ -282,6 +304,36 @@ public class FullDataToRenderDataTransformer
 			}
 			
 			columnSource.setTextureSetId(sourceRelX, sourceRelZ, renderIndex, textureId);
+			columnSource.setFluidAmount(sourceRelX, sourceRelZ, renderIndex, fluidAmount);
+		}
+	}
+	
+	/** Surface blocks like seagrass are drawn as water if there's air or a lily pad directly above them */
+	private static boolean isReplacedWithWater(
+			IClientLevelWrapper levelWrapper, FullDataSourceV2 fullDataSource, 
+			LongArrayList fullDataColumn, int fullDataIndex)
+	{
+		try
+		{
+			IBlockStateWrapper block = fullDataSource.mapping.getBlockStateWrapper(FullDataPointUtil.getId(fullDataColumn.getLong(fullDataIndex)));
+			if (!WRAPPER_FACTORY.getWaterSubsurfaceReplacementBlocks(levelWrapper).contains(block))
+			{
+				return false;
+			}
+			
+			if (fullDataIndex == 0)
+			{
+				return true;
+			}
+			
+			IBlockStateWrapper blockAbove = fullDataSource.mapping.getBlockStateWrapper(FullDataPointUtil.getId(fullDataColumn.getLong(fullDataIndex - 1)));
+			return blockAbove.isAir()
+				|| WRAPPER_FACTORY.getWaterSurfaceReplacementBlocks(levelWrapper).contains(blockAbove);
+		}
+		catch (IndexOutOfBoundsException ignore)
+		{
+			// broken mappings are logged during color resolution
+			return false;
 		}
 	}
 	
@@ -299,7 +351,6 @@ public class FullDataToRenderDataTransformer
 		
 		final ObjectOpenHashSet<IBlockStateWrapper> blockStatesToIgnore = WRAPPER_FACTORY.getRendererIgnoredBlocks(levelWrapper);
 		final ObjectOpenHashSet<IBlockStateWrapper> caveBlockStatesToIgnore = WRAPPER_FACTORY.getRendererIgnoredCaveBlocks(levelWrapper);
-		final ObjectOpenHashSet<IBlockStateWrapper> waterSubsurfaceReplacementBlocks = WRAPPER_FACTORY.getWaterSubsurfaceReplacementBlocks(levelWrapper);
 		final ObjectOpenHashSet<IBlockStateWrapper> waterSurfaceReplacementBlocks = WRAPPER_FACTORY.getWaterSurfaceReplacementBlocks(levelWrapper);
 		final IBlockStateWrapper water = WRAPPER_FACTORY.getWaterBlockStateWrapper(levelWrapper);
 		
@@ -346,6 +397,7 @@ public class FullDataToRenderDataTransformer
 		int lastColor = 0;
 		int lastBottom = -10_000;
 		IBlockStateWrapper lastBlock = null;
+		boolean airAfterLastBlock = false;
 		
 		// there are several instances where we'll want
 		// to copy the top datapoint down and override the one below it
@@ -434,6 +486,7 @@ public class FullDataToRenderDataTransformer
 				blockToApplyToNextBlock = null;
 				skylightToApplyToNextBlock = -1;
 				blocklightToApplyToNextBlock = -1;
+				airAfterLastBlock = true;
 			}
 			
 			
@@ -446,7 +499,8 @@ public class FullDataToRenderDataTransformer
 			// is this block water and the one above it ice?
 			if (block.getMaterialId() == EDhApiBlockMaterial.WATER.index
 				&& lastBlock != null
-				&& lastBlock.isIceBlock())
+				&& lastBlock.isIceBlock()
+				&& !airAfterLastBlock)
 			{
 				// Replace the water with ice to prevent rendering water
 				// under the frozen lakes (which looks bad).
@@ -460,9 +514,11 @@ public class FullDataToRenderDataTransformer
 			// cave culling check //
 			//====================//
 			
-			if (waterSubsurfaceReplacementBlocks.contains(block)
-				&& (lastBlock == null || lastBlock.isAir()))
+			// surface blocks replaced with water (seagrass) still tint the water they become
+			int replacedBlockColor = 0;
+			if (isReplacedWithWater(levelWrapper, fullDataSource, fullColumnData, fullDataIndex))
 			{
+				replacedBlockColor = levelWrapper.getBlockColor(mutableBlockPos, biome, fullDataSource, block);
 				block = water;
 			}
 			
@@ -546,8 +602,10 @@ public class FullDataToRenderDataTransformer
 			boolean isWaterSurfaceReplacement = waterSurfaceReplacementBlocks.contains(block);
 			if (isSnowLayer || isWaterSurfaceReplacement)
 			{
+				int surfaceBlockColor = 0;
 				if (isWaterSurfaceReplacement)
 				{
+					surfaceBlockColor = levelWrapper.getBlockColor(mutableBlockPos, biome, fullDataSource, block);
 					// replace the block with water
 					block = WRAPPER_FACTORY.getWaterBlockStateWrapper(levelWrapper);
 				}
@@ -573,7 +631,9 @@ public class FullDataToRenderDataTransformer
 					}
 					else //if (isWaterSurfaceReplacement)
 					{
-						colorToApplyToNextBlock = levelWrapper.getBlockColor(mutableBlockPos, biome, fullDataSource, block);
+						// tint the water below with the surface block (lilypads), but keep it see-through
+						int waterColor = levelWrapper.getBlockColor(mutableBlockPos, biome, fullDataSource, block);
+						colorToApplyToNextBlock = tintWaterColor(waterColor, surfaceBlockColor);
 					}
 				}
 			}
@@ -583,7 +643,8 @@ public class FullDataToRenderDataTransformer
 				int ignoredColor = levelWrapper.getBlockColor(mutableBlockPos, biome, fullDataSource, block);
 				int ignoredAlpha = ColorUtil.getAlpha(ignoredColor);
 				
-				if (colorBelowWithAvoidedBlocks)
+				// water surface replacements already tinted the water below
+				if (colorBelowWithAvoidedBlocks && !isWaterSurfaceReplacement)
 				{
 					// don't transfer the color when alpha is 0
 					// this prevents issues if grass is transparent
@@ -632,6 +693,10 @@ public class FullDataToRenderDataTransformer
 			{
 				// use this block's color
 				color = levelWrapper.getBlockColor(mutableBlockPos, biome, fullDataSource, block);
+				if (replacedBlockColor != 0)
+				{
+					color = tintWaterColor(color, replacedBlockColor);
+				}
 				
 				// use the skylight override if present
 				if (skylightToApplyToNextBlock != -1)
@@ -708,6 +773,7 @@ public class FullDataToRenderDataTransformer
 			lastBottom = bottomY;
 			lastColor = color;
 			lastBlock = block;
+			airAfterLastBlock = false;
 		}
 		
 		
@@ -715,6 +781,20 @@ public class FullDataToRenderDataTransformer
 		{
 			renderColumnData.set(0, RenderDataPointUtil.EMPTY_DATA);
 		}
+	}
+	
+	/** Mixes the block's color into the water's color, the water keeps its see-through alpha */
+	private static int tintWaterColor(int waterColor, int blockColor)
+	{
+		if (ColorUtil.getAlpha(blockColor) == 0)
+		{
+			return waterColor;
+		}
+		
+		return ColorUtil.argbToInt(ColorUtil.getAlpha(waterColor),
+			(ColorUtil.getRed(blockColor) + ColorUtil.getRed(waterColor)) / 2,
+			(ColorUtil.getGreen(blockColor) + ColorUtil.getGreen(waterColor)) / 2,
+			(ColorUtil.getBlue(blockColor) + ColorUtil.getBlue(waterColor)) / 2);
 	}
 	
 	/**

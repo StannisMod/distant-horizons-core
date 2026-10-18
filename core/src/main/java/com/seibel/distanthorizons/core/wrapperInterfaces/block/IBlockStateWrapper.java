@@ -44,6 +44,10 @@ public interface IBlockStateWrapper extends IDhApiBlockStateWrapper
 	 */
 	int getOpacity();
 	
+	/**
+	 * @see LodUtil#MAX_MC_LIGHT
+	 * @see LodUtil#MIN_MC_LIGHT
+	 */
 	int getLightEmission();
 	
 	byte getMaterialId();
@@ -63,6 +67,17 @@ public interface IBlockStateWrapper extends IDhApiBlockStateWrapper
 	boolean isBeaconBaseBlock();
 	
 	boolean isIceBlock();
+	
+	/** 
+	 * Returns how full a block's liquid is:
+	 * 1 (thinnest) to 8 (full). 
+	 * 0 means it isn't or has no liquid. 
+	 * 
+	 * @see LodUtil#NO_FLUID_AMOUNT
+	 * @see LodUtil#MIN_FLUID_AMOUNT
+	 * @see LodUtil#MAX_FLUID_AMOUNT
+	 */
+	int getFluidAmount();
 	
 	/**
 	 * Some blocks don't pull their texture properly (like bamboo).

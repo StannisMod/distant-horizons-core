@@ -26,6 +26,7 @@ public class TestBlockStateWrapper implements IBlockStateWrapper
 	@Override public boolean allowsBeaconBeamPassage() { return false; }
 	@Override public boolean isBeaconBaseBlock() { return false; }
 	@Override public boolean isIceBlock() { return false; }
+	@Override public int getFluidAmount() { return 0; }
 	@Override public boolean allowApiColorOverride() { return false; }
 	@Override public boolean allowApiTextureOverride() { return false; }
 	@Override public Color getMapColor() { return Color.MAGENTA; }

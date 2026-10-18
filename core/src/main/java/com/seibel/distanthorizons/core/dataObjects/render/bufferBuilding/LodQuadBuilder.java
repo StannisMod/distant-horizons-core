@@ -178,7 +178,7 @@ public class LodQuadBuilder implements AutoCloseable
 		short x, short y, short z,
 		short width, short height,
 		int color, short faceTextureId,
-		byte irisBlockMaterialId, byte skyLight, byte blockLight)
+		byte irisBlockMaterialId, byte skyLight, byte blockLight, short topDrops)
 	{
 		if (dir == EDhDirection.DOWN)
 		{
@@ -198,6 +198,7 @@ public class LodQuadBuilder implements AutoCloseable
 		
 		BufferQuad quad = this.getOrCreateBufferQuad();
 		quad.set(x, y, z, width, height, color, faceTextureId, irisBlockMaterialId, skyLight, blockLight, dir);
+		quad.topDrops = topDrops;
 		if (!quadList.isEmpty()
 			&& (
 				quadList.get(quadList.size() - 1).tryMerge(quad, BufferMergeDirectionEnum.EastWest)
@@ -217,7 +218,7 @@ public class LodQuadBuilder implements AutoCloseable
 		short blockWidth, 
 		int color, short faceTextureId,
 		byte irisBlockMaterialId, 
-		byte skylight, byte blocklight)
+		byte skylight, byte blocklight, short topDrops)
 	{
 		boolean isTransparent = (this.doTransparency && ColorUtil.getAlpha(color) < 255);
 		ArrayList<BufferQuad> quadList = isTransparent 
@@ -226,6 +227,7 @@ public class LodQuadBuilder implements AutoCloseable
 		
 		BufferQuad quad = this.getOrCreateBufferQuad();
 		quad.set(minX, maxY, minZ, blockWidth, blockWidth, color, faceTextureId, irisBlockMaterialId, skylight, blocklight, EDhDirection.UP);
+		quad.topDrops = topDrops;
 		quadList.add(quad);
 	}
 	
@@ -428,6 +430,14 @@ public class LodQuadBuilder implements AutoCloseable
 			
 			int color = quad.color;
 			
+			int drop = 0;
+			if (quad.topDrops != 0 && (quad.direction == EDhDirection.UP || dy > 0))
+			{
+				boolean isMaxX = (quad.direction == EDhDirection.EAST) || dx > 0;
+				boolean isMaxZ = (quad.direction == EDhDirection.SOUTH) || dz > 0;
+				drop = FluidSurfaceUtil.getCornerDrop(quad.topDrops, isMaxX, isMaxZ);
+			}
+			
 			// use custom side color logic for grass blocks
 			if (quad.irisBlockMaterialId == EDhApiBlockMaterial.GRASS.index)
 			{
@@ -460,7 +470,8 @@ public class LodQuadBuilder implements AutoCloseable
 			this.putVertex(bb, (short) (quad.x + dx), (short) (quad.y + dy), (short) (quad.z + dz),
 					quad.hasError ? ColorUtil.RED : color,
 					quad.hasError ? 0 : normalIndex,
-					quad.hasError ? 0 : quad.irisBlockMaterialId,
+					// the drop goes in the material's unused upper 4 bits
+					quad.hasError ? 0 : (byte) (quad.irisBlockMaterialId | (drop << 4)),
 					quad.hasError ? 15 : quad.skyLight,
 					quad.hasError ? 15 : quad.blockLight,
 					quad.hasError ? 0 : quad.textureTileId,

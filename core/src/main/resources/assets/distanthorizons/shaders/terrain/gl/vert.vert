@@ -59,15 +59,21 @@ vec2 TAAJitter(vec2 coord, float w)
  */
 void main()
 {
-    vPos = vPosition; // This is so it can be passed to the fragment shader
+    vec3 position = vec3(vPosition.xyz);
     
-    vBlockPos = vec3(vPosition.xyz);
+    // fluid surfaces are lowered by 16ths of a block, see FluidSurfaceUtil
+    uint fluidDrop = (irisData.x >> 4u);
+    position.y -= float(fluidDrop % 16u) / 16.0;
+    
+    vPos = vec4(position, vPosition.a); // This is so it can be passed to the fragment shader
+    
+    vBlockPos = position;
     vNormalIndex = irisData.y;
     vTextureTileId = irisData.z | (irisData.w << 8u);
     
-    vertexWorldPos = vPosition.xyz + uModelOffset;
+    vertexWorldPos = position + uModelOffset;
     
-    vertexYPos = vPosition.y + uWorldYOffset;
+    vertexYPos = position.y + uWorldYOffset;
     
     uint meta = vPosition.a;
     

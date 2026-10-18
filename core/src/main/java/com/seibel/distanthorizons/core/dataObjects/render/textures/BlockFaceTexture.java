@@ -70,6 +70,45 @@ public class BlockFaceTexture
 	public static BlockFaceTexture createTexture(int width, int height, int[] argbPixels)
 	{ return new BlockFaceTexture(width, height, argbPixels, true); }
 	
+	/** Each quarter turn moves the texture's bottom edge to its right edge */
+	public BlockFaceTexture createWithQuarterTurns(int quarterTurns)
+	{
+		int turns = Math.floorMod(quarterTurns, 4);
+		if (turns == 0 
+			|| this.width != this.height) // we can't turn a non-square texture (shouldn't happen, but just in case)
+		{
+			return this;
+		}
+		
+		int size = this.width;
+		int[] turnedPixels = new int[this.argbPixels.length];
+		for (int v = 0; v < size; v++)
+		{
+			for (int u = 0; u < size; u++)
+			{
+				int sourceU;
+				int sourceV;
+				if (turns == 1)
+				{
+					sourceU = size - 1 - v;
+					sourceV = u;
+				}
+				else if (turns == 2)
+				{
+					sourceU = size - 1 - u;
+					sourceV = size - 1 - v;
+				}
+				else
+				{
+					sourceU = v;
+					sourceV = size - 1 - u;
+				}
+				turnedPixels[(v * size) + u] = this.argbPixels[(sourceV * size) + sourceU];
+			}
+		}
+		return new BlockFaceTexture(this.width, this.height, turnedPixels, this.uploadAsColorRatio);
+	}
+	
 	private BlockFaceTexture(int width, int height, int[] argbPixels, boolean uploadAsColorRatio)
 	{
 		this.width = width;

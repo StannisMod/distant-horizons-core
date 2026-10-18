@@ -22,6 +22,7 @@ package com.seibel.distanthorizons.core.dataObjects.render;
 import com.seibel.distanthorizons.api.enums.config.EDhApiVerticalQuality;
 import com.seibel.distanthorizons.core.dataObjects.render.textures.BlockTextureRegistry;
 import com.seibel.distanthorizons.core.logging.DhLoggerBuilder;
+import com.seibel.distanthorizons.core.util.LodUtil;
 import com.seibel.distanthorizons.core.util.RenderDataPointReducingList;
 import com.seibel.distanthorizons.core.util.objects.pooling.PhantomArrayList.AbstractPhantomArrayList;
 import com.seibel.distanthorizons.core.util.objects.pooling.PhantomArrayList.PhantomArrayListPool;
@@ -34,6 +35,8 @@ import it.unimi.dsi.fastutil.longs.LongArrayList;
 import it.unimi.dsi.fastutil.shorts.ShortArrayList;
 import com.seibel.distanthorizons.core.logging.DhLogger;
 
+import java.util.Arrays;
+
 /**
  * Stores the render data used to generate OpenGL buffers.
  *
@@ -45,6 +48,10 @@ public class ColumnRenderSource extends AbstractPhantomArrayList
 	
 	/** measured in data columns */
 	public static final int WIDTH = 64;
+	
+	public static final byte FULL_FLUID_AMOUNT = LodUtil.MAX_FLUID_AMOUNT;
+	/** stored for waterlogged blocks, they count as water for their neighbors but aren't lowered */
+	public static final byte WATERLOGGED_FLUID_AMOUNT = LodUtil.NO_FLUID_AMOUNT;
 	
 	/** 
 	 * Texture palettes are indexed by unsigned bytes. <Br>
@@ -83,12 +90,24 @@ public class ColumnRenderSource extends AbstractPhantomArrayList
 	 * Empty when textured LODs are disabled or this section's
 	 * detail level is too low to show textures.
 	 */
-	public final ByteArrayList textureSetPaletteIndices;
+	private final ByteArrayList textureSetPaletteIndices;
 	/**
 	 * Palette index -> {@link BlockTextureRegistry} set id. <br>
 	 * Index {@link BlockTextureRegistry#UNTEXTURED_ID} is always the flat "no texture" set.
 	 */
-	public final ShortArrayList texturePalette = new ShortArrayList();
+	private final ShortArrayList texturePalette = new ShortArrayList();
+	
+	/**
+	 * Parallel to {@link ColumnRenderSource#renderDataContainer},
+	 * each byte is the fluid amount of that data point's top block. <br>
+	 * Empty until a data point has less than a full block of fluid, most sections never need it.
+	 */
+	private final ByteArrayList fluidAmounts;
+	
+	// Note: if any additional linked/parallel data needs to be added (texture, fluid, etc)
+	// then James would like us to look into putting all the data into the same byte array
+	// to consolidate our data in one place and prevent accidental issues where
+	// the data for a render data point may not line up with the parallel data it needs
 	
 	private boolean isEmpty = true;
 	
@@ -109,7 +128,7 @@ public class ColumnRenderSource extends AbstractPhantomArrayList
 	 */
 	private ColumnRenderSource(long pos, int maxVertSliceCount, int yOffset)
 	{
-		super(ARRAY_LIST_POOL, 1, 0, 2, 0, 0);
+		super(ARRAY_LIST_POOL, 2, 0, 2, 0, 0);
 		
 		this.pos = pos;
 		this.yOffset = yOffset;
@@ -124,6 +143,8 @@ public class ColumnRenderSource extends AbstractPhantomArrayList
 		int textureIndexCount = texturedLodsEnabledAtDetailLevel(this.getDataDetailLevel()) ? maxDatapointCount : 0;
 		this.textureSetPaletteIndices = this.pooledArraysCheckout.getByteArray(0, textureIndexCount);
 		this.texturePalette.add(BlockTextureRegistry.UNTEXTURED_ID);
+		
+		this.fluidAmounts = this.pooledArraysCheckout.getByteArray(1, 0);
 	}
 	private static boolean texturedLodsEnabledAtDetailLevel(byte dataDetailLevel)
 	{
@@ -168,6 +189,8 @@ public class ColumnRenderSource extends AbstractPhantomArrayList
 			this.maxVerticalSliceCount,
 			dataOffset, voidDataOffset, 
 			this.maxVerticalSliceCount);
+		
+		view.fluidAmounts = this.fluidAmounts;
 	}
 	
 	//endregion
@@ -240,6 +263,45 @@ public class ColumnRenderSource extends AbstractPhantomArrayList
 		return (byte) paletteSize;
 	}
 	
+	//endregion
+	
+	
+	
+	//================//
+	// fluid handling //
+	//================//
+	//region
+	
+	// TODO currently unused, it should be, or some additional documentation should be added 
+	/** @return the fluid amount of the given data point's top block, full if this section isn't storing fluid amounts */
+	public int getFluidAmount(int posX, int posZ, int verticalIndex)
+	{
+		if (this.fluidAmounts.isEmpty())
+		{
+			return FULL_FLUID_AMOUNT;
+		}
+
+		return this.fluidAmounts.getByte(this.getDatapointIndex(posX, posZ, verticalIndex));
+	}
+
+	/** Stores the fluid amount for a given data point */
+	public void setFluidAmount(int posX, int posZ, int verticalIndex, int fluidAmount)
+	{
+		if (this.fluidAmounts.isEmpty())
+		{
+			// full is the default, so the array is only made once something isn't full
+			if (fluidAmount == FULL_FLUID_AMOUNT)
+			{
+				return;
+			}
+
+			this.fluidAmounts.size(WIDTH * WIDTH * this.maxVerticalSliceCount);
+			Arrays.fill(this.fluidAmounts.elements(), 0, this.fluidAmounts.size(), FULL_FLUID_AMOUNT);
+		}
+
+		this.fluidAmounts.set(this.getDatapointIndex(posX, posZ, verticalIndex), (byte) fluidAmount);
+	}
+
 	//endregion
 	
 	

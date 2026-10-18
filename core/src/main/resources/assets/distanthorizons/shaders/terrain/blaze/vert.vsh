@@ -66,6 +66,10 @@ void main()
     vec3 vPosition = vPositionAndMeta.xyz;
     uint meta = vPositionAndMeta.w;
     
+    // fluid surfaces are lowered by 16ths of a block, see FluidSurfaceUtil
+    uint fluidDrop = (irisMaterial >> 4u);
+    vPosition.y -= float(fluidDrop % 16u) / 16.0;
+    
     vPos = vPosition; // This is so it can be passed to the fragment shader
     
     vBlockPos = vec3(vPosition.xyz);

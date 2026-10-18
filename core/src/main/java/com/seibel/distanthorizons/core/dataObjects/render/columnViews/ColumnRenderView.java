@@ -24,6 +24,7 @@ import com.seibel.distanthorizons.api.enums.config.EDhApiVerticalQuality;
 import com.seibel.distanthorizons.core.dataObjects.render.ColumnRenderSource;
 import com.seibel.distanthorizons.core.util.RenderDataPointReducingList;
 import com.seibel.distanthorizons.core.util.RenderDataPointUtil;
+import it.unimi.dsi.fastutil.bytes.ByteArrayList;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 
 import java.util.Arrays;
@@ -67,6 +68,7 @@ public final class ColumnRenderView implements AutoCloseable
 	 * since this column is only a single datapoint wide.
 	 */
 	public int voidDataOffset;
+	public ByteArrayList fluidAmounts;
 	
 	
 	
@@ -126,6 +128,7 @@ public final class ColumnRenderView implements AutoCloseable
 		this.dataOffset = offset;
 		this.voidDataOffset = voidDataOffset;
 		this.maxVerticalSliceCount = maxVerticalSliceCount;
+		this.fluidAmounts = null;
 		
 		if (this.data.size() < this.dataOffset)
 		{
@@ -146,6 +149,7 @@ public final class ColumnRenderView implements AutoCloseable
 		this.dataOffset = 0;
 		this.voidDataOffset = 0;
 		this.maxVerticalSliceCount = 0;
+		this.fluidAmounts = null;
 	}
 	
 	//endregion
@@ -172,6 +176,17 @@ public final class ColumnRenderView implements AutoCloseable
 		}
 	}
 	public void set(int index, long value) { this.data.set(index + this.dataOffset, value); }
+	
+	/** Get fluid amount of a data point at a given index. Full if no fluid amounts are stored */
+	public int getFluidAmount(int index)
+	{
+		if (this.fluidAmounts == null || this.fluidAmounts.isEmpty())
+		{
+			return ColumnRenderSource.FULL_FLUID_AMOUNT;
+		}
+		
+		return this.fluidAmounts.getByte(index + this.dataOffset);
+	}
 	
 	/** gets the void datapoint below this render column */
 	public long getVoid()

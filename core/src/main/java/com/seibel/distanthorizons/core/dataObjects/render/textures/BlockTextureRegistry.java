@@ -59,6 +59,8 @@ public class BlockTextureRegistry
 	
 	/** renders every face flat, also used when set registration overflows */
 	public static final short UNTEXTURED_ID = 0;
+	/** Fluids store their texture turned to each flow direction after their 6 faces (by EDhDirection.compassIndex) */
+	public static final int FLUID_FLOW_TILE_INDEX = 6;
 	
 	
 	// needs to be defined after the other static variables so it can reference them
@@ -179,6 +181,17 @@ public class BlockTextureRegistry
 			anyFaceTextured |= (tileId != UNTEXTURED_ID);
 		}
 		
+		BlockFaceTexture flowTexture = blockState.isLiquid() ? TEXTURE_PROVIDER.getFaceTexture(blockState, EDhDirection.UP) : null;
+		if (flowTexture != null)
+		{
+			faceTileIds = Arrays.copyOf(faceTileIds, FLUID_FLOW_TILE_INDEX + EDhDirection.CARDINAL_COMPASS.length);
+			for (EDhDirection direction : EDhDirection.CARDINAL_COMPASS)
+			{
+				BlockFaceTexture turnedTexture = flowTexture.createWithQuarterTurns(getFlowQuarterTurns(direction));
+				faceTileIds[FLUID_FLOW_TILE_INDEX + direction.compassIndex] = this.getOrCreateTileId(turnedTexture);
+			}
+		}
+		
 		short textureId;
 		if (!anyFaceTextured)
 		{
@@ -205,6 +218,17 @@ public class BlockTextureRegistry
 		
 		Short existingSetId = this.setIdByBlockStateWrapper.putIfAbsent(blockState, textureId);
 		return (existingSetId != null) ? existingSetId : textureId;
+	}
+	
+	private static int getFlowQuarterTurns(EDhDirection flowDirection)
+	{
+		switch (flowDirection)
+		{
+			case EAST: return 1;
+			case NORTH: return 2;
+			case WEST: return 3;
+			default: return 0;
+		}
 	}
 	
 	//endregion

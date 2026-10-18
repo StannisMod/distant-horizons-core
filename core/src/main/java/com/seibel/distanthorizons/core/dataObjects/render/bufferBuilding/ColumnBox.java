@@ -63,7 +63,7 @@ public class ColumnBox
 		int color, int rawDataPointColor, byte irisBlockMaterialId, byte skyLight, byte blockLight,
 		long topData, long bottomData, 
 		ColumnRenderView[] adjData, boolean[] isAdjDataSameDetailLevel,
-		short @Nullable [] faceTileIdsByDirectionOrdinal)
+		short @Nullable [] faceTileIdsByDirectionOrdinal, short topDrops)
 	{
 		//================//
 		// variable setup //
@@ -116,7 +116,9 @@ public class ColumnBox
 		{
 			boolean skipTop = RenderDataPointUtil.doesDataPointExist(topData)
 					&& (RenderDataPointUtil.getYMin(topData) == maxY)
-					&& (!isTopTransparent || (isTransparent && isSameTransparentBlock(topData, rawDataPointColor, irisBlockMaterialId)));
+					&& (!isTopTransparent || (isTransparent && isSameTransparentBlock(topData, rawDataPointColor, irisBlockMaterialId)))
+					// lowered tops don't touch the block above
+					&& topDrops == 0;
 			
 			if (!skipTop)
 			{
@@ -125,7 +127,7 @@ public class ColumnBox
 					blockWidth, 
 					ColorUtil.applyShade(color, clientLevelWrapper.getShade(EDhDirection.UP)), tryGetTextureId(faceTileIdsByDirectionOrdinal, EDhDirection.UP),
 					irisBlockMaterialId, 
-					skyLightTop, blockLight);
+					skyLightTop, blockLight, topDrops);
 			}
 		}
 		
@@ -166,7 +168,7 @@ public class ColumnBox
 						minX, minY, minZ, 
 						blockWidth, yHeight, 
 						color, tryGetTextureId(faceTileIdsByDirectionOrdinal, EDhDirection.NORTH),
-						irisBlockMaterialId, LodUtil.MAX_MC_LIGHT, blockLight);
+						irisBlockMaterialId, LodUtil.MAX_MC_LIGHT, blockLight, topDrops);
 				}
 			}
 			else
@@ -176,7 +178,7 @@ public class ColumnBox
 					adjCol, faceTileIdsByDirectionOrdinal,
 					adjSameDetailLevel, caveCullingMaxY, EDhDirection.NORTH, 
 					minX, minY, minZ, blockWidth, yHeight,
-					color, rawDataPointColor, irisBlockMaterialId, blockLight);
+					color, rawDataPointColor, irisBlockMaterialId, blockLight, topDrops);
 			}
 		}
 		
@@ -193,7 +195,7 @@ public class ColumnBox
 						minX, minY, maxZ, 
 						blockWidth, yHeight, 
 						color, tryGetTextureId(faceTileIdsByDirectionOrdinal, EDhDirection.SOUTH),
-						irisBlockMaterialId, LodUtil.MAX_MC_LIGHT, blockLight);
+						irisBlockMaterialId, LodUtil.MAX_MC_LIGHT, blockLight, topDrops);
 				}
 			}
 			else
@@ -203,7 +205,7 @@ public class ColumnBox
 					adjCol, faceTileIdsByDirectionOrdinal,
 					adjSameDetailLevel, caveCullingMaxY, EDhDirection.SOUTH,
 					minX, minY, maxZ, blockWidth, yHeight,
-					color, rawDataPointColor, irisBlockMaterialId, blockLight);
+					color, rawDataPointColor, irisBlockMaterialId, blockLight, topDrops);
 			}
 		}
 		
@@ -220,7 +222,7 @@ public class ColumnBox
 						minX, minY, minZ, 
 						blockWidth, yHeight, 
 						color, tryGetTextureId(faceTileIdsByDirectionOrdinal, EDhDirection.WEST),
-						irisBlockMaterialId, LodUtil.MAX_MC_LIGHT, blockLight);
+						irisBlockMaterialId, LodUtil.MAX_MC_LIGHT, blockLight, topDrops);
 				}
 			}
 			else
@@ -230,7 +232,7 @@ public class ColumnBox
 					adjCol, faceTileIdsByDirectionOrdinal,
 					adjSameDetailLevel, caveCullingMaxY, EDhDirection.WEST, 
 					minX, minY, minZ, blockWidth, yHeight,
-					color, rawDataPointColor, irisBlockMaterialId, blockLight);
+					color, rawDataPointColor, irisBlockMaterialId, blockLight, topDrops);
 			}
 		}
 		
@@ -247,7 +249,7 @@ public class ColumnBox
 						maxX, minY, minZ, 
 						blockWidth, yHeight, 
 						color, tryGetTextureId(faceTileIdsByDirectionOrdinal, EDhDirection.EAST),
-						irisBlockMaterialId, LodUtil.MAX_MC_LIGHT, blockLight);
+						irisBlockMaterialId, LodUtil.MAX_MC_LIGHT, blockLight, topDrops);
 				}
 			}
 			else
@@ -257,7 +259,7 @@ public class ColumnBox
 					adjCol, faceTileIdsByDirectionOrdinal,
 					adjSameDetailLevel, caveCullingMaxY, EDhDirection.EAST, 
 					maxX, minY, minZ, blockWidth, yHeight,
-					color, rawDataPointColor, irisBlockMaterialId, blockLight);
+					color, rawDataPointColor, irisBlockMaterialId, blockLight, topDrops);
 			}
 		}
 	}
@@ -267,7 +269,7 @@ public class ColumnBox
 		@NotNull ColumnRenderView adjColumnView, short @Nullable [] faceTileIdsByDirectionOrdinal,
 		boolean adjacentIsSameDetailLevel, int caveCullingMaxY, EDhDirection direction,
 		short x, short yMin, short z, short horizontalBlockWidth, short ySize,
-		int color, int dataPointColor, byte irisBlockMaterialId, byte blockLight)
+		int color, int dataPointColor, byte irisBlockMaterialId, byte blockLight, short topDrops)
 	{
 		// pooled arrays
 		LongArrayList segments = phantomArrayCheckout.getLongArray(0, 0);
@@ -291,7 +293,7 @@ public class ColumnBox
 				horizontalBlockWidth, ySize, 
 				color, tryGetTextureId(faceTileIdsByDirectionOrdinal, direction),
 				irisBlockMaterialId, 
-				LodUtil.MAX_MC_LIGHT, blockLight);
+				LodUtil.MAX_MC_LIGHT, blockLight, topDrops);
 			return;
 		}
 		
@@ -363,6 +365,19 @@ public class ColumnBox
 			// whether the adjacent data point hides transparent faces
 			boolean adjCoversRange = true;
 			
+			// the same fluid never needs a face between them
+			boolean isSameFluid = RenderDataPointUtil.isFluid(adjPoint)
+				&& RenderDataPointUtil.getBlockMaterialId(adjPoint) == irisBlockMaterialId;
+
+			// lowered lava doesn't fill the top of its block,
+			// the same fluid next to it shares its corner heights so there's no gap between them
+			if (!adjTransparent
+				&& !isSameFluid
+				&& RenderDataPointUtil.isSurfaceLowered(adjPoint, adjAbovePoint))
+			{
+				adjMaxY--;
+			}
+			
 			if (!adjTransparent)
 			{
 				// Adjacent is opaque
@@ -391,7 +406,9 @@ public class ColumnBox
 					// ...this face has some sort of lighting... (0 light generally means the face is covered by other blocks)
 					&& isLit
 					// ...and is above the culling height
-					&& RenderDataPointUtil.getYMax(adjPoint) >= caveCullingMaxY;
+					&& RenderDataPointUtil.getYMax(adjPoint) >= caveCullingMaxY
+					// ...and isn't next to the same fluid (lava has light of 15)
+					&& !isSameFluid;
 				
 				lightToApply = useAdjLighting ? adjSkyLight : SKYLIGHT_COVERED;
 			}
@@ -452,7 +469,8 @@ public class ColumnBox
 				irisBlockMaterialId, blockLight,
 				YSegmentUtil.getSkyLight(segment), YSegmentUtil.isCovered(segment),
 				inputTransparent, 
-				YSegmentUtil.getEndY(segment), YSegmentUtil.getStartY(segment)
+				YSegmentUtil.getEndY(segment), YSegmentUtil.getStartY(segment),
+				(YSegmentUtil.getEndY(segment) == yMax) ? topDrops : 0
 			);
 		}
 	}
@@ -517,7 +535,7 @@ public class ColumnBox
 		byte irisBlockMaterialId, 
 		byte blockLight, byte lastSkyLight, boolean covered,
 		boolean inputTransparent, 
-		int quadTopY, int quadBottomY
+		int quadTopY, int quadBottomY, short topDrops
 		)
 	{
 		// invalid positions will have a negative skylight
@@ -547,7 +565,7 @@ public class ColumnBox
 			x, (short) quadBottomY, z, 
 			horizontalWidth, height, 
 			color, faceTextureId,
-			irisBlockMaterialId, lastSkyLight, blockLight);
+			irisBlockMaterialId, lastSkyLight, blockLight, topDrops);
 	}
 	
 	//endregion
