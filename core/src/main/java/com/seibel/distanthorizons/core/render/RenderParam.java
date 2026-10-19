@@ -167,14 +167,12 @@ public class RenderParam extends DhApiRenderParam
 			return "No Render Definition Present";
 		}
 		
-		if (this.dhModelViewMatrix.equals(DhMat4f.IDENTITY) 
-			|| this.dhModelViewMatrix.equals(DhMat4f.EMPTY))
+		if (this.dhModelViewMatrix.equals(DhMat4f.EMPTY))
 		{
 			return "No DH MVM Matrix Given";
 		}
 		
-		if (this.mcModelViewMatrix.equals(DhMat4f.IDENTITY) 
-			|| this.mcModelViewMatrix.equals(DhMat4f.EMPTY))
+		if (this.mcModelViewMatrix.equals(DhMat4f.EMPTY))
 		{
 			return "No MC MVM Matrix Given";
 		}
