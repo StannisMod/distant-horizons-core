@@ -20,16 +20,14 @@
 package com.seibel.distanthorizons.core.render;
 
 import com.seibel.distanthorizons.api.DhApi;
-import com.seibel.distanthorizons.api.enums.config.EDhApiDepthDirection;
-import com.seibel.distanthorizons.api.enums.config.EDhApiDepthRange;
-import com.seibel.distanthorizons.api.enums.config.EDhApiRenderingApi;
-import com.seibel.distanthorizons.api.enums.config.EDhApiRenderingEngine;
+import com.seibel.distanthorizons.api.enums.config.*;
 import com.seibel.distanthorizons.api.interfaces.render.IDhApiBlazeTextureWrapper;
 import com.seibel.distanthorizons.api.interfaces.render.IDhApiRenderProxy;
 import com.seibel.distanthorizons.api.interfaces.world.IDhApiLevelWrapper;
 import com.seibel.distanthorizons.api.methods.events.abstractEvents.DhApiEBeforeRenderDataCacheClearEvent;
 import com.seibel.distanthorizons.api.objects.DhApiResult;
 import com.seibel.distanthorizons.core.api.internal.SharedApi;
+import com.seibel.distanthorizons.core.config.Config;
 import com.seibel.distanthorizons.core.dataObjects.render.textures.BlockTextureRegistry;
 import com.seibel.distanthorizons.core.dependencyInjection.SingletonInjector;
 import com.seibel.distanthorizons.core.level.IDhClientLevel;
@@ -57,7 +55,7 @@ public class DhApiRenderProxy implements IDhApiRenderProxy
 	private static final IMinecraftRenderWrapper MC_RENDER = SingletonInjector.INSTANCE.get(IMinecraftRenderWrapper.class);
 	private static final IDependencySetup DEPENDENCY_SETUP = SingletonInjector.INSTANCE.get(IDependencySetup.class);
 	
-	private boolean deferTransparentRendering = true;
+	private boolean deferTransparentRendering = false; //represents if other mods need it via API
 	@Nullable
 	public EDhApiRenderingEngine currentRenderingEngine = null;
 	
@@ -281,7 +279,10 @@ public class DhApiRenderProxy implements IDhApiRenderProxy
 	@Override 
 	public void setDeferTransparentRendering(boolean deferTransparentRendering) { this.deferTransparentRendering = deferTransparentRendering; }
 	@Override 
-	public boolean getDeferTransparentRendering() { return this.deferTransparentRendering; }
+	public boolean getDeferTransparentRendering()
+	{
+		return this.deferTransparentRendering || Config.Client.Advanced.Graphics.Quality.vanillaFadeMode.get() == EDhApiMcRenderingFadeMode.DOUBLE_PASS;
+	}
 	
 	@Override
 	public float getNearClipPlaneDistanceInBlocks(float partialTicks) { return RenderUtil.getNearClipPlaneInBlocks(); }
