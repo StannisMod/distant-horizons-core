@@ -145,8 +145,7 @@ void main()
         // minor fudge factor to make sure all pixels fade out
         // if not included 1 in 16 pixels would never fade away
         worldNoise += 0.001;
-        fadeStep = smoothstep(uClipDistance * 1 * 0.9, uClipDistance * 1.5 * 0.9, viewDist);
-        if (fadeStep < worldNoise)
+        if (smoothstep(uClipDistance * 1 * 0.9, uClipDistance * 1.5 * 0.9, viewDist) < worldNoise)
         {
             discard;
         }
