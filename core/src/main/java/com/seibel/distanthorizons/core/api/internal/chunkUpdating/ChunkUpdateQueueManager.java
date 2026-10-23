@@ -50,9 +50,6 @@ public class ChunkUpdateQueueManager implements AutoCloseable
 	
 	public static final long UPDATE_DEBOUNCE_NANOS = TimeUnit.MILLISECONDS.toNanos(250);
 	
-	/** how long to wait between queue checks if the queue was empty */
-	private static final int PROCESS_QUEUE_DELAY_MS = 50;
-	
 	
 	
 	private static long lastOverloadedLogMessageMsTime = 0;
@@ -62,6 +59,7 @@ public class ChunkUpdateQueueManager implements AutoCloseable
 	private final Set<DhChunkPos> ignoredChunkPosSet = Collections.newSetFromMap(new ConcurrentHashMap<>());
 	
 	private final ExecutorService queueingThread;
+	private final Object queueThreadNotifier = new Object();
 	
 	public final ChunkPosQueue updateQueue;
 	public final ChunkPosQueue preUpdateQueue;
@@ -160,6 +158,12 @@ public class ChunkUpdateQueueManager implements AutoCloseable
 		{
 			this.sendOverloadMessage();
 		}
+		
+		// trigger the update thread to handle these new chunks
+		synchronized(this.queueThreadNotifier)
+		{
+			this.queueThreadNotifier.notifyAll();
+		}
 	}
 	
 	
@@ -246,10 +250,14 @@ public class ChunkUpdateQueueManager implements AutoCloseable
 				if (this.updateQueue.isEmpty() 
 					&& this.preUpdateQueue.isEmpty())
 				{
-					Thread.sleep(PROCESS_QUEUE_DELAY_MS);
-					
 					// clean up to fix expired chunks not being cleaned up if the queue is empty
 					this.queuedChunkWrapperByChunkPos.cleanUp();
+					
+					// wait until more chunks have been added to the queue
+					synchronized(this.queueThreadNotifier)
+					{
+						this.queueThreadNotifier.wait();
+					}
 				}
 			}
 			catch (InterruptedException ignored)
