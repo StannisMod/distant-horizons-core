@@ -98,10 +98,26 @@ public abstract class AbstractDhServerWorld<TDhServerLevel extends AbstractDhSer
 	}
 	
 	@Override
-	public void changePlayerLevel(IServerPlayerWrapper player, IServerLevelWrapper originLevel, IServerLevelWrapper destinationLevel)
+	public void changePlayerLevel(IServerPlayerWrapper player, IServerLevelWrapper originLevelWrapper, IServerLevelWrapper destinationLevelWrapper)
 	{
-		this.getLevel(destinationLevel).addPlayer(player);
-		this.getLevel(originLevel).removePlayer(player);
+		// get or load is needed for some mods that may create a server level, 
+		// but don't trigger a load event until after the player had entered it
+		AbstractDhServerLevel dhDestinationLevel = ((AbstractDhServerLevel) this.getOrLoadServerLevel(destinationLevelWrapper));
+		if(dhDestinationLevel == null)
+		{
+			LOGGER.error("Failed to move player ["+player.getName()+"]'s level ["+originLevelWrapper.getDhIdentifier()+"] -> ["+destinationLevelWrapper.getDhIdentifier()+"], no loaded server destination level.");
+			return;
+		}
+		
+		AbstractDhServerLevel dhOriginLevel = ((AbstractDhServerLevel) this.getOrLoadServerLevel(originLevelWrapper));
+		if(dhOriginLevel == null)
+		{
+			LOGGER.error("Failed to move player ["+player.getName()+"]'s level ["+originLevelWrapper.getDhIdentifier()+"] -> ["+destinationLevelWrapper.getDhIdentifier()+"], no loaded server destination level.");
+			return;
+		}
+		
+		dhDestinationLevel.addPlayer(player);
+		dhOriginLevel.removePlayer(player);
 	}
 	
 	
