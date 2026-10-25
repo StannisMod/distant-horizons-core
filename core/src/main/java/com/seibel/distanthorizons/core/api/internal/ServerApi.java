@@ -143,17 +143,7 @@ public class ServerApi
 	}
 	public void serverPlayerLevelChangeEvent(IServerPlayerWrapper player, IServerLevelWrapper originLevel, IServerLevelWrapper destinationLevel)
 	{
-		if (DhApiWorldProxy.INSTANCE.tryGetReadOnly())
-		{
-			return;
-		}
-		
-		IDhServerWorld serverWorld = SharedApi.tryGetDhServerWorld();
 		LOGGER.info("Player ["+player.getName()+"] changed level: ["+originLevel.getKeyedLevelDimensionName()+"] -> ["+destinationLevel.getKeyedLevelDimensionName()+"].");
-		if (serverWorld != null)
-		{
-			serverWorld.changePlayerLevel(player, originLevel, destinationLevel);
-		}
 	}
 	
 	/**

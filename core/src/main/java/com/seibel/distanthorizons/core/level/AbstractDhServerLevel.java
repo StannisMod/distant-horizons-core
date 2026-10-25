@@ -31,6 +31,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
 
@@ -44,10 +45,10 @@ public abstract class AbstractDhServerLevel extends AbstractDhLevel implements I
 	protected final ServerPlayerStateManager serverPlayerStateManager;
 	
 	/**
-	 * This queue is used for ensuring fair generation speed for each player. <br>
-	 * Every tick the first player gets used for centering generation, and then is immediately moved into the back of the queue.
+	 * Used for ensuring fair generation speed for each player. <br>
+	 * Every tick the next player in this level gets used for centering generation.
 	 */
-	protected final ConcurrentLinkedQueue<IServerPlayerWrapper> worldGenPlayerCenteringQueue = new ConcurrentLinkedQueue<>();
+	private int worldGenCenteringPlayerIndex = 0;
 	
 	private final FullDataSourceRequestHandler requestHandler;
 	
@@ -104,18 +105,23 @@ public abstract class AbstractDhServerLevel extends AbstractDhLevel implements I
 	@Override
 	public DhBlockPos2D getTargetPosForGeneration()
 	{
-		IServerPlayerWrapper firstPlayer = this.worldGenPlayerCenteringQueue.peek();
-		if (firstPlayer == null)
+		ArrayList<IServerPlayerWrapper> playersInLevel = new ArrayList<>();
+		for (ServerPlayerState playerState : this.serverPlayerStateManager.getConnectedPlayers())
+		{
+			IServerPlayerWrapper serverPlayer = playerState.getServerPlayer();
+			if (serverPlayer.getLevel() == this.serverLevelWrapper)
+			{
+				playersInLevel.add(serverPlayer);
+			}
+		}
+		
+		if (playersInLevel.isEmpty())
 		{
 			return DhBlockPos2D.ZERO;
 		}
 		
-		// Put first player in back before removing from front, so it can be removed by other thread without blocking
-		// - if it gets removed, remove() below will remove the item we just put instead
-		this.worldGenPlayerCenteringQueue.add(firstPlayer);
-		this.worldGenPlayerCenteringQueue.remove(firstPlayer);
-		
-		DhVec3d position = firstPlayer.getPosition();
+		this.worldGenCenteringPlayerIndex = (this.worldGenCenteringPlayerIndex + 1) % playersInLevel.size();
+		DhVec3d position = playersInLevel.get(this.worldGenCenteringPlayerIndex).getPosition();
 		return new DhBlockPos2D((int) position.x, (int) position.z);
 	}
 	
@@ -221,9 +227,6 @@ public abstract class AbstractDhServerLevel extends AbstractDhLevel implements I
 	//=================//
 	// player handling //
 	//=================//
-	
-	public void addPlayer(IServerPlayerWrapper serverPlayer) { this.worldGenPlayerCenteringQueue.add(serverPlayer); }
-	public void removePlayer(IServerPlayerWrapper serverPlayer) { this.worldGenPlayerCenteringQueue.remove(serverPlayer); }
 	
 	@Override
 	public CompletableFuture<Void> updateDataSourcesAsync(FullDataSourceV2 data)
