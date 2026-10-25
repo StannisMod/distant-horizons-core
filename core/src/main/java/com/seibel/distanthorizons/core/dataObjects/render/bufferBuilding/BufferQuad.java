@@ -60,6 +60,8 @@ public final class BufferQuad
 	public EDhDirection direction;
 	
 	public boolean hasError = false;
+	/** How far each top corner is lowered, see {@link FluidSurfaceUtil} */
+	public short topDrops;
 	
 	// Pre-computed sort keys to avoid recomputing on every comparison
 	// Slight increase in memory for reduction in cpu usage
@@ -101,6 +103,7 @@ public final class BufferQuad
 		this.skyLight = skylight;
 		this.blockLight = blockLight;
 		this.direction = direction;
+		this.topDrops = 0;
 		this.sortKeyEastWest = computeSortKey(direction, true);
 		this.sortKeyNorthSouth = computeSortKey(direction, false);
 	}
@@ -157,7 +160,10 @@ public final class BufferQuad
 		}
 		
 		// only merge quads that are in the same direction
-		if (this.direction != quad.direction)
+		if (this.direction != quad.direction
+			// sloped quads can't be merged
+			|| this.topDrops != quad.topDrops
+			|| !FluidSurfaceUtil.isFlat(this.topDrops))
 		{
 			return false;
 		}

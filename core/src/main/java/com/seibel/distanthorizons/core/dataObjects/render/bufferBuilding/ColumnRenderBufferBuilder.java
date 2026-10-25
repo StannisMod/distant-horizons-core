@@ -20,12 +20,12 @@
 package com.seibel.distanthorizons.core.dataObjects.render.bufferBuilding;
 
 import com.seibel.distanthorizons.api.enums.rendering.EDhApiBlockMaterial;
+import com.seibel.distanthorizons.api.enums.rendering.EDhApiTerrainVertexFormat;
 import com.seibel.distanthorizons.api.enums.rendering.EDhApiDebugRendering;
 import com.seibel.distanthorizons.core.enums.EDhDirection;
 import com.seibel.distanthorizons.core.config.Config;
 import com.seibel.distanthorizons.core.dataObjects.render.ColumnRenderSource;
 import com.seibel.distanthorizons.core.dataObjects.render.textures.BlockTextureRegistry;
-import com.seibel.distanthorizons.core.level.IDhClientLevel;
 import com.seibel.distanthorizons.core.logging.DhLogger;
 import com.seibel.distanthorizons.core.logging.DhLoggerBuilder;
 import com.seibel.distanthorizons.core.util.objects.pooling.PhantomArrayList.PhantomArrayListCheckout;
@@ -57,7 +57,7 @@ public class ColumnRenderBufferBuilder
 	
 	public static void makeLodRenderData(
 			LodQuadBuilder quadBuilder, ColumnRenderSource renderSource, IClientLevelWrapper clientLevelWrapper,
-			ColumnRenderSource[] adjRegions, boolean[] isSameDetailLevel)
+			ColumnRenderSource[] adjRegions, ColumnRenderSource[][] diagonalRegions, boolean[] isSameDetailLevel)
 	{
 		//=============//
 		// debug check //
@@ -82,6 +82,9 @@ public class ColumnRenderBufferBuilder
 		
 		
 		
+		// only formats with an offset can lower vertices
+		boolean lowerFluidSurfaces = (quadBuilder.getVertexFormat() == EDhApiTerrainVertexFormat.POS_META_COLOR_MATERIAL_NORMAL_TEXTURE_OFFSET);
+		
 		//===================//
 		// build each column //
 		//===================//
@@ -92,13 +95,15 @@ public class ColumnRenderBufferBuilder
 			ColumnRenderView northAdjView = ColumnRenderView.getPooled();
 			ColumnRenderView southAdjView = ColumnRenderView.getPooled();
 			ColumnRenderView eastAdjView = ColumnRenderView.getPooled();
-			ColumnRenderView westAdjView = ColumnRenderView.getPooled())
+			ColumnRenderView westAdjView = ColumnRenderView.getPooled();
+			ColumnRenderView fluidNeighborView = ColumnRenderView.getPooled())
 		{
 			ColumnRenderView[] adjColumnViews = new ColumnRenderView[EDhDirection.CARDINAL_COMPASS.length];
 			adjColumnViews[EDhDirection.NORTH.compassIndex] = northAdjView;
 			adjColumnViews[EDhDirection.SOUTH.compassIndex] = southAdjView;
 			adjColumnViews[EDhDirection.EAST.compassIndex] = eastAdjView;
 			adjColumnViews[EDhDirection.WEST.compassIndex] = westAdjView;
+			short[] flowingFaceTileIds = new short[EDhDirection.ALL.length];
 			
 			
 			byte thisDetailLevel = renderSource.getDataDetailLevel();
@@ -276,8 +281,25 @@ public class ColumnRenderBufferBuilder
 						short[] faceTileIdsByDirectionOrdinal = null;
 						if (renderSource.hasTextureSetIds())
 						{
-							short textureSetId = renderSource.getTextureSetId(relX, relZ, i);
+							short textureSetId = renderSource.getDataPointTextureSetId(relX, relZ, i);
 							faceTileIdsByDirectionOrdinal = BlockTextureRegistry.INSTANCE.getFaceTileIds(textureSetId);
+						}
+						
+						short topDrops = FluidSurfaceUtil.createNoDrop();
+						if (lowerFluidSurfaces && RenderDataPointUtil.isFluid(data))
+						{
+							topDrops = FluidSurfaceUtil.createCornerDrop(columnRenderData, i, renderSource, adjRegions, diagonalRegions, relX, relZ, fluidNeighborView);
+						}
+						
+						// sloped fluid surfaces turn their texture downhill
+						EDhDirection flowDirection = FluidSurfaceUtil.getFlowDirection(topDrops);
+						if (flowDirection != null
+							&& faceTileIdsByDirectionOrdinal != null
+							&& faceTileIdsByDirectionOrdinal.length > BlockTextureRegistry.FLUID_FLOW_TILE_INDEX)
+						{
+							System.arraycopy(faceTileIdsByDirectionOrdinal, 0, flowingFaceTileIds, 0, flowingFaceTileIds.length);
+							flowingFaceTileIds[EDhDirection.UP.faceIndex] = faceTileIdsByDirectionOrdinal[BlockTextureRegistry.FLUID_FLOW_TILE_INDEX + flowDirection.compassIndex];
+							faceTileIdsByDirectionOrdinal = flowingFaceTileIds;
 						}
 						
 						addRenderDataPointToBuilder(
@@ -285,7 +307,7 @@ public class ColumnRenderBufferBuilder
 							data, topDataPoint, bottomDataPoint,
 							adjColumnViews, isSameDetailLevel, faceTileIdsByDirectionOrdinal,
 							thisDetailLevel, relX, relZ,
-							quadBuilder);
+							quadBuilder, topDrops);
 					}
 				}// for z
 			}// for x
@@ -298,7 +320,7 @@ public class ColumnRenderBufferBuilder
 			long renderData, long topRenderData, long bottomRenderData, 
 			ColumnRenderView[] adjColumnViews, boolean[] isSameDetailLevel, short @Nullable [] faceTileIdsByDirectionOrdinal,
 			byte detailLevel, int renderSourceOffsetPosX, int renderSourceOffsetPosZ, 
-			LodQuadBuilder quadBuilder)
+			LodQuadBuilder quadBuilder, short topDrops)
 	{
 		long sectionPos = DhSectionPos.encode(detailLevel, renderSourceOffsetPosX, renderSourceOffsetPosZ);
 		
@@ -428,7 +450,7 @@ public class ColumnRenderBufferBuilder
 			RenderDataPointUtil.getLightSky(renderData),
 			fullBright ? LodUtil.MAX_MC_LIGHT : RenderDataPointUtil.getLightBlock(renderData),
 			topRenderData, bottomRenderData, adjColumnViews, isSameDetailLevel,
-			faceTileIdsByDirectionOrdinal);
+			faceTileIdsByDirectionOrdinal, topDrops);
 	}
 	
 }

@@ -19,11 +19,15 @@
 
 package com.seibel.distanthorizons.core.render.QuadTree;
 
+import com.seibel.distanthorizons.api.enums.rendering.EDhApiTerrainVertexFormat;
 import com.seibel.distanthorizons.api.enums.rendering.EDhApiTransparency;
 import com.seibel.distanthorizons.api.interfaces.render.renderDef.IDhApiDebugWireframeRenderer;
 import com.seibel.distanthorizons.core.config.Config;
 import com.seibel.distanthorizons.core.dataObjects.fullData.sources.FullDataSourceV2;
 import com.seibel.distanthorizons.core.dataObjects.render.ColumnRenderSource;
+import com.seibel.distanthorizons.core.dataObjects.render.bufferBuilding.FluidSurfaceUtil;
+import com.seibel.distanthorizons.core.dataObjects.render.columnViews.ColumnRenderView;
+import com.seibel.distanthorizons.core.util.RenderDataPointUtil;
 import com.seibel.distanthorizons.core.dataObjects.render.bufferBuilding.ColumnRenderBufferBuilder;
 import com.seibel.distanthorizons.core.dataObjects.render.bufferBuilding.LodQuadBuilder;
 import com.seibel.distanthorizons.core.dataObjects.transformers.FullDataToRenderDataTransformer;
@@ -192,7 +196,7 @@ public class LodRenderSection implements IDebugRenderable, AutoCloseable
 						ArrayList<ByteBuffer> transparentBuffers = lodQuadBuilder.makeTransparentVertexBuffers(transparentCheckout);
 						
 						// uploading will primarily happen on the render thread
-						this.uploadToGpuAsync(future, opaqueBuffers, transparentBuffers)
+						this.uploadToGpuAsync(future, opaqueBuffers, transparentBuffers, lodQuadBuilder.getVertexFormat())
 							// Join is used to prevent queuing up potentially thousands of
 							// upload tasks (each requiring their own staging buffer)
 							// causing an explosion of pooled memory use.
@@ -256,7 +260,11 @@ public class LodRenderSection implements IDebugRenderable, AutoCloseable
 			try (ColumnRenderSource northRenderSource = this.getRenderSourceForPos(this.pos, EDhDirection.NORTH);
 				ColumnRenderSource southRenderSource = this.getRenderSourceForPos(this.pos, EDhDirection.SOUTH);
 				ColumnRenderSource eastRenderSource = this.getRenderSourceForPos(this.pos, EDhDirection.EAST);
-				ColumnRenderSource westRenderSource = this.getRenderSourceForPos(this.pos, EDhDirection.WEST))
+				ColumnRenderSource westRenderSource = this.getRenderSourceForPos(this.pos, EDhDirection.WEST);
+				ColumnRenderSource northWestRenderSource = this.getDiagonalRenderSource(thisRenderSource, EDhDirection.NORTH, EDhDirection.WEST);
+				ColumnRenderSource northEastRenderSource = this.getDiagonalRenderSource(thisRenderSource, EDhDirection.NORTH, EDhDirection.EAST);
+				ColumnRenderSource southWestRenderSource = this.getDiagonalRenderSource(thisRenderSource, EDhDirection.SOUTH, EDhDirection.WEST);
+				ColumnRenderSource southEastRenderSource = this.getDiagonalRenderSource(thisRenderSource, EDhDirection.SOUTH, EDhDirection.EAST))
 			{
 				ColumnRenderSource[] adjacentRenderSections = new ColumnRenderSource[EDhDirection.CARDINAL_COMPASS.length];
 				adjacentRenderSections[EDhDirection.NORTH.compassIndex] = northRenderSource;
@@ -270,9 +278,16 @@ public class LodRenderSection implements IDebugRenderable, AutoCloseable
 				adjIsSameDetailLevel[EDhDirection.EAST.compassIndex] = this.isAdjacentPosSameDetailLevel(EDhDirection.EAST);
 				adjIsSameDetailLevel[EDhDirection.WEST.compassIndex] = this.isAdjacentPosSameDetailLevel(EDhDirection.WEST);
 
+				// [west, east][north, south]
+				ColumnRenderSource[][] diagonalRenderSections = new ColumnRenderSource[][]
+				{
+					{ northWestRenderSource, southWestRenderSource },
+					{ northEastRenderSource, southEastRenderSource } 
+				};
+				
 				// the render sources are only needed by this synchronous method,
 				// then they can be closed
-				ColumnRenderBufferBuilder.makeLodRenderData(lodQuadBuilder, thisRenderSource, this.clientLevelWrapper, adjacentRenderSections, adjIsSameDetailLevel);
+				ColumnRenderBufferBuilder.makeLodRenderData(lodQuadBuilder, thisRenderSource, this.clientLevelWrapper, adjacentRenderSections, diagonalRenderSections, adjIsSameDetailLevel);
 				return lodQuadBuilder;
 			}
 			catch (Exception e)
@@ -315,6 +330,47 @@ public class LodRenderSection implements IDebugRenderable, AutoCloseable
 			return null;
 		}
 	}
+	/** Gets the render source diagonal from a sections position */
+	private ColumnRenderSource getDiagonalRenderSource(ColumnRenderSource thisRenderSource, EDhDirection northOrSouth, EDhDirection eastOrWest)
+	{
+		// fluid diagonals are only used at the block detail level
+		if (DhSectionPos.getDetailLevel(this.pos) != DhSectionPos.SECTION_BLOCK_DETAIL_LEVEL)
+		{
+			return null;
+		}
+		
+		int cornerX = (eastOrWest == EDhDirection.WEST) ? 0 : ColumnRenderSource.WIDTH - 1;
+		int cornerZ = (northOrSouth == EDhDirection.NORTH) ? 0 : ColumnRenderSource.WIDTH - 1;
+		if (!hasFluid(thisRenderSource, cornerX, cornerZ))
+		{
+			return null;
+		}
+		
+		long northOrSouthPos = DhSectionPos.getAdjacentPos(this.pos, northOrSouth);
+		return this.getRenderSourceForPos(northOrSouthPos, eastOrWest);
+	}
+	private static boolean hasFluid(ColumnRenderSource renderSource, int relX, int relZ)
+	{
+		try (ColumnRenderView columnView = ColumnRenderView.getPooled())
+		{
+			renderSource.populateColumnView(columnView, relX, relZ);
+			for (int i = 0; i < columnView.size; i++)
+			{
+				long dataPoint = columnView.get(i);
+				if (!RenderDataPointUtil.doesDataPointExist(dataPoint)
+					|| RenderDataPointUtil.hasZeroHeight(dataPoint))
+				{
+					break;
+				}
+				
+				if (RenderDataPointUtil.isFluid(dataPoint))
+				{
+					return true;
+				}
+			}
+		}
+		return false;
+	}
 	private boolean isAdjacentPosSameDetailLevel(EDhDirection direction)
 	{
 		long adjPos = DhSectionPos.getAdjacentPos(this.pos, direction);
@@ -329,12 +385,14 @@ public class LodRenderSection implements IDebugRenderable, AutoCloseable
 	private synchronized CompletableFuture<LodBufferContainer> uploadToGpuAsync(
 		CompletableFuture<Void> parentFuture,
 		ArrayList<ByteBuffer> opaqueBuffers,
-		ArrayList<ByteBuffer> transparentBuffers)
+		ArrayList<ByteBuffer> transparentBuffers,
+		EDhApiTerrainVertexFormat vertexFormat)
 	{
 		CompletableFuture<LodBufferContainer> uploadFuture = LodBufferContainer.tryMakeAndUploadBuffersAsync(
 			this.pos, this.clientLevelWrapper, 
 			opaqueBuffers, 
-			transparentBuffers);
+			transparentBuffers,
+			vertexFormat);
 		uploadFuture.whenComplete((bufferContainer, e) ->
 		{
 			try

@@ -1344,6 +1344,18 @@ public class LodQuadTree extends QuadTree<LodRenderSection> implements IDebugRen
 			long adjacentPos = DhSectionPos.getAdjacentPos(pos, direction);
 			this.sectionsToReload.add(adjacentPos);
 		}
+		
+		// fluid diagonals are only used at the block detail level
+		if (DhSectionPos.getDetailLevel(pos) == DhSectionPos.SECTION_BLOCK_DETAIL_LEVEL)
+		{
+			// diagonal sections use this section's corner for their fluid surfaces
+			long northPos = DhSectionPos.getAdjacentPos(pos, EDhDirection.NORTH);
+			long southPos = DhSectionPos.getAdjacentPos(pos, EDhDirection.SOUTH);
+			this.sectionsToReload.add(DhSectionPos.getAdjacentPos(northPos, EDhDirection.WEST));
+			this.sectionsToReload.add(DhSectionPos.getAdjacentPos(northPos, EDhDirection.EAST));
+			this.sectionsToReload.add(DhSectionPos.getAdjacentPos(southPos, EDhDirection.WEST));
+			this.sectionsToReload.add(DhSectionPos.getAdjacentPos(southPos, EDhDirection.EAST));
+		}
 	}
 	
 	//endregion external render requests

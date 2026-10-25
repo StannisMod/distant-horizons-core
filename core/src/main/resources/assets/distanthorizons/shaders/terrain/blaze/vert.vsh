@@ -4,9 +4,10 @@
 
 layout(location = 0) in uvec4 vPositionAndMeta; // Meta contains light and micro-offset data
 layout(location = 1) in vec4 vColor;
-layout(location = 2) in uint irisMaterial;
-layout(location = 3) in uint irisNormal;
-layout(location = 4) in uint textureTile; // block texture tile id, 0 = flat color
+// x: iris material, y: normal index, zw: block texture tile id (0 = flat color)
+layout(location = 2) in uvec4 materialNormalTile;
+// xyz: offset inside the block in 256ths, w: flags (for future use), see EDhApiTerrainVertexFormat
+layout(location = 3) in uvec4 offsetData;
 
 // order matters, this must match the fragment shader's inputs
 layout(location = 0) out vec3 vPos;
@@ -65,12 +66,13 @@ void main()
 {
     vec3 vPosition = vPositionAndMeta.xyz;
     uint meta = vPositionAndMeta.w;
+    vPosition += vec3(offsetData.xyz) / 256.0;
     
     vPos = vPosition; // This is so it can be passed to the fragment shader
     
     vBlockPos = vec3(vPosition.xyz);
-    vNormalIndex = uint(irisNormal);
-    vTextureTileId = textureTile;
+    vNormalIndex = materialNormalTile.y;
+    vTextureTileId = materialNormalTile.z | (materialNormalTile.w << 8u);
     
     ivec3 relOffset = uModelOffset - uCorseCameraPos; // ints needed for extreme (10 million +) distances
     vertexWorldPos = vPosition.xyz + (vec3(relOffset) - uFineCameraPos);

@@ -28,6 +28,7 @@ import com.seibel.distanthorizons.core.util.objects.pooling.PhantomArrayList.Pha
 import com.seibel.distanthorizons.core.pos.DhSectionPos;
 import com.seibel.distanthorizons.core.dataObjects.render.columnViews.ColumnRenderView;
 import com.seibel.distanthorizons.core.util.RenderDataPointUtil;
+import com.seibel.distanthorizons.core.util.RenderDataPointAttributeUtil;
 import com.seibel.distanthorizons.core.config.Config;
 import it.unimi.dsi.fastutil.bytes.ByteArrayList;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
@@ -77,18 +78,14 @@ public class ColumnRenderSource extends AbstractPhantomArrayList
 	 */
 	public final LongArrayList voidRenderDataContainer;
 	
-	/**
-	 * Parallel to {@link ColumnRenderSource#renderDataContainer},
-	 * each byte is an index into {@link ColumnRenderSource#texturePalette}. <br>
-	 * Empty when textured LODs are disabled or this section's
-	 * detail level is too low to show textures.
-	 */
-	public final ByteArrayList textureSetPaletteIndices;
+	/** texture and fluid data for each data point, see {@link RenderDataPointAttributeUtil} */
+	private final ByteArrayList attributeContainer;
 	/**
 	 * Palette index -> {@link BlockTextureRegistry} set id. <br>
 	 * Index {@link BlockTextureRegistry#UNTEXTURED_ID} is always the flat "no texture" set.
 	 */
-	public final ShortArrayList texturePalette = new ShortArrayList();
+	private final ShortArrayList texturePalette = new ShortArrayList();
+	private final boolean storesTextures;
 	
 	private boolean isEmpty = true;
 	
@@ -121,9 +118,10 @@ public class ColumnRenderSource extends AbstractPhantomArrayList
 		this.voidRenderDataContainer = this.pooledArraysCheckout.getLongArray(1, WIDTH * WIDTH);
 		
 		// texture ids are only stored for high detail sections
-		int textureIndexCount = texturedLodsEnabledAtDetailLevel(this.getDataDetailLevel()) ? maxDatapointCount : 0;
-		this.textureSetPaletteIndices = this.pooledArraysCheckout.getByteArray(0, textureIndexCount);
+		this.storesTextures = texturedLodsEnabledAtDetailLevel(this.getDataDetailLevel());
 		this.texturePalette.add(BlockTextureRegistry.UNTEXTURED_ID);
+		
+		this.attributeContainer = this.pooledArraysCheckout.getByteArray(0, maxDatapointCount * RenderDataPointAttributeUtil.RECORD_SIZE_IN_BYTES);
 	}
 	private static boolean texturedLodsEnabledAtDetailLevel(byte dataDetailLevel)
 	{
@@ -146,7 +144,7 @@ public class ColumnRenderSource extends AbstractPhantomArrayList
 	public void populateColumnView(ColumnRenderView view, int posX, int posZ) throws IllegalArgumentException
 	{
 		int dataOffset = this.getDatapointIndex(posX, posZ, 0);
-		int voidDataOffset = this.getVoidDatapointIndex(posX, posZ);
+		int voidDataOffset = this.getColumnIndex(posX, posZ);
 		
 		// don't allow returning views that are outside this render source's bounds
 		if (posX < 0 || posX >= WIDTH
@@ -174,45 +172,30 @@ public class ColumnRenderSource extends AbstractPhantomArrayList
 	
 	
 	
-	//==================//
-	// texture handling //
-	//==================//
+	//====================//
+	// attribute handling //
+	//====================//
 	//region
 	
-	/** @return true if this section is storing texture ids */
-	public boolean hasTextureSetIds() { return !this.textureSetPaletteIndices.isEmpty(); }
+	private int getAttributeOffset(int posX, int posZ, int verticalIndex) { return this.getDatapointIndex(posX, posZ, verticalIndex) * RenderDataPointAttributeUtil.RECORD_SIZE_IN_BYTES; }
 	
-	/**
-	 * @return the {@link BlockTextureRegistry}
-	 *          set id for the given data point, the flat set id if this section isn't storing textures
-	 */
-	public short getTextureSetId(int posX, int posZ, int verticalIndex)
+	public boolean hasTextureSetIds() { return this.storesTextures; }
+	
+	/** Sets the texture and fluid data for the given data point */
+	public void setDataPointAttributes(int posX, int posZ, int verticalIndex, short textureSetId, int fluidAmount, boolean waterlogged)
 	{
-		if (!this.hasTextureSetIds())
-		{
-			return BlockTextureRegistry.UNTEXTURED_ID;
-		}
-		
-		int paletteIndex = this.textureSetPaletteIndices.getByte(this.getDatapointIndex(posX, posZ, verticalIndex)) 
-			& 0xFF; // convert from signed byte to unsigned int
-		return this.texturePalette.getShort(paletteIndex);
+		int paletteIndex = this.getOrAddPaletteIndex(textureSetId) & 0xFF;
+		RenderDataPointAttributeUtil.setRecord(this.attributeContainer, this.getAttributeOffset(posX, posZ, verticalIndex), paletteIndex, fluidAmount, waterlogged);
 	}
 	
-	/**
-	 * Stores the texture set id for the given data point,
-	 * does nothing if this section isn't storing textures.
-	 */
-	public void setTextureSetId(int posX, int posZ, int verticalIndex, short textureSetId)
-	{
-		if (!this.hasTextureSetIds())
-		{
-			return;
-		}
-		
-		this.textureSetPaletteIndices.set(
-			this.getDatapointIndex(posX, posZ, verticalIndex),
-			this.getOrAddPaletteIndex(textureSetId));
-	}
+	public short getDataPointTextureSetId(int posX, int posZ, int verticalIndex)
+	{ return this.texturePalette.getShort(RenderDataPointAttributeUtil.getTexturePaletteIndex(this.attributeContainer, this.getAttributeOffset(posX, posZ, verticalIndex))); }
+	
+	public int getDataPointFluidAmount(int posX, int posZ, int verticalIndex)
+	{ return RenderDataPointAttributeUtil.getFluidAmount(this.attributeContainer, this.getAttributeOffset(posX, posZ, verticalIndex)); }
+	
+	public boolean isDataPointWaterlogged(int posX, int posZ, int verticalIndex)
+	{ return RenderDataPointAttributeUtil.isWaterlogged(this.attributeContainer, this.getAttributeOffset(posX, posZ, verticalIndex)); }
 	
 	private byte getOrAddPaletteIndex(short textureSetId)
 	{
@@ -291,7 +274,7 @@ public class ColumnRenderSource extends AbstractPhantomArrayList
 			+ verticalIndex;
 	}
 	
-	private int getVoidDatapointIndex(int posX, int posZ)
+	private int getColumnIndex(int posX, int posZ)
 	{
 		return (posX * WIDTH)
 			+ posZ;
