@@ -76,6 +76,14 @@ public class FullDataSourceProviderV2 implements IDebugRenderable, AutoCloseable
 		// but James would like to keep a little safe buffer, just in case.
 		// At 10+ the LOD application process breaks down and
 		// we start to get weird anomolies that look bad.
+		
+		// the reason this breaks down at detail 10 is due to short data overflow.
+		// At detail 10 the max area is 2^10 (1024) blocks per LOD column (65,536 blocks wide for the whole LOD), 
+		// which is larger than what a short can hold,
+		// causing the position data to wrap around, corrupting the rendered terrain.
+		// This would need to be fixed in the vertex shader and the LodQuadBuilder. 
+		// (probably pass in the LOD's detail level so the horizontal positions can be multiplied by the block width
+		// in the vertex shader).
 		+ 8;
 	
 	/**
