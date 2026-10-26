@@ -141,10 +141,6 @@ public class ServerApi
 			serverWorld.removePlayer(player);
 		}
 	}
-	public void serverPlayerLevelChangeEvent(IServerPlayerWrapper player, IServerLevelWrapper originLevel, IServerLevelWrapper destinationLevel)
-	{
-		LOGGER.info("Player ["+player.getName()+"] changed level: ["+originLevel.getKeyedLevelDimensionName()+"] -> ["+destinationLevel.getKeyedLevelDimensionName()+"].");
-	}
 	
 	/**
 	 * Forwards a decoded message into the registered handlers.
