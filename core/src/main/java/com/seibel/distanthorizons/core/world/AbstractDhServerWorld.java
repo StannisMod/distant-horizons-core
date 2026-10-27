@@ -62,8 +62,6 @@ public abstract class AbstractDhServerWorld<TDhServerLevel extends AbstractDhSer
 			return;
 		}
 		
-		serverLevel.addPlayer(serverPlayer);
-		
 		Iterator<TDhServerLevel> it = this.dhLevelByLevelWrapper.values().stream().distinct().iterator();
 		while (it.hasNext())
 		{
@@ -77,49 +75,10 @@ public abstract class AbstractDhServerWorld<TDhServerLevel extends AbstractDhSer
 	@Override
 	public void removePlayer(IServerPlayerWrapper serverPlayer)
 	{
-		IServerLevelWrapper playerLevel = serverPlayer.getLevel();
-		if (playerLevel == null)
-		{
-			// can happen during server shutdown
-			return;
-		}
-		
-		TDhServerLevel serverLevel = this.getLevel(playerLevel);
-		if (serverLevel == null)
-		{
-			// can happen during server shutdown
-			return;
-		}
-		
-		serverLevel.removePlayer(serverPlayer);
 		this.serverPlayerStateManager.unregisterLeftPlayer(serverPlayer);
 		
 		// If player's left, session is already closed
 	}
-	
-	@Override
-	public void changePlayerLevel(IServerPlayerWrapper player, IServerLevelWrapper originLevelWrapper, IServerLevelWrapper destinationLevelWrapper)
-	{
-		// get or load is needed for some mods that may create a server level, 
-		// but don't trigger a load event until after the player had entered it
-		AbstractDhServerLevel dhDestinationLevel = ((AbstractDhServerLevel) this.getOrLoadServerLevel(destinationLevelWrapper));
-		if(dhDestinationLevel == null)
-		{
-			LOGGER.error("Failed to move player ["+player.getName()+"]'s level ["+originLevelWrapper.getDhIdentifier()+"] -> ["+destinationLevelWrapper.getDhIdentifier()+"], no loaded server destination level.");
-			return;
-		}
-		
-		AbstractDhServerLevel dhOriginLevel = ((AbstractDhServerLevel) this.getOrLoadServerLevel(originLevelWrapper));
-		if(dhOriginLevel == null)
-		{
-			LOGGER.error("Failed to move player ["+player.getName()+"]'s level ["+originLevelWrapper.getDhIdentifier()+"] -> ["+destinationLevelWrapper.getDhIdentifier()+"], no loaded server destination level.");
-			return;
-		}
-		
-		dhDestinationLevel.addPlayer(player);
-		dhOriginLevel.removePlayer(player);
-	}
-	
 	
 	
 	//================//
